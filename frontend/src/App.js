@@ -13,6 +13,8 @@ import CandidateProfile from '@/pages/CandidateProfile';
 import PostJob from '@/pages/PostJob';
 import MyApplications from '@/pages/MyApplications';
 import ReceivedApplications from '@/pages/ReceivedApplications';
+import AIInterview from '@/pages/AIInterview';
+import MatchedJobs from '@/pages/MatchedJobs';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
