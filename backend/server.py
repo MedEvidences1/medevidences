@@ -715,6 +715,52 @@ async def update_application_status(
     
     return {"message": "Application status updated successfully"}
 
+# Company Contact Routes
+@api_router.post("/company-contact")
+async def submit_company_contact(contact_data: CompanyContactCreate):
+    """Submit company contact form"""
+    contact = CompanyContact(**contact_data.model_dump())
+    contact_dict = contact.model_dump()
+    contact_dict['created_at'] = contact_dict['created_at'].isoformat()
+    
+    await db.company_contacts.insert_one(contact_dict)
+    
+    return {
+        "message": "Thank you for contacting us! Our team will reach out to you within 24 hours.",
+        "contact_id": contact.id
+    }
+
+# Contracts Routes
+@api_router.get("/contracts")
+async def get_contracts(current_user: dict = Depends(get_current_user)):
+    """Get contracts for candidate"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can view contracts")
+    
+    contracts = await db.contracts.find({"candidate_id": current_user['id']}, {"_id": 0}).to_list(100)
+    return contracts
+
+# Offers Routes
+@api_router.get("/offers")
+async def get_offers(current_user: dict = Depends(get_current_user)):
+    """Get offers for candidate"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can view offers")
+    
+    offers = await db.offers.find({"candidate_id": current_user['id']}, {"_id": 0}).to_list(100)
+    
+    # Get job details for each offer
+    result = []
+    for offer in offers:
+        job = await db.jobs.find_one({"id": offer['job_id']}, {"_id": 0})
+        if job:
+            employer_profile = await db.employer_profiles.find_one({"user_id": offer['employer_id']}, {"_id": 0})
+            offer['job_title'] = job['title']
+            offer['company_name'] = employer_profile['company_name'] if employer_profile else 'Unknown'
+            result.append(offer)
+    
+    return result
+
 # AI Interview Routes
 @api_router.get("/interview/questions")
 async def get_interview_questions(specialization: str):
