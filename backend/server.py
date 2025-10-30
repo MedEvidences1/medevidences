@@ -861,6 +861,220 @@ async def get_matched_candidates_for_job(
     
     return {"job_title": job['title'], "matches": matched_candidates}
 
+# Seed Data Endpoint
+@api_router.post("/seed/sample-jobs")
+async def seed_sample_jobs():
+    """Seed database with sample jobs for demonstration"""
+    
+    # Create a demo employer if doesn't exist
+    demo_employer = await db.users.find_one({"email": "demo_employer@medevidences.com"}, {"_id": 0})
+    if not demo_employer:
+        demo_user = User(
+            email="demo_employer@medevidences.com",
+            password_hash=hash_password("demo123"),
+            role="employer",
+            full_name="MedEvidences Demo"
+        )
+        user_dict = demo_user.model_dump()
+        user_dict['created_at'] = user_dict['created_at'].isoformat()
+        await db.users.insert_one(user_dict)
+        demo_employer = demo_user.model_dump()
+        
+        # Create employer profile
+        demo_profile = EmployerProfile(
+            user_id=demo_user.id,
+            company_name="Global Medical Research Center",
+            company_type="Research Institute",
+            description="Leading medical research institution",
+            location="Boston, MA",
+            website="https://example.com"
+        )
+        profile_dict = demo_profile.model_dump()
+        profile_dict['updated_at'] = profile_dict['updated_at'].isoformat()
+        await db.employer_profiles.insert_one(profile_dict)
+    
+    employer_id = demo_employer['id']
+    
+    sample_jobs = [
+        {
+            "title": "Senior Medical Researcher",
+            "category": "Medicine & Medical Research",
+            "description": "We are seeking a Senior Medical Researcher to lead cutting-edge clinical trials and research projects. You will work with a multidisciplinary team to advance medical science and improve patient outcomes.",
+            "requirements": [
+                "PhD in Medical Sciences or related field",
+                "5+ years of clinical research experience",
+                "Experience with FDA regulatory processes",
+                "Strong publication record in peer-reviewed journals"
+            ],
+            "skills_required": ["Clinical Research", "Data Analysis", "Medical Writing", "Statistical Analysis", "Protocol Development"],
+            "location": "Boston, MA (Remote Available)",
+            "job_type": "Full-time",
+            "salary_range": "$120,000 - $160,000",
+            "experience_required": "5+ years"
+        },
+        {
+            "title": "Physician - Internal Medicine",
+            "category": "Doctors/Physicians",
+            "description": "Join our team of dedicated physicians providing comprehensive care. We offer a collaborative environment with the latest medical technology and a focus on patient-centered care.",
+            "requirements": [
+                "MD or DO degree",
+                "Board certified in Internal Medicine",
+                "Valid state medical license",
+                "Excellent communication skills"
+            ],
+            "skills_required": ["Patient Care", "Diagnosis", "Treatment Planning", "EMR Systems", "Medical Procedures"],
+            "location": "New York, NY",
+            "job_type": "Full-time",
+            "salary_range": "$200,000 - $280,000",
+            "experience_required": "3-7 years"
+        },
+        {
+            "title": "Research Scientist - Physics",
+            "category": "Physics",
+            "description": "Exciting opportunity to work on quantum computing research. Collaborate with leading scientists on groundbreaking projects in quantum mechanics and computational physics.",
+            "requirements": [
+                "PhD in Physics or related field",
+                "Experience with quantum mechanics",
+                "Strong mathematical background",
+                "Programming skills (Python, C++)"
+            ],
+            "skills_required": ["Quantum Mechanics", "Python", "C++", "Mathematical Modeling", "Research Methods"],
+            "location": "San Francisco, CA (Remote)",
+            "job_type": "Full-time",
+            "salary_range": "$130,000 - $180,000",
+            "experience_required": "3-5 years"
+        },
+        {
+            "title": "Nutritionist & Dietitian",
+            "category": "Nutrition & Dietetics",
+            "description": "Develop personalized nutrition plans and provide evidence-based dietary guidance. Work with diverse patient populations in a modern healthcare setting.",
+            "requirements": [
+                "Master's degree in Nutrition or Dietetics",
+                "Registered Dietitian Nutritionist (RDN)",
+                "2+ years clinical experience",
+                "Knowledge of current nutrition research"
+            ],
+            "skills_required": ["Nutrition Planning", "Patient Counseling", "Clinical Nutrition", "Health Education", "Meal Planning"],
+            "location": "Los Angeles, CA",
+            "job_type": "Part-time",
+            "salary_range": "$60,000 - $85,000",
+            "experience_required": "2-5 years"
+        },
+        {
+            "title": "Chemistry Professor",
+            "category": "Teaching & Academia",
+            "description": "Tenure-track position for passionate educator and researcher. Teach undergraduate and graduate courses while pursuing innovative research in organic chemistry.",
+            "requirements": [
+                "PhD in Chemistry",
+                "Teaching experience at university level",
+                "Active research program",
+                "Strong publication record"
+            ],
+            "skills_required": ["Teaching", "Organic Chemistry", "Research", "Curriculum Development", "Academic Writing"],
+            "location": "Chicago, IL",
+            "job_type": "Full-time",
+            "salary_range": "$85,000 - $120,000",
+            "experience_required": "3+ years"
+        },
+        {
+            "title": "Behavioral Science Researcher",
+            "category": "Behavioral Science",
+            "description": "Conduct research on human behavior and cognition. Design and implement studies, analyze data, and contribute to publications in top-tier journals.",
+            "requirements": [
+                "PhD in Psychology or Behavioral Science",
+                "Experience with experimental design",
+                "Statistical analysis expertise",
+                "IRB protocol experience"
+            ],
+            "skills_required": ["Research Design", "Statistical Analysis", "SPSS", "Behavioral Analysis", "Academic Writing"],
+            "location": "Remote",
+            "job_type": "Full-time",
+            "salary_range": "$95,000 - $135,000",
+            "experience_required": "2-5 years"
+        },
+        {
+            "title": "Medical Tutor - MCAT Preparation",
+            "category": "Medical Tutoring",
+            "description": "Help aspiring medical students excel in their MCAT preparation. Provide personalized instruction and develop effective study strategies.",
+            "requirements": [
+                "Medical degree (MD/DO) or advanced science degree",
+                "High MCAT score (515+)",
+                "Teaching or tutoring experience",
+                "Excellent communication skills"
+            ],
+            "skills_required": ["Teaching", "MCAT Content", "Test Prep", "Biology", "Chemistry", "Physics"],
+            "location": "Remote",
+            "job_type": "Part-time",
+            "salary_range": "$40 - $80/hour",
+            "experience_required": "1-3 years"
+        },
+        {
+            "title": "Data Scientist - Healthcare Analytics",
+            "category": "Scientific Research",
+            "description": "Apply machine learning and AI to healthcare data. Work on predictive models for patient outcomes and population health management.",
+            "requirements": [
+                "Master's or PhD in Data Science, Statistics, or related field",
+                "3+ years experience in healthcare analytics",
+                "Proficiency in Python and R",
+                "Experience with ML frameworks"
+            ],
+            "skills_required": ["Machine Learning", "Python", "R", "Healthcare Data", "Statistical Modeling", "SQL"],
+            "location": "Seattle, WA (Hybrid)",
+            "job_type": "Full-time",
+            "salary_range": "$140,000 - $190,000",
+            "experience_required": "3-7 years"
+        },
+        {
+            "title": "Medical Consultant - Healthcare Strategy",
+            "category": "Consulting",
+            "description": "Provide strategic guidance to healthcare organizations. Analyze operations, develop improvement strategies, and drive organizational change.",
+            "requirements": [
+                "MBA or advanced healthcare degree",
+                "5+ years healthcare consulting experience",
+                "Strong analytical and presentation skills",
+                "Knowledge of healthcare regulations"
+            ],
+            "skills_required": ["Strategy", "Healthcare Operations", "Business Analysis", "Project Management", "Stakeholder Management"],
+            "location": "Washington, DC",
+            "job_type": "Full-time",
+            "salary_range": "$110,000 - $160,000",
+            "experience_required": "5+ years"
+        },
+        {
+            "title": "Mathematics Professor - Applied Math",
+            "category": "Mathematics",
+            "description": "Join our mathematics department to teach and conduct research in applied mathematics. Focus on mathematical modeling and computational methods.",
+            "requirements": [
+                "PhD in Mathematics",
+                "Research experience in applied mathematics",
+                "University teaching experience",
+                "Grant writing experience preferred"
+            ],
+            "skills_required": ["Applied Mathematics", "Mathematical Modeling", "Teaching", "Research", "MATLAB", "Python"],
+            "location": "Austin, TX",
+            "job_type": "Full-time",
+            "salary_range": "$90,000 - $130,000",
+            "experience_required": "3-5 years"
+        }
+    ]
+    
+    # Insert jobs
+    inserted_count = 0
+    for job_data in sample_jobs:
+        # Check if similar job already exists
+        existing = await db.jobs.find_one({"title": job_data["title"]}, {"_id": 0})
+        if not existing:
+            job = Job(employer_id=employer_id, **job_data)
+            job_dict = job.model_dump()
+            job_dict['posted_at'] = job_dict['posted_at'].isoformat()
+            await db.jobs.insert_one(job_dict)
+            inserted_count += 1
+    
+    return {
+        "message": f"Successfully seeded {inserted_count} sample jobs",
+        "total": len(sample_jobs)
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
