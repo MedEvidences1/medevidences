@@ -182,6 +182,59 @@ function LandingPage({ user, onLogout }) {
         </div>
       </section>
 
+      {/* Featured Jobs Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h3 className="text-3xl font-bold" data-testid="featured-jobs-title">Featured Opportunities</h3>
+              <p className="text-gray-600 mt-2">Discover top positions in medical and scientific fields</p>
+            </div>
+            <Link to="/jobs">
+              <Button variant="outline" data-testid="view-all-jobs">View All Jobs</Button>
+            </Link>
+          </div>
+          
+          {featuredJobs.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="featured-jobs-grid">
+              {featuredJobs.map((job) => (
+                <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(`/jobs/${job.id}`)} data-testid={`featured-job-${job.id}`}>
+                  <CardHeader>
+                    <CardTitle className="text-lg mb-2">{job.title}</CardTitle>
+                    <CardDescription className="flex items-center text-sm">
+                      <Building2 className="w-4 h-4 mr-1" />
+                      {job.company_name || 'MedEvidences Partner'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        {job.job_type}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        {job.location}
+                      </div>
+                      <Badge variant="secondary" className="text-xs">{job.category}</Badge>
+                      {job.salary_range && (
+                        <p className="text-sm font-semibold text-green-600">{job.salary_range}</p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg" data-testid="no-jobs-message">
+              <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No jobs available at the moment</p>
+              <p className="text-sm text-gray-400">Check back soon for new opportunities</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Categories Section */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
