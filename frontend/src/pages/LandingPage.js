@@ -23,7 +23,21 @@ const JOB_CATEGORIES = [
 function LandingPage({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [featuredJobs, setFeaturedJobs] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchFeaturedJobs();
+  }, []);
+
+  const fetchFeaturedJobs = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/jobs`);
+      setFeaturedJobs(response.data.slice(0, 6)); // Show top 6 jobs
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+    }
+  };
 
   const handleSearch = () => {
     navigate(`/jobs?search=${searchQuery}&category=${selectedCategory}`);
