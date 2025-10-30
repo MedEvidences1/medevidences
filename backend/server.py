@@ -847,7 +847,16 @@ async def get_interview_questions(specialization: str):
     }
     
     questions = questions_map.get(specialization, questions_map["default"])
-    total_duration = sum([int(q['duration'].split('-')[0]) for q in questions])
+    
+    # Calculate total duration (extract numbers from duration strings)
+    total_duration = 0
+    for q in questions:
+        duration_str = q['duration'].split('-')[0].strip()
+        # Extract first number from string like "3-5 minutes" or "2 minutes"
+        import re
+        numbers = re.findall(r'\d+', duration_str)
+        if numbers:
+            total_duration += int(numbers[0])
     
     return {
         "questions": questions,
