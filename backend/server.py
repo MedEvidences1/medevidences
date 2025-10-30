@@ -426,12 +426,25 @@ async def create_candidate_profile(
     if existing_profile:
         raise HTTPException(status_code=400, detail="Profile already exists")
     
-    profile = CandidateProfile(user_id=current_user['id'], **profile_data.model_dump())
-    profile_dict = profile.model_dump()
-    profile_dict['updated_at'] = profile_dict['updated_at'].isoformat()
+    profile_dict = profile_data.model_dump()
+    profile_dict['user_id'] = current_user['id']
+    profile_dict['full_name'] = current_user.get('full_name', '')
+    profile_dict['email'] = current_user.get('email', '')
+    profile_dict['id'] = str(uuid.uuid4())
+    profile_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    profile_dict['interview_completed'] = False
+    profile_dict['interview_score'] = None
+    profile_dict['ai_vetting_score'] = None
+    profile_dict['ai_recommendation'] = None
+    profile_dict['profile_searchable'] = True
+    profile_dict['referral_code'] = None
+    profile_dict['total_earnings'] = 0.0
     
     await db.candidate_profiles.insert_one(profile_dict)
-    return profile
+    
+    # Return with datetime object
+    profile_dict['updated_at'] = datetime.fromisoformat(profile_dict['updated_at'])
+    return CandidateProfile(**profile_dict)
 
 @api_router.get("/candidates/profile", response_model=CandidateProfile)
 async def get_my_candidate_profile(current_user: dict = Depends(get_current_user)):
