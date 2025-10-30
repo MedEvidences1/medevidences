@@ -162,6 +162,21 @@ class Job(BaseModel):
     job_type: str  # Full-time, Part-time, Contract, Remote
     salary_range: Optional[str] = None
     experience_required: str
+    # New detailed fields
+    role_overview: str
+    specific_tasks: List[str]
+    education_requirements: str
+    knowledge_areas: List[str]
+    communication_skills: str = "Excellent communication required"
+    responsiveness_required: bool = True
+    independent_work: bool = True
+    ai_understanding: bool = False
+    english_proficiency: str = "High proficiency required"
+    work_type: str  # Remote, Hybrid, On-site
+    schedule_commitment: str
+    compensation_details: str
+    terms_conditions: str
+    project_summary: str
     posted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: str = "active"  # active, closed
 
@@ -175,6 +190,20 @@ class JobCreate(BaseModel):
     job_type: str
     salary_range: Optional[str] = None
     experience_required: str
+    role_overview: str
+    specific_tasks: List[str]
+    education_requirements: str
+    knowledge_areas: List[str]
+    communication_skills: str = "Excellent communication required"
+    responsiveness_required: bool = True
+    independent_work: bool = True
+    ai_understanding: bool = False
+    english_proficiency: str = "High proficiency required"
+    work_type: str
+    schedule_commitment: str
+    compensation_details: str
+    terms_conditions: str
+    project_summary: str
 
 class Application(BaseModel):
     model_config = ConfigDict(extra="ignore")
