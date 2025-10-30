@@ -4,7 +4,7 @@ import '@/App.css';
 import LandingPage from '@/pages/LandingPage';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
-import CandidateDashboard from '@/pages/CandidateDashboard';
+import CandidateDashboard from '@/pages/CandidateDashboardNew';
 import EmployerDashboard from '@/pages/EmployerDashboard';
 import BrowseJobs from '@/pages/BrowseJobs';
 import JobDetails from '@/pages/JobDetails';
@@ -15,6 +15,7 @@ import MyApplications from '@/pages/MyApplications';
 import ReceivedApplications from '@/pages/ReceivedApplications';
 import AIInterview from '@/pages/AIInterview';
 import MatchedJobs from '@/pages/MatchedJobs';
+import Settings from '@/pages/Settings';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
