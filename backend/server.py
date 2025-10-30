@@ -225,8 +225,14 @@ class AIInterview(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     candidate_id: str
     specialization: str
-    questions: List[dict]  # [{"question": "...", "answer": "...", "score": 0-10}]
+    questions: List[dict]  # [{"question": "...", "answer": "...", "score": 0-10, "analysis": "..."}]
     overall_score: float
+    transcript: str  # Full interview transcript
+    performance_analysis: dict  # {"communication": 0-10, "technical": 0-10, "problem_solving": 0-10}
+    ai_vetting_score: float  # Overall AI vetting score
+    strengths: List[str]
+    areas_for_improvement: List[str]
+    recommendation: str  # "Highly Recommended", "Recommended", "Consider with caution"
     completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class AIInterviewCreate(BaseModel):
