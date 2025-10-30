@@ -646,6 +646,221 @@ async def update_application_status(
     
     return {"message": "Application status updated successfully"}
 
+# AI Interview Routes
+@api_router.get("/interview/questions")
+async def get_interview_questions(specialization: str):
+    """Generate AI interview questions based on specialization"""
+    questions_map = {
+        "Doctors/Physicians": [
+            {"id": 1, "question": "Describe your experience with patient care and diagnosis. What approach do you take when dealing with complex cases?"},
+            {"id": 2, "question": "How do you stay updated with the latest medical research and treatment protocols?"},
+            {"id": 3, "question": "Tell us about a challenging case you handled and how you approached it."},
+            {"id": 4, "question": "How do you handle high-pressure situations in emergency scenarios?"},
+            {"id": 5, "question": "What is your experience with electronic health records and medical technology?"}
+        ],
+        "Medicine & Medical Research": [
+            {"id": 1, "question": "Describe your research experience and methodologies you're proficient in."},
+            {"id": 2, "question": "What are your key findings or contributions to medical research?"},
+            {"id": 3, "question": "How do you approach experimental design and data analysis?"},
+            {"id": 4, "question": "Describe your experience with clinical trials or research protocols."},
+            {"id": 5, "question": "How do you collaborate with multidisciplinary research teams?"}
+        ],
+        "Scientific Research": [
+            {"id": 1, "question": "What research methodologies are you most experienced with?"},
+            {"id": 2, "question": "Describe a significant research project you've led or contributed to."},
+            {"id": 3, "question": "How do you approach data analysis and interpretation?"},
+            {"id": 4, "question": "What statistical tools and software are you proficient in?"},
+            {"id": 5, "question": "How do you handle unexpected results or setbacks in research?"}
+        ],
+        "default": [
+            {"id": 1, "question": "Describe your professional experience in your field of expertise."},
+            {"id": 2, "question": "What are your key skills and how have you applied them?"},
+            {"id": 3, "question": "Tell us about a challenging project and how you overcame obstacles."},
+            {"id": 4, "question": "How do you stay current with developments in your field?"},
+            {"id": 5, "question": "What motivates you in your professional career?"}
+        ]
+    }
+    
+    questions = questions_map.get(specialization, questions_map["default"])
+    return {"questions": questions}
+
+@api_router.post("/interview/submit", response_model=AIInterview)
+async def submit_interview(
+    interview_data: AIInterviewCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Submit AI interview responses"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can submit interviews")
+    
+    # Calculate overall score (simple average for MVP)
+    total_score = sum(q.get('score', 0) for q in interview_data.questions)
+    overall_score = total_score / len(interview_data.questions) if interview_data.questions else 0
+    
+    interview = AIInterview(
+        candidate_id=current_user['id'],
+        specialization=interview_data.specialization,
+        questions=interview_data.questions,
+        overall_score=overall_score
+    )
+    
+    interview_dict = interview.model_dump()
+    interview_dict['completed_at'] = interview_dict['completed_at'].isoformat()
+    
+    await db.ai_interviews.insert_one(interview_dict)
+    
+    # Update candidate profile
+    await db.candidate_profiles.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {
+            "interview_completed": True,
+            "interview_score": overall_score
+        }}
+    )
+    
+    return interview
+
+@api_router.get("/interview/status")
+async def get_interview_status(current_user: dict = Depends(get_current_user)):
+    """Check if candidate has completed interview"""
+    profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not profile:
+        return {"completed": False, "score": None}
+    
+    return {
+        "completed": profile.get("interview_completed", False),
+        "score": profile.get("interview_score")
+    }
+
+# AI Job Matching Routes
+@api_router.get("/matching/jobs", response_model=List[JobMatch])
+async def get_matched_jobs(current_user: dict = Depends(get_current_user)):
+    """Get AI-matched jobs for candidate"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can get matched jobs")
+    
+    # Get candidate profile
+    profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Please complete your profile first")
+    
+    # Get all active jobs
+    jobs = await db.jobs.find({"status": "active"}, {"_id": 0}).to_list(100)
+    
+    matched_jobs = []
+    for job in jobs:
+        # Calculate match percentage
+        match_data = calculate_job_match(profile, job)
+        if match_data['match_percentage'] >= 30:  # Only show jobs with 30%+ match
+            employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
+            match_data['company_name'] = employer_profile['company_name'] if employer_profile else 'Unknown'
+            matched_jobs.append(match_data)
+    
+    # Sort by match percentage
+    matched_jobs.sort(key=lambda x: x['match_percentage'], reverse=True)
+    
+    return matched_jobs
+
+def calculate_job_match(candidate_profile: dict, job: dict) -> dict:
+    """Calculate match percentage between candidate and job"""
+    match_percentage = 0
+    match_reasons = []
+    matched_skills = []
+    missing_skills = []
+    
+    candidate_skills = set(s.lower() for s in candidate_profile.get('skills', []))
+    job_skills = set(s.lower() for s in job.get('skills_required', []))
+    
+    # Skills match (50% weight)
+    if job_skills:
+        common_skills = candidate_skills.intersection(job_skills)
+        skills_match = (len(common_skills) / len(job_skills)) * 50
+        match_percentage += skills_match
+        matched_skills = list(common_skills)
+        missing_skills = list(job_skills - candidate_skills)
+        
+        if skills_match > 25:
+            match_reasons.append(f"Strong skills match ({int(skills_match*2)}%)")
+    
+    # Specialization match (30% weight)
+    if candidate_profile.get('specialization') == job.get('category'):
+        match_percentage += 30
+        match_reasons.append("Perfect specialization match")
+    
+    # Experience match (20% weight)
+    exp_required = job.get('experience_required', '').lower()
+    candidate_exp = candidate_profile.get('experience_years', 0)
+    
+    if 'entry' in exp_required or '0-2' in exp_required:
+        if candidate_exp <= 3:
+            match_percentage += 20
+            match_reasons.append("Experience level matches")
+    elif '3-5' in exp_required or 'mid' in exp_required:
+        if 2 <= candidate_exp <= 7:
+            match_percentage += 20
+            match_reasons.append("Experience level matches")
+    elif '5+' in exp_required or 'senior' in exp_required:
+        if candidate_exp >= 5:
+            match_percentage += 20
+            match_reasons.append("Senior level experience")
+    
+    # Interview bonus
+    if candidate_profile.get('interview_completed'):
+        interview_score = candidate_profile.get('interview_score', 0)
+        if interview_score >= 7:
+            match_reasons.append("Strong interview performance")
+    
+    if not match_reasons:
+        match_reasons.append("Basic qualification match")
+    
+    return {
+        "job_id": job['id'],
+        "job_title": job['title'],
+        "company_name": "",  # Will be filled by caller
+        "match_percentage": round(match_percentage, 1),
+        "matched_skills": matched_skills,
+        "missing_skills": missing_skills,
+        "match_reasons": match_reasons
+    }
+
+@api_router.get("/matching/candidates-for-job/{job_id}")
+async def get_matched_candidates_for_job(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get AI-matched candidates for a specific job"""
+    if current_user['role'] != UserRole.EMPLOYER:
+        raise HTTPException(status_code=403, detail="Only employers can access this")
+    
+    # Get job
+    job = await db.jobs.find_one({"id": job_id, "employer_id": current_user['id']}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get all candidates
+    candidates = await db.candidate_profiles.find({}, {"_id": 0}).to_list(100)
+    
+    matched_candidates = []
+    for candidate in candidates:
+        match_data = calculate_job_match(candidate, job)
+        if match_data['match_percentage'] >= 30:
+            user = await db.users.find_one({"id": candidate['user_id']}, {"_id": 0})
+            if user:
+                matched_candidates.append({
+                    "candidate_id": candidate['user_id'],
+                    "candidate_name": user['full_name'],
+                    "specialization": candidate['specialization'],
+                    "experience_years": candidate['experience_years'],
+                    "match_percentage": match_data['match_percentage'],
+                    "matched_skills": match_data['matched_skills'],
+                    "match_reasons": match_data['match_reasons']
+                })
+    
+    # Sort by match percentage
+    matched_candidates.sort(key=lambda x: x['match_percentage'], reverse=True)
+    
+    return {"job_title": job['title'], "matches": matched_candidates}
+
 # Include the router in the main app
 app.include_router(api_router)
 
