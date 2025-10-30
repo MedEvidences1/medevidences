@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { Briefcase, Users, TrendingUp, CheckCircle, Search, Mail, Building2, Headphones, BookOpen, MapPin } from 'lucide-react';
 import axios from 'axios';
 
