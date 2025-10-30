@@ -213,6 +213,65 @@ class JobMatch(BaseModel):
     missing_skills: List[str]
     match_reasons: List[str]
 
+class Contract(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    employer_id: str
+    job_id: str
+    title: str
+    description: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    salary: str
+    status: str = "pending"  # pending, active, completed, terminated
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Offer(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    employer_id: str
+    job_id: str
+    title: str
+    salary: str
+    perks: List[str] = []
+    start_date: Optional[str] = None
+    contract_duration: Optional[str] = None
+    status: str = "pending"  # pending, accepted, rejected, withdrawn
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CompanyContact(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    company_name: str
+    contact_email: str
+    contact_name: Optional[str] = None
+    looking_for: str
+    role: str
+    contract_timeframe: str
+    pay_offer: str
+    perks: str
+    requirements: str
+    application_deadline: Optional[str] = None
+    process: str
+    incentives: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CompanyContactCreate(BaseModel):
+    company_name: str
+    contact_email: EmailStr
+    contact_name: Optional[str] = None
+    looking_for: str
+    role: str
+    contract_timeframe: str
+    pay_offer: str
+    perks: str
+    requirements: str
+    application_deadline: Optional[str] = None
+    process: str
+    incentives: Optional[str] = None
+
 # ============= Helper Functions =============
 
 def hash_password(password: str) -> str:
