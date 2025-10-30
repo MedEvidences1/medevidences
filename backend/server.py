@@ -318,6 +318,52 @@ class CompanyContactCreate(BaseModel):
     process: str
     incentives: Optional[str] = None
 
+class EmailNotification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    to_email: EmailStr
+    subject: str
+    content: str
+    notification_type: str  # application_received, status_change, new_job, etc.
+    sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    status: str = "pending"  # pending, sent, failed
+
+class StripePayment(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employer_id: str
+    amount: float
+    currency: str = "usd"
+    payment_type: str  # job_posting, subscription, success_fee
+    job_id: Optional[str] = None
+    stripe_payment_intent_id: Optional[str] = None
+    status: str = "pending"  # pending, completed, failed
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SubscriptionPlan(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employer_id: str
+    plan_type: str  # basic, premium
+    stripe_subscription_id: Optional[str] = None
+    status: str = "active"  # active, cancelled, expired
+    starts_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    ends_at: datetime
+    auto_renew: bool = True
+
+class SuccessFee(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    employer_id: str
+    candidate_id: str
+    job_id: str
+    annual_salary: float
+    fee_percentage: float = 10.0
+    fee_amount: float
+    status: str = "pending"  # pending, invoiced, paid, disputed
+    hire_confirmed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    payment_due_date: datetime
+
 # ============= Helper Functions =============
 
 def hash_password(password: str) -> str:
