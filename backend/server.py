@@ -27,6 +27,14 @@ security = HTTPBearer()
 SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
 ALGORITHM = "HS256"
 
+# Session model for Google OAuth
+class Session(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    session_token: str
+    expires_at: datetime
+
 # Create the main app without a prefix
 app = FastAPI()
 
