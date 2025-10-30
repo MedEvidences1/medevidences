@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Briefcase, Users, TrendingUp, CheckCircle, Search, Mail, Building2, Headphones, BookOpen } from 'lucide-react';
+import { Briefcase, Users, TrendingUp, CheckCircle, Search, Mail, Building2, Headphones, BookOpen, MapPin } from 'lucide-react';
+import axios from 'axios';
 
 const JOB_CATEGORIES = [
   'Doctors/Physicians',
