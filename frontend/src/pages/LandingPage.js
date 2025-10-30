@@ -305,22 +305,6 @@ function LandingPage({ user, onLogout }) {
         </div>
       </section>
 
-      {/* Company Contact Section - Get in Touch */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-4xl font-bold text-white mb-4">For Companies: Get in Touch</h3>
-            <p className="text-xl text-blue-100">Tell us about your hiring needs and we'll find the perfect talent</p>
-          </div>
-
-          <Card className="bg-white/95 backdrop-blur">
-            <CardContent className="pt-6">
-              <CompanyContactForm />
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
