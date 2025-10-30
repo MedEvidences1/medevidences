@@ -148,6 +148,25 @@ function CandidateDashboard({ user, onLogout }) {
           <p className="text-gray-600 mt-2" data-testid="welcome-message">Welcome back, {user.full_name}!</p>
         </div>
 
+        {/* AI Interview Banner */}
+        {!profile?.interview_completed && (
+          <Card className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">Complete Your AI Interview</h3>
+                  <p className="text-blue-100 mb-4">Get AI-vetted and increase your chances of getting hired by 10x!</p>
+                  <Link to="/ai-interview">
+                    <Button size="lg" variant="secondary">
+                      Start AI Interview (15-30 min)
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card data-testid="profile-card">
           <CardHeader>
             <div className="flex justify-between items-center">
