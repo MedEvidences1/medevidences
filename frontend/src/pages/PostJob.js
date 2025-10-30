@@ -137,6 +137,9 @@ function PostJob({ user, onLogout }) {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
+          <div className="bg-blue-100 border-l-4 border-blue-600 p-4 mb-4">
+            <p className="text-blue-800 font-semibold">FOR EMPLOYERS: Post Job Page</p>
+          </div>
           <h2 className="text-3xl font-bold text-gray-900 flex items-center" data-testid="page-title">
             <Briefcase className="w-8 h-8 mr-3 text-blue-600" />
             Post a New Position
