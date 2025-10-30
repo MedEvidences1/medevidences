@@ -106,6 +106,9 @@ class CandidateProfile(BaseModel):
     salary_expectation: Optional[str] = None
     interview_completed: bool = False
     interview_score: Optional[float] = None
+    ai_vetting_score: Optional[float] = None
+    ai_recommendation: Optional[str] = None
+    profile_searchable: bool = True
     referral_code: Optional[str] = None
     total_earnings: float = 0.0
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
