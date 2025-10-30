@@ -181,6 +181,28 @@ class ApplicationCreate(BaseModel):
     job_id: str
     cover_letter: Optional[str] = None
 
+class AIInterview(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    specialization: str
+    questions: List[dict]  # [{"question": "...", "answer": "...", "score": 0-10}]
+    overall_score: float
+    completed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class AIInterviewCreate(BaseModel):
+    specialization: str
+    questions: List[dict]
+
+class JobMatch(BaseModel):
+    job_id: str
+    job_title: str
+    company_name: str
+    match_percentage: float
+    matched_skills: List[str]
+    missing_skills: List[str]
+    match_reasons: List[str]
+
 # ============= Helper Functions =============
 
 def hash_password(password: str) -> str:
