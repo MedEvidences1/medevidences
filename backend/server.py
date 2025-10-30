@@ -87,12 +87,20 @@ class CandidateProfile(BaseModel):
     skills: List[str] = []
     education: str
     bio: Optional[str] = None
+    country: Optional[str] = None
+    region: Optional[str] = None
     location: Optional[str] = None
     cv_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    github_url: Optional[str] = None
+    other_links: List[str] = []
     publications: List[str] = []
     certifications: List[str] = []
     availability: str = "Full-time"
     salary_expectation: Optional[str] = None
+    interview_completed: bool = False
+    interview_score: Optional[float] = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CandidateProfileCreate(BaseModel):
@@ -101,7 +109,13 @@ class CandidateProfileCreate(BaseModel):
     skills: List[str]
     education: str
     bio: Optional[str] = None
+    country: Optional[str] = None
+    region: Optional[str] = None
     location: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    github_url: Optional[str] = None
+    other_links: List[str] = []
     publications: List[str] = []
     certifications: List[str] = []
     availability: str = "Full-time"
