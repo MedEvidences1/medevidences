@@ -122,6 +122,10 @@ function App() {
           path="/matched-jobs"
           element={user && user.role === 'candidate' ? <MatchedJobs user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/settings"
+          element={user && user.role === 'candidate' ? <Settings user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
       </Routes>
     </BrowserRouter>
   );
