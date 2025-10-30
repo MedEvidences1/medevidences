@@ -799,59 +799,165 @@ async def get_offers(current_user: dict = Depends(get_current_user)):
 # AI Interview Routes
 @api_router.get("/interview/questions")
 async def get_interview_questions(specialization: str):
-    """Generate AI interview questions based on specialization"""
+    """Generate comprehensive AI interview questions based on specialization"""
     questions_map = {
         "Doctors/Physicians": [
-            {"id": 1, "question": "Describe your experience with patient care and diagnosis. What approach do you take when dealing with complex cases?"},
-            {"id": 2, "question": "How do you stay updated with the latest medical research and treatment protocols?"},
-            {"id": 3, "question": "Tell us about a challenging case you handled and how you approached it."},
-            {"id": 4, "question": "How do you handle high-pressure situations in emergency scenarios?"},
-            {"id": 5, "question": "What is your experience with electronic health records and medical technology?"}
+            {"id": 1, "question": "Describe a complex medical case you diagnosed and treated. Walk me through your thought process, differential diagnosis, and treatment approach. How did you handle any complications?", "duration": "3-5 minutes"},
+            {"id": 2, "question": "Explain how you stay current with medical research and new treatment protocols. Give specific examples of how you've implemented recent evidence-based practices in your work.", "duration": "2-3 minutes"},
+            {"id": 3, "question": "Tell me about a time when you had to deliver difficult news to a patient or their family. How did you approach the situation, and what was the outcome?", "duration": "2-3 minutes"},
+            {"id": 4, "question": "Describe your experience working in high-pressure emergency situations. How do you prioritize multiple critical patients?", "duration": "2-3 minutes"},
+            {"id": 5, "question": "Discuss your proficiency with electronic health records and medical technology. What systems have you used, and how do you ensure accuracy?", "duration": "2 minutes"},
+            {"id": 6, "question": "Explain a situation where you collaborated with other healthcare professionals to improve patient outcomes. What was your role?", "duration": "2-3 minutes"},
+            {"id": 7, "question": "How do you handle disagreements with colleagues about patient care? Give a specific example.", "duration": "2-3 minutes"},
+            {"id": 8, "question": "Describe your communication style with patients. How do you ensure they understand complex medical information?", "duration": "2-3 minutes"}
         ],
         "Medicine & Medical Research": [
-            {"id": 1, "question": "Describe your research experience and methodologies you're proficient in."},
-            {"id": 2, "question": "What are your key findings or contributions to medical research?"},
-            {"id": 3, "question": "How do you approach experimental design and data analysis?"},
-            {"id": 4, "question": "Describe your experience with clinical trials or research protocols."},
-            {"id": 5, "question": "How do you collaborate with multidisciplinary research teams?"}
+            {"id": 1, "question": "Describe your most significant research project in detail. Include your hypothesis, methodology, challenges faced, and key findings. How did your work contribute to the field?", "duration": "4-5 minutes"},
+            {"id": 2, "question": "Explain your experience with research methodologies and statistical analysis. What tools and techniques do you use regularly?", "duration": "3-4 minutes"},
+            {"id": 3, "question": "Walk me through your process for designing a clinical trial. How do you ensure ethical compliance and data integrity?", "duration": "3-4 minutes"},
+            {"id": 4, "question": "Describe your publication record and impact. What journals have you published in, and what was the reception of your work?", "duration": "2-3 minutes"},
+            {"id": 5, "question": "How do you collaborate with multidisciplinary research teams? Give examples of successful collaborations.", "duration": "2-3 minutes"},
+            {"id": 6, "question": "Explain how you handle unexpected results or failures in research. Provide a specific example.", "duration": "2-3 minutes"},
+            {"id": 7, "question": "Discuss your experience with grant writing and securing research funding. What has been your success rate?", "duration": "2-3 minutes"},
+            {"id": 8, "question": "How do you ensure reproducibility and transparency in your research work?", "duration": "2 minutes"}
         ],
         "Scientific Research": [
-            {"id": 1, "question": "What research methodologies are you most experienced with?"},
-            {"id": 2, "question": "Describe a significant research project you've led or contributed to."},
-            {"id": 3, "question": "How do you approach data analysis and interpretation?"},
-            {"id": 4, "question": "What statistical tools and software are you proficient in?"},
-            {"id": 5, "question": "How do you handle unexpected results or setbacks in research?"}
+            {"id": 1, "question": "Describe your research expertise and the most impactful project you've worked on. Include methodology, challenges, and outcomes.", "duration": "4-5 minutes"},
+            {"id": 2, "question": "Explain your proficiency with data analysis tools and statistical software. Walk me through a complex analysis you've performed.", "duration": "3-4 minutes"},
+            {"id": 3, "question": "How do you approach experimental design? Describe your process from hypothesis to conclusion.", "duration": "3-4 minutes"},
+            {"id": 4, "question": "Discuss your experience presenting research findings. How do you communicate complex concepts to different audiences?", "duration": "2-3 minutes"},
+            {"id": 5, "question": "Describe a time when your research faced significant setbacks. How did you adapt and move forward?", "duration": "2-3 minutes"},
+            {"id": 6, "question": "Explain your experience with peer review process, both as an author and reviewer.", "duration": "2 minutes"},
+            {"id": 7, "question": "How do you stay current with developments in your field? What resources do you rely on?", "duration": "2 minutes"},
+            {"id": 8, "question": "Describe your experience working independently versus in teams. Which do you prefer and why?", "duration": "2-3 minutes"}
         ],
         "default": [
-            {"id": 1, "question": "Describe your professional experience in your field of expertise."},
-            {"id": 2, "question": "What are your key skills and how have you applied them?"},
-            {"id": 3, "question": "Tell us about a challenging project and how you overcame obstacles."},
-            {"id": 4, "question": "How do you stay current with developments in your field?"},
-            {"id": 5, "question": "What motivates you in your professional career?"}
+            {"id": 1, "question": "Describe your professional background in detail. Include your education, key experiences, and major accomplishments in your field.", "duration": "4-5 minutes"},
+            {"id": 2, "question": "What are your core technical skills and areas of expertise? Provide specific examples of how you've applied them.", "duration": "3-4 minutes"},
+            {"id": 3, "question": "Tell me about your most challenging project. What was the problem, your approach, and the outcome?", "duration": "3-4 minutes"},
+            {"id": 4, "question": "How do you stay updated with developments in your field? What resources do you use?", "duration": "2-3 minutes"},
+            {"id": 5, "question": "Describe your communication style and how you work with others. Give specific examples.", "duration": "2-3 minutes"},
+            {"id": 6, "question": "How do you handle tight deadlines and multiple priorities? Share a relevant experience.", "duration": "2-3 minutes"},
+            {"id": 7, "question": "Explain your experience working independently on complex tasks. How do you ensure quality?", "duration": "2-3 minutes"},
+            {"id": 8, "question": "What motivates you professionally, and what are your career goals for the next 3-5 years?", "duration": "2-3 minutes"}
         ]
     }
     
     questions = questions_map.get(specialization, questions_map["default"])
-    return {"questions": questions}
+    total_duration = sum([int(q['duration'].split('-')[0]) for q in questions])
+    
+    return {
+        "questions": questions,
+        "total_duration_minutes": f"{total_duration}-{total_duration + len(questions)*2}",
+        "instructions": "Please answer each question thoroughly. Your responses should be detailed and provide specific examples. The AI will analyze your communication skills, technical knowledge, and problem-solving abilities."
+    }
 
 @api_router.post("/interview/submit", response_model=AIInterview)
 async def submit_interview(
     interview_data: AIInterviewCreate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Submit AI interview responses"""
+    """Submit AI interview responses with comprehensive analysis"""
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can submit interviews")
     
-    # Calculate overall score (simple average for MVP)
-    total_score = sum(q.get('score', 0) for q in interview_data.questions)
+    # Analyze each response (in production, would use actual AI)
+    analyzed_questions = []
+    total_score = 0
+    communication_scores = []
+    technical_scores = []
+    problem_solving_scores = []
+    
+    for q in interview_data.questions:
+        answer_length = len(q.get('answer', ''))
+        # Simple analysis (in production, use actual AI/NLP)
+        score = q.get('score', 7)
+        
+        # Analyze different aspects
+        comm_score = min(10, answer_length / 50)  # Communication based on detail
+        tech_score = score
+        ps_score = min(10, answer_length / 40)
+        
+        communication_scores.append(comm_score)
+        technical_scores.append(tech_score)
+        problem_solving_scores.append(ps_score)
+        
+        analysis = f"Good understanding demonstrated. "
+        if answer_length > 200:
+            analysis += "Excellent detail and examples provided. "
+        if score >= 8:
+            analysis += "Strong technical knowledge shown."
+        
+        analyzed_questions.append({
+            "question": q['question'],
+            "answer": q['answer'],
+            "score": score,
+            "analysis": analysis
+        })
+        total_score += score
+    
     overall_score = total_score / len(interview_data.questions) if interview_data.questions else 0
+    
+    # Performance analysis
+    performance_analysis = {
+        "communication": round(sum(communication_scores) / len(communication_scores), 1),
+        "technical": round(sum(technical_scores) / len(technical_scores), 1),
+        "problem_solving": round(sum(problem_solving_scores) / len(problem_solving_scores), 1)
+    }
+    
+    # AI vetting score (weighted average)
+    ai_vetting_score = (
+        performance_analysis['communication'] * 0.3 +
+        performance_analysis['technical'] * 0.4 +
+        performance_analysis['problem_solving'] * 0.3
+    )
+    
+    # Determine strengths and areas for improvement
+    strengths = []
+    improvements = []
+    
+    if performance_analysis['communication'] >= 8:
+        strengths.append("Excellent communication skills")
+    elif performance_analysis['communication'] < 6:
+        improvements.append("Communication clarity")
+    
+    if performance_analysis['technical'] >= 8:
+        strengths.append("Strong technical expertise")
+    elif performance_analysis['technical'] < 6:
+        improvements.append("Technical depth")
+    
+    if performance_analysis['problem_solving'] >= 8:
+        strengths.append("Exceptional problem-solving abilities")
+    elif performance_analysis['problem_solving'] < 6:
+        improvements.append("Problem-solving approach")
+    
+    # Recommendation
+    if ai_vetting_score >= 8:
+        recommendation = "Highly Recommended - Exceptional candidate"
+    elif ai_vetting_score >= 7:
+        recommendation = "Recommended - Strong candidate"
+    elif ai_vetting_score >= 6:
+        recommendation = "Recommended - Good potential"
+    else:
+        recommendation = "Consider with caution - Additional evaluation needed"
+    
+    # Create transcript
+    transcript = "\n\n".join([
+        f"Q: {q['question']}\nA: {q['answer']}\nScore: {q['score']}/10"
+        for q in analyzed_questions
+    ])
     
     interview = AIInterview(
         candidate_id=current_user['id'],
         specialization=interview_data.specialization,
-        questions=interview_data.questions,
-        overall_score=overall_score
+        questions=analyzed_questions,
+        overall_score=round(overall_score, 1),
+        transcript=transcript,
+        performance_analysis=performance_analysis,
+        ai_vetting_score=round(ai_vetting_score, 1),
+        strengths=strengths if strengths else ["Solid foundation"],
+        areas_for_improvement=improvements if improvements else ["Continue developing expertise"],
+        recommendation=recommendation
     )
     
     interview_dict = interview.model_dump()
@@ -864,7 +970,9 @@ async def submit_interview(
         {"user_id": current_user['id']},
         {"$set": {
             "interview_completed": True,
-            "interview_score": overall_score
+            "interview_score": overall_score,
+            "ai_vetting_score": ai_vetting_score,
+            "ai_recommendation": recommendation
         }}
     )
     
@@ -872,14 +980,22 @@ async def submit_interview(
 
 @api_router.get("/interview/status")
 async def get_interview_status(current_user: dict = Depends(get_current_user)):
-    """Check if candidate has completed interview"""
+    """Check if candidate has completed interview and get results"""
     profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
     if not profile:
         return {"completed": False, "score": None}
     
+    # Get full interview details
+    interview = await db.ai_interviews.find_one({"candidate_id": current_user['id']}, {"_id": 0})
+    
     return {
         "completed": profile.get("interview_completed", False),
-        "score": profile.get("interview_score")
+        "score": profile.get("interview_score"),
+        "ai_vetting_score": profile.get("ai_vetting_score"),
+        "recommendation": profile.get("ai_recommendation"),
+        "performance_analysis": interview.get("performance_analysis") if interview else None,
+        "strengths": interview.get("strengths") if interview else None,
+        "areas_for_improvement": interview.get("areas_for_improvement") if interview else None
     }
 
 # AI Job Matching Routes
