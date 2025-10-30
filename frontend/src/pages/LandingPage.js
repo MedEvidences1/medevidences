@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Users, TrendingUp, CheckCircle, Search, Mail, Building2, Headphones, BookOpen, MapPin } from 'lucide-react';
 import axios from 'axios';
-import CompanyContactForm from '@/components/CompanyContactForm';
 
 const JOB_CATEGORIES = [
   'Doctors/Physicians',
