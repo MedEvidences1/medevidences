@@ -118,6 +118,12 @@ function CandidateDashboard({ user, onLogout }) {
               <h1 className="text-2xl font-bold text-blue-600" data-testid="logo">MedEvidences</h1>
             </Link>
             <div className="flex items-center space-x-4">
+              <Link to="/ai-interview">
+                <Button variant="ghost" data-testid="ai-interview-link">
+                  <User className="w-4 h-4 mr-2" />
+                  AI Interview
+                </Button>
+              </Link>
               <Link to="/jobs">
                 <Button variant="ghost" data-testid="browse-jobs-link">
                   <Briefcase className="w-4 h-4 mr-2" />
