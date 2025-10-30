@@ -82,15 +82,20 @@ class CandidateProfile(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
+    full_name: str
+    email: str
+    phone: Optional[str] = None
     specialization: str
     experience_years: int
     skills: List[str] = []
     education: str
     bio: Optional[str] = None
+    city: Optional[str] = None
     country: Optional[str] = None
     region: Optional[str] = None
     location: Optional[str] = None
     cv_url: Optional[str] = None
+    resume_file: Optional[str] = None
     linkedin_url: Optional[str] = None
     portfolio_url: Optional[str] = None
     github_url: Optional[str] = None
@@ -101,14 +106,19 @@ class CandidateProfile(BaseModel):
     salary_expectation: Optional[str] = None
     interview_completed: bool = False
     interview_score: Optional[float] = None
+    referral_code: Optional[str] = None
+    total_earnings: float = 0.0
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CandidateProfileCreate(BaseModel):
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
     specialization: str
     experience_years: int
     skills: List[str]
     education: str
     bio: Optional[str] = None
+    city: Optional[str] = None
     country: Optional[str] = None
     region: Optional[str] = None
     location: Optional[str] = None
