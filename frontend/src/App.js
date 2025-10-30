@@ -113,6 +113,14 @@ function App() {
           path="/received-applications"
           element={user && user.role === 'employer' ? <ReceivedApplications user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/ai-interview"
+          element={user && user.role === 'candidate' ? <AIInterview user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/matched-jobs"
+          element={user && user.role === 'candidate' ? <MatchedJobs user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
       </Routes>
     </BrowserRouter>
   );
