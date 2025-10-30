@@ -477,9 +477,10 @@ async def create_session_from_google(request: Request):
         
         # Get user data from Emergent OAuth service
         import aiohttp
+        oauth_service_url = os.environ.get('OAUTH_SERVICE_URL', 'https://demobackend.emergentagent.com')
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                'https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data',
+                f'{oauth_service_url}/auth/v1/env/oauth/session-data',
                 headers={'X-Session-ID': session_id}
             ) as response:
                 if response.status != 200:
