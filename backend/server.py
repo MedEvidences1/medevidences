@@ -566,7 +566,6 @@ async def logout(request: Request):
         await db.sessions.delete_one({"session_token": session_token})
     return {"message": "Logged out successfully"}
 
-# Helper function to get user from session
 async def get_user_from_session(session_token: str):
     """Get user from session token"""
     session = await db.sessions.find_one({"session_token": session_token}, {"_id": 0})
@@ -581,6 +580,33 @@ async def get_user_from_session(session_token: str):
     
     user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
     return user
+
+# Email notification helper
+async def send_email_notification(to_email: str, subject: str, content: str, notification_type: str):
+    """Queue email notification (in production, use SendGrid/Resend)"""
+    notification = {
+        'id': str(uuid.uuid4()),
+        'to_email': to_email,
+        'subject': subject,
+        'content': content,
+        'notification_type': notification_type,
+        'sent_at': datetime.now(timezone.utc).isoformat(),
+        'status': 'queued'
+    }
+    await db.email_notifications.insert_one(notification)
+    
+    # In production, integrate with SendGrid/Resend here
+    # For now, just log
+    logger.info(f"Email queued to {to_email}: {subject}")
+    
+    return notification['id']
+
+# Pricing configuration
+PRICING = {
+    'job_posting': 149.00,  # $149 per job post
+    'premium_subscription': 499.00,  # $499/month unlimited jobs
+    'success_fee_percentage': 10.0  # 10% of first year salary
+}
 
 # Candidate Profile Routes
 @api_router.post("/candidates/profile", response_model=CandidateProfile)
