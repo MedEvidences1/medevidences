@@ -62,9 +62,11 @@ function PostJob({ user, onLogout }) {
   });
 
   useEffect(() => {
-    if (!user || user.role !== 'employer') {
-      toast.error('Only employers can post jobs');
+    if (!user) {
       navigate('/login');
+    } else if (user.role !== 'employer') {
+      toast.error('Only employers can post jobs. Please login as an employer.');
+      navigate('/dashboard/candidate');
     }
   }, [user, navigate]);
 
