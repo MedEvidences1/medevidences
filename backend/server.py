@@ -420,6 +420,122 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         "full_name": current_user['full_name']
     }
 
+# Google OAuth Session Management
+@api_router.post("/auth/session")
+async def create_session_from_google(request: Request):
+    """Handle Google OAuth session creation"""
+    try:
+        session_id = request.headers.get('X-Session-ID')
+        if not session_id:
+            raise HTTPException(status_code=400, detail="Session ID required")
+        
+        # Get user data from Emergent OAuth service
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                'https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data',
+                headers={'X-Session-ID': session_id}
+            ) as response:
+                if response.status != 200:
+                    raise HTTPException(status_code=401, detail="Invalid session")
+                user_data = await response.json()
+        
+        # Check if user exists
+        existing_user = await db.users.find_one({"email": user_data['email']}, {"_id": 0})
+        
+        if not existing_user:
+            # Create new user (role will be set later)
+            user = User(
+                email=user_data['email'],
+                password_hash='',  # OAuth users don't have password
+                role='',  # Will be set on first login
+                full_name=user_data['name']
+            )
+            user_dict = user.model_dump()
+            user_dict['created_at'] = user_dict['created_at'].isoformat()
+            user_dict['oauth_provider'] = 'google'
+            user_dict['oauth_picture'] = user_data.get('picture', '')
+            await db.users.insert_one(user_dict)
+            user_id = user.id
+        else:
+            user_id = existing_user['id']
+        
+        # Create session in database
+        session_token = user_data['session_token']
+        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+        
+        session_doc = {
+            'id': str(uuid.uuid4()),
+            'user_id': user_id,
+            'session_token': session_token,
+            'expires_at': expires_at.isoformat()
+        }
+        await db.sessions.insert_one(session_doc)
+        
+        # Return user data and session token
+        return {
+            "session_token": session_token,
+            "user": {
+                "id": user_id,
+                "email": user_data['email'],
+                "name": user_data['name'],
+                "picture": user_data.get('picture'),
+                "role": existing_user.get('role', '') if existing_user else ''
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/auth/set-role")
+async def set_user_role(role: str, request: Request):
+    """Set role for OAuth users on first login"""
+    session_token = request.cookies.get('session_token')
+    if not session_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # Get user from session
+    session = await db.sessions.find_one({"session_token": session_token}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    # Update user role
+    await db.users.update_one(
+        {"id": session['user_id']},
+        {"$set": {"role": role}}
+    )
+    
+    user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
+    return {
+        "id": user['id'],
+        "email": user['email'],
+        "role": user['role'],
+        "full_name": user['full_name']
+    }
+
+@api_router.post("/auth/logout")
+async def logout(request: Request):
+    """Logout and clear session"""
+    session_token = request.cookies.get('session_token')
+    if session_token:
+        await db.sessions.delete_one({"session_token": session_token})
+    return {"message": "Logged out successfully"}
+
+# Helper function to get user from session
+async def get_user_from_session(session_token: str):
+    """Get user from session token"""
+    session = await db.sessions.find_one({"session_token": session_token}, {"_id": 0})
+    if not session:
+        return None
+    
+    # Check expiry
+    expires_at = datetime.fromisoformat(session['expires_at'])
+    if expires_at < datetime.now(timezone.utc):
+        await db.sessions.delete_one({"session_token": session_token})
+        return None
+    
+    user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
+    return user
+
 # Candidate Profile Routes
 @api_router.post("/candidates/profile", response_model=CandidateProfile)
 async def create_candidate_profile(
