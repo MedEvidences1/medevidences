@@ -41,12 +41,18 @@ class PersonalInfo(BaseModel):
     sex: str
     pregnant: Optional[bool] = None
 
+class PainLocation(BaseModel):
+    body_part: str
+    specific_location: Optional[str] = None
+    side: Optional[str] = None  # left, right, center
+
 class SymptomInput(BaseModel):
     personal_info: PersonalInfo
     primary_symptoms: List[str]
     symptom_duration: str
     severity: str
     additional_info: Optional[str] = None
+    pain_locations: Optional[List[PainLocation]] = None
 
 class FoodRecommendation(BaseModel):
     food_item: str
@@ -62,6 +68,9 @@ class DiagnosisResult(BaseModel):
     urgency_level: str
     food_recommendations: List[FoodRecommendation]
     special_warnings: List[str]
+    voice_summary: str  # Ada feature: Clear summary for voice
+    severity_score: int  # Ada feature: 1-10 severity rating
+    follow_up_timeline: str  # Ada feature: When to follow up
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class AssessmentHistory(BaseModel):
@@ -69,39 +78,66 @@ class AssessmentHistory(BaseModel):
     timestamp: str
     symptoms: List[str]
     urgency_level: str
+    severity_score: int
 
 # Symptom database with images and food recommendations
 SYMPTOM_DATA = {
     "Fever": {
         "image": "https://images.pexels.com/photos/3873179/pexels-photo-3873179.jpeg",
-        "foods": ["Warm liquids", "Chicken soup", "Citrus fruits", "Ginger tea", "Bananas"]
+        "foods": ["Warm liquids", "Chicken soup", "Citrus fruits", "Ginger tea", "Bananas"],
+        "requires_location": False
     },
     "Headache": {
         "image": "https://images.unsplash.com/photo-1560591999-7ed516a308f1",
-        "foods": ["Water", "Almonds", "Spinach", "Watermelon", "Magnesium-rich foods"]
+        "foods": ["Water", "Almonds", "Spinach", "Watermelon", "Magnesium-rich foods"],
+        "requires_location": True,
+        "location_type": "head"
     },
     "Back pain": {
         "image": "https://images.unsplash.com/photo-1513447269-5b4e55e75bb8",
-        "foods": ["Turmeric", "Salmon", "Tart cherries", "Green tea", "Olive oil"]
+        "foods": ["Turmeric", "Salmon", "Tart cherries", "Green tea", "Olive oil"],
+        "requires_location": True,
+        "location_type": "back"
     },
-    "Cough": {
-        "image": "https://images.pexels.com/photos/897817/pexels-photo-897817.jpeg",
-        "foods": ["Honey", "Ginger", "Garlic", "Pineapple", "Warm water"]
+    "Chest pain": {
+        "image": "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7",
+        "foods": ["Whole grains", "Omega-3 fatty acids", "Berries", "Dark chocolate", "Green vegetables"],
+        "requires_location": True,
+        "location_type": "chest"
+    },
+    "Abdominal pain": {
+        "image": "https://images.pexels.com/photos/5842113/pexels-photo-5842113.jpeg",
+        "foods": ["Ginger", "Peppermint tea", "Bananas", "Rice", "Applesauce"],
+        "requires_location": True,
+        "location_type": "abdomen"
+    },
+    "Joint pain": {
+        "image": "https://images.unsplash.com/photo-1587624903959-9d8a64f874d1",
+        "foods": ["Fish oil", "Turmeric", "Ginger", "Garlic", "Green tea"],
+        "requires_location": True,
+        "location_type": "joints"
     },
     "Shortness of breath": {
         "image": "https://images.unsplash.com/photo-1606618742198-99910cb01766",
         "foods": ["Leafy greens", "Beets", "Omega-3 rich fish", "Berries", "Nuts"],
+        "requires_location": False,
         "warning": "⚠️ CARDIOVASCULAR WARNING: If experiencing shortness of breath while climbing 5 stairs, this may indicate cardiovascular problems. Please consult a Cardiologist immediately for proper examination."
-    },
-    "Chest pain": {
-        "image": "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7",
-        "foods": ["Whole grains", "Omega-3 fatty acids", "Berries", "Dark chocolate", "Green vegetables"]
     },
     "AM erection issues/Cardio health": {
         "image": "https://images.unsplash.com/photo-1516841273335-e39b37888115",
         "foods": ["Watermelon", "Dark leafy greens", "Nuts", "Salmon", "Berries", "Whole grains"],
+        "requires_location": False,
         "warning": "⚠️ CARDIOVASCULAR HEALTH CONCERN: Absence of morning erections can be an early indicator of cardiovascular health issues. This may suggest reduced blood circulation. Please schedule an examination with a Cardiologist for comprehensive evaluation."
     }
+}
+
+# Body locations for pain mapping
+BODY_LOCATIONS = {
+    "head": ["Front forehead", "Temples", "Top of head", "Back of head", "Behind eyes"],
+    "back": ["Upper back", "Mid back", "Lower back", "Left side", "Right side", "Tailbone"],
+    "chest": ["Center chest", "Left chest", "Right chest", "Upper chest", "Lower chest"],
+    "abdomen": ["Upper abdomen", "Lower abdomen", "Left side", "Right side", "Around navel"],
+    "joints": ["Knees", "Elbows", "Shoulders", "Hips", "Wrists", "Ankles"]
 }
 
 # Routes
@@ -126,7 +162,7 @@ async def get_status_checks():
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
     return status_checks
 
-# Common symptoms list with enhanced data
+# Common symptoms list
 @api_router.get("/symptoms/common")
 async def get_common_symptoms():
     symptoms = [
@@ -149,7 +185,12 @@ async def get_common_symptoms():
 async def get_symptom_data():
     return {"symptom_data": SYMPTOM_DATA}
 
-# Analyze symptoms with AI
+# Get body locations for pain mapping
+@api_router.get("/body/locations")
+async def get_body_locations():
+    return {"body_locations": BODY_LOCATIONS}
+
+# Analyze symptoms with AI (Ada-inspired enhanced analysis)
 @api_router.post("/symptoms/analyze", response_model=DiagnosisResult)
 async def analyze_symptoms(symptom_input: SymptomInput):
     try:
@@ -165,22 +206,24 @@ async def analyze_symptoms(symptom_input: SymptomInput):
             Provide comprehensive analysis including:
             1. Differential diagnosis with probability
             2. Health recommendations
-            3. Nutritional/food recommendations specific to symptoms
+            3. Nutritional/food recommendations
             4. Urgency assessment
+            5. Severity score (1-10)
+            6. Clear voice summary for text-to-speech
+            7. Follow-up timeline
             
-            Structure response in JSON format with:
-            {
-                "possible_conditions": [{"name": "", "probability": "", "description": ""}],
-                "recommendations": "",
-                "urgency_level": "Emergency/Urgent/Schedule Appointment/Self-Care",
-                "food_recommendations": [{"food_item": "", "benefit": "", "category": "Anti-inflammatory/Immune-boosting/etc"}]
-            }
-            
+            Structure response in JSON format.
             Be empathetic, evidence-based, and always recommend consulting healthcare professionals."""
         ).with_model("openai", "gpt-4o-mini")
         
-        # Build prompt
+        # Build detailed prompt with pain locations
         symptoms_text = ", ".join(symptom_input.primary_symptoms)
+        pain_info = ""
+        if symptom_input.pain_locations:
+            pain_details = [f"{loc.body_part} ({loc.specific_location or 'general'}, {loc.side or 'both sides'})" 
+                          for loc in symptom_input.pain_locations]
+            pain_info = f"\nPain Locations: {', '.join(pain_details)}"
+        
         prompt = f"""Analyze these symptoms with medical evidence:
         
 Patient Info:
@@ -190,7 +233,7 @@ Patient Info:
 
 Symptoms: {symptoms_text}
 Duration: {symptom_input.symptom_duration}
-Severity: {symptom_input.severity}
+Severity: {symptom_input.severity}{pain_info}
 Additional Info: {symptom_input.additional_info or 'None'}
 
 Provide comprehensive analysis in this exact JSON format:
@@ -200,12 +243,15 @@ Provide comprehensive analysis in this exact JSON format:
   ],
   "recommendations": "Detailed medical and lifestyle recommendations",
   "urgency_level": "Emergency/Urgent/Schedule Appointment/Self-Care",
+  "severity_score": 5,
   "food_recommendations": [
-    {{"food_item": "Food name", "benefit": "How it helps", "category": "Category like Anti-inflammatory"}}
-  ]
+    {{"food_item": "Food name", "benefit": "How it helps", "category": "Category"}}
+  ],
+  "voice_summary": "Clear 2-3 sentence summary suitable for text-to-speech, addressing the patient directly",
+  "follow_up_timeline": "When to follow up (e.g., 'within 24 hours', 'in 1-2 weeks', 'immediately')"
 }}
 
-Include at least 5-7 food recommendations that specifically help with these symptoms."""
+Include at least 5-7 food recommendations."""
         
         user_message = UserMessage(text=prompt)
         response = await chat.send_message(user_message)
@@ -228,9 +274,12 @@ Include at least 5-7 food recommendations that specifically help with these symp
                 ],
                 "recommendations": "Please consult a healthcare professional for proper diagnosis.",
                 "urgency_level": "Schedule Appointment",
+                "severity_score": 5,
                 "food_recommendations": [
                     {"food_item": "Water", "benefit": "Stay hydrated", "category": "Essential"}
-                ]
+                ],
+                "voice_summary": "Based on your symptoms, we recommend consulting a healthcare professional.",
+                "follow_up_timeline": "within 1-2 weeks"
             }
         
         # Collect special warnings
@@ -256,7 +305,10 @@ Include at least 5-7 food recommendations that specifically help with these symp
             recommendations=ai_result.get("recommendations", ""),
             urgency_level=ai_result.get("urgency_level", "Schedule Appointment"),
             food_recommendations=food_recs,
-            special_warnings=special_warnings
+            special_warnings=special_warnings,
+            voice_summary=ai_result.get("voice_summary", ""),
+            severity_score=ai_result.get("severity_score", 5),
+            follow_up_timeline=ai_result.get("follow_up_timeline", "within 1-2 weeks")
         )
         
         # Save to database
@@ -270,7 +322,7 @@ Include at least 5-7 food recommendations that specifically help with these symp
         logging.error(f"Error analyzing symptoms: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error analyzing symptoms: {str(e)}")
 
-# Get assessment history
+# Get assessment history (Ada feature: Track over time)
 @api_router.get("/assessments/history", response_model=List[AssessmentHistory])
 async def get_assessment_history(limit: int = 10):
     assessments = await db.assessments.find({}, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(limit)
@@ -281,7 +333,8 @@ async def get_assessment_history(limit: int = 10):
             id=assessment['id'],
             timestamp=assessment['timestamp'],
             symptoms=assessment['symptoms'],
-            urgency_level=assessment['urgency_level']
+            urgency_level=assessment['urgency_level'],
+            severity_score=assessment.get('severity_score', 5)
         ))
     
     return history
