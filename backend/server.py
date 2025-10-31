@@ -85,12 +85,26 @@ class AssessmentHistory(BaseModel):
 SYMPTOM_DATA = {
     "Fever": {
         "image": "https://images.pexels.com/photos/3873179/pexels-photo-3873179.jpeg",
-        "foods": ["Warm liquids", "Chicken soup", "Citrus fruits", "Ginger tea", "Bananas"],
+        "foods": [
+            "Third-party lab certified Cocoa powder (immune boost)",
+            "Seabuckthorn berries pulp (vitamin-rich)",
+            "Red Korean ginseng extract - 6 yr old roots (recovery)",
+            "Warm liquids",
+            "Chicken soup",
+            "Citrus fruits"
+        ],
         "requires_location": False
     },
     "Headache": {
         "image": "https://images.unsplash.com/photo-1560591999-7ed516a308f1",
-        "foods": ["Water", "Almonds", "Spinach", "Watermelon", "Magnesium-rich foods"],
+        "foods": [
+            "Third-party lab certified Cocoa powder (magnesium)",
+            "Seabuckthorn berries pulp (anti-inflammatory)",
+            "Red Korean ginseng extract - 6 yr old roots (circulation)",
+            "Water",
+            "Almonds",
+            "Spinach"
+        ],
         "requires_location": True,
         "location_type": "head"
     },
@@ -98,7 +112,7 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1513447269-5b4e55e75bb8",
         "foods": [
             "Third-party lab certified Cocoa powder (anti-inflammatory)",
-            "Seabuckthorn berries (muscle recovery)",
+            "Seabuckthorn berries pulp (muscle recovery)",
             "Red Korean ginseng extract - 6 yr old roots (pain relief)",
             "Kiwi pulp (vitamin C for tissue repair)",
             "Turmeric with Allulose sweetener",
@@ -110,31 +124,52 @@ SYMPTOM_DATA = {
     },
     "Chest pain": {
         "image": "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7",
-        "foods": ["Whole grains", "Omega-3 fatty acids", "Berries", "Dark chocolate", "Green vegetables"],
+        "foods": [
+            "Third-party lab certified Cocoa powder (heart health)",
+            "Seabuckthorn berries pulp (cardiovascular)",
+            "Red Korean ginseng extract - 6 yr old roots (circulation)",
+            "Whole grains",
+            "Omega-3 fatty acids",
+            "Berries"
+        ],
         "requires_location": True,
         "location_type": "chest"
     },
     "Abdominal pain": {
         "image": "https://images.pexels.com/photos/5842113/pexels-photo-5842113.jpeg",
-        "foods": ["Ginger", "Peppermint tea", "Bananas", "Rice", "Applesauce"],
+        "foods": [
+            "Third-party lab certified Cocoa powder (digestive health)",
+            "Seabuckthorn berries pulp (gut health)",
+            "Red Korean ginseng extract - 6 yr old roots (inflammation)",
+            "Ginger",
+            "Peppermint tea",
+            "Bananas"
+        ],
         "requires_location": True,
         "location_type": "abdomen"
     },
     "Joint pain": {
         "image": "https://images.unsplash.com/photo-1587624903959-9d8a64f874d1",
-        "foods": ["Fish oil", "Turmeric", "Ginger", "Garlic", "Green tea"],
+        "foods": [
+            "Third-party lab certified Cocoa powder (anti-inflammatory)",
+            "Seabuckthorn berries pulp (joint support)",
+            "Red Korean ginseng extract - 6 yr old roots (mobility)",
+            "Fish oil",
+            "Turmeric",
+            "Ginger"
+        ],
         "requires_location": True,
         "location_type": "joints"
     },
     "Shortness of breath": {
         "image": "https://images.unsplash.com/photo-1606618742198-99910cb01766",
         "foods": [
-            "Seabuckthorn berries (respiratory support)",
+            "Third-party lab certified Cocoa powder (lung function)",
+            "Seabuckthorn berries pulp (respiratory support)",
             "Red Korean ginseng extract - 6 yr old roots (lung capacity)",
             "Leafy greens with Allulose",
             "Beets (nitric oxide boost)",
-            "Omega-3 rich fish",
-            "Berries with cocoa powder"
+            "Omega-3 rich fish"
         ],
         "requires_location": False,
         "warning": "⚠️ CARDIOVASCULAR EMERGENCY: If experiencing shortness of breath while climbing just 5 stairs, this strongly indicates potential cardiovascular problems. This is a serious warning sign. Please consult a Cardiologist IMMEDIATELY for comprehensive heart examination and testing."
