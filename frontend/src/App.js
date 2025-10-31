@@ -769,26 +769,45 @@ const SymptomChecker = () => {
           <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
             <div className="flex items-center gap-2">
               <Utensils className="w-6 h-6 text-orange-600" />
-              <CardTitle className="text-xl">Nutritional Recommendations</CardTitle>
+              <CardTitle className="text-xl">Nutritional Guidance - Premium Lab-Certified Supplements</CardTitle>
             </div>
-            <CardDescription>Foods that can help with your symptoms</CardDescription>
+            <CardDescription>Third-party lab certified supplements and foods to support your recovery</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="grid md:grid-cols-2 gap-4">
-              {diagnosisResult.food_recommendations.map((food, index) => (
-                <div key={index} className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg border-2 border-orange-200" data-testid="food-item">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-orange-500 p-2 rounded-lg">
-                      <Utensils className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900 mb-1">{food.food_item}</h4>
-                      <p className="text-sm text-gray-700 mb-2">{food.benefit}</p>
-                      <Badge variant="outline" className="text-xs">{food.category}</Badge>
+              {diagnosisResult.food_recommendations.map((food, index) => {
+                const isPremium = food.category === "Premium Lab-Certified Supplement";
+                return (
+                  <div 
+                    key={index} 
+                    className={`${
+                      isPremium 
+                        ? 'bg-gradient-to-br from-amber-100 to-yellow-100 border-amber-400 ring-2 ring-amber-300' 
+                        : 'bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200'
+                    } p-4 rounded-lg border-2`} 
+                    data-testid="food-item"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`${isPremium ? 'bg-amber-600' : 'bg-orange-500'} p-2 rounded-lg`}>
+                        <Utensils className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
+                          {food.food_item}
+                          {isPremium && <Sparkles className="w-4 h-4 text-amber-600" />}
+                        </h4>
+                        <p className="text-sm text-gray-700 mb-2">{food.benefit}</p>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs ${isPremium ? 'bg-amber-200 text-amber-900 border-amber-400' : ''}`}
+                        >
+                          {food.category}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
