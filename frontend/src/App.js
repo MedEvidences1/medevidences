@@ -174,7 +174,9 @@ const SymptomChecker = () => {
     primarySymptoms: [],
     symptomDuration: "",
     severity: "",
-    additionalInfo: ""
+    additionalInfo: "",
+    backPainLocation: null,  // For body diagram
+    amErectionDuration: null  // For cardiovascular tracking
   });
 
   useEffect(() => {
