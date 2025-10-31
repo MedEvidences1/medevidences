@@ -564,7 +564,7 @@ const SymptomChecker = () => {
                 {/* Location Confirmation */}
                 <div className="space-y-4">
                   <div className="bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
-                    <h3 className="text-lg font-bold text-purple-900 mb-4">📍 How to Use (Like Ubie Health):</h3>
+                    <h3 className="text-lg font-bold text-purple-900 mb-4">📍 How to Use MedEvidences Pain Locator:</h3>
                     <ol className="space-y-2 text-sm text-purple-800">
                       <li className="flex items-start gap-2">
                         <span className="font-bold">1.</span>
