@@ -417,13 +417,25 @@ Include at least 5-7 food recommendations."""
         # Then add AI-generated recommendations if they don't duplicate our premium items
         for food in ai_result.get("food_recommendations", []):
             ai_food_item = food.get("food_item", "")
-            if ai_food_item.lower() not in premium_foods_added:
+            ai_food_key = ai_food_item.lower()
+            
+            # Check for duplicates more intelligently (e.g., "salmon" matches "wild-caught salmon")
+            is_duplicate = False
+            for existing_key in premium_foods_added:
+                if "salmon" in ai_food_key and "salmon" in existing_key:
+                    is_duplicate = True
+                    break
+                if ai_food_key in existing_key or existing_key in ai_food_key:
+                    is_duplicate = True
+                    break
+            
+            if not is_duplicate and ai_food_key not in premium_foods_added:
                 food_recs.append(FoodRecommendation(
                     food_item=ai_food_item,
                     benefit=food.get("benefit", ""),
                     category=food.get("category", "General")
                 ))
-                premium_foods_added.add(ai_food_item.lower())
+                premium_foods_added.add(ai_food_key)
         
         # Create diagnosis result
         diagnosis = DiagnosisResult(
