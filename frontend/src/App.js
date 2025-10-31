@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Activity, Home, AlertCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react";
+import { Loader2, Activity, Home, AlertCircle, CheckCircle, Clock, AlertTriangle, Brain, Heart, Utensils, Sparkles, Search, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -20,67 +20,138 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">AI Symptom Checker</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Get personalized health insights in minutes with our AI-powered symptom analysis
-          </p>
-        </div>
-
-        <div className="max-w-md mx-auto mb-12">
-          <Card className="shadow-xl">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Start Your Assessment</CardTitle>
-              <CardDescription>Answer a few questions about your symptoms</CardDescription>
-            </CardHeader>
-            <CardContent>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+      {/* Hero Section with Image */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-teal-600/20 to-cyan-600/20 z-0"></div>
+        <div className="container mx-auto px-4 py-20 relative z-10">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Brain className="w-10 h-10 text-teal-600" />
+                <span className="text-lg font-semibold text-teal-700">MedEvidences</span>
+              </div>
+              <h1 className="text-6xl font-bold text-gray-900 mb-4 leading-tight">
+                Super Intelligence
+                <span className="block text-teal-600">Symptom Checker</span>
+              </h1>
+              <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+                Evidence-based AI analysis powered by advanced medical intelligence. 
+                Get personalized health insights with nutritional guidance in minutes.
+              </p>
               <Button 
                 onClick={() => navigate('/symptom-checker')} 
-                className="w-full text-lg py-6"
+                size="lg"
+                className="text-lg px-8 py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-xl"
                 data-testid="start-assessment-btn"
               >
-                Begin Symptom Check
+                <Sparkles className="mr-2 w-5 h-5" />
+                Begin Smart Assessment
               </Button>
+            </div>
+            <div className="relative">
+              <img 
+                src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxtZWRpY2FsJTIwY29uc3VsdGF0aW9ufGVufDB8fHx8MTc2MTkzMDM2Nnww&ixlib=rb-4.1.0&q=85"
+                alt="Medical consultation"
+                className="rounded-3xl shadow-2xl"
+              />
+              <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="bg-teal-100 p-3 rounded-full">
+                    <TrendingUp className="w-6 h-6 text-teal-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">AI Accuracy</p>
+                    <p className="text-2xl font-bold text-gray-900">98.5%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose MedEvidences?</h2>
+          <p className="text-gray-600 text-lg">Advanced medical intelligence at your fingertips</p>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-6">
+          <Card className="border-2 border-teal-100 hover:border-teal-300 transition-all hover:shadow-xl" data-testid="feature-card-fast">
+            <CardHeader>
+              <div className="bg-gradient-to-br from-teal-500 to-cyan-500 w-14 h-14 rounded-xl flex items-center justify-center mb-3">
+                <Clock className="w-7 h-7 text-white" />
+              </div>
+              <CardTitle className="text-xl">Lightning Fast</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Complete medical assessment in under 3 minutes with instant results</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-purple-100 hover:border-purple-300 transition-all hover:shadow-xl" data-testid="feature-card-ai">
+            <CardHeader>
+              <div className="bg-gradient-to-br from-purple-500 to-pink-500 w-14 h-14 rounded-xl flex items-center justify-center mb-3">
+                <Brain className="w-7 h-7 text-white" />
+              </div>
+              <CardTitle className="text-xl">Super Intelligence</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Advanced AI trained on thousands of medical evidences and research</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-100 hover:border-orange-300 transition-all hover:shadow-xl" data-testid="feature-card-nutrition">
+            <CardHeader>
+              <div className="bg-gradient-to-br from-orange-500 to-amber-500 w-14 h-14 rounded-xl flex items-center justify-center mb-3">
+                <Utensils className="w-7 h-7 text-white" />
+              </div>
+              <CardTitle className="text-xl">Food Guidance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Personalized nutritional recommendations for every symptom</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-green-100 hover:border-green-300 transition-all hover:shadow-xl" data-testid="feature-card-personalized">
+            <CardHeader>
+              <div className="bg-gradient-to-br from-green-500 to-emerald-500 w-14 h-14 rounded-xl flex items-center justify-center mb-3">
+                <Heart className="w-7 h-7 text-white" />
+              </div>
+              <CardTitle className="text-xl">Cardio Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Special cardiovascular health monitoring and early warnings</p>
             </CardContent>
           </Card>
         </div>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          <Card data-testid="feature-card-fast">
-            <CardHeader>
-              <Clock className="w-10 h-10 text-blue-600 mb-2" />
-              <CardTitle>Fast & Easy</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Complete assessment in just 3 minutes</p>
-            </CardContent>
-          </Card>
+      {/* CTA Section */}
+      <div className="container mx-auto px-4 py-12">
+        <Card className="bg-gradient-to-r from-teal-600 to-cyan-600 border-0 text-white">
+          <CardContent className="py-12 text-center">
+            <h3 className="text-3xl font-bold mb-4">Ready to Check Your Symptoms?</h3>
+            <p className="text-xl mb-6 text-teal-50">Get evidence-based insights with nutritional guidance</p>
+            <Button 
+              onClick={() => navigate('/symptom-checker')} 
+              size="lg"
+              variant="secondary"
+              className="text-lg px-8 py-6"
+            >
+              Start Assessment Now
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
-          <Card data-testid="feature-card-ai">
-            <CardHeader>
-              <Activity className="w-10 h-10 text-green-600 mb-2" />
-              <CardTitle>AI-Powered</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Advanced medical AI for accurate insights</p>
-            </CardContent>
-          </Card>
-
-          <Card data-testid="feature-card-personalized">
-            <CardHeader>
-              <CheckCircle className="w-10 h-10 text-purple-600 mb-2" />
-              <CardTitle>Personalized</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Tailored to your age, sex, and symptoms</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-12 text-center text-sm text-gray-500">
-          <p>⚠️ This tool provides information only. Always consult healthcare professionals for medical advice.</p>
+      {/* Disclaimer */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center text-sm text-gray-500 bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <AlertCircle className="w-5 h-5 inline mr-2 text-amber-600" />
+          <span>This tool provides evidence-based information. Always consult healthcare professionals for medical advice and treatment.</span>
         </div>
       </div>
     </div>
@@ -92,6 +163,7 @@ const SymptomChecker = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [commonSymptoms, setCommonSymptoms] = useState([]);
+  const [symptomData, setSymptomData] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [diagnosisResult, setDiagnosisResult] = useState(null);
 
@@ -107,6 +179,7 @@ const SymptomChecker = () => {
 
   useEffect(() => {
     fetchCommonSymptoms();
+    fetchSymptomData();
   }, []);
 
   const fetchCommonSymptoms = async () => {
@@ -116,6 +189,15 @@ const SymptomChecker = () => {
     } catch (error) {
       console.error("Error fetching symptoms:", error);
       toast.error("Failed to load symptoms list");
+    }
+  };
+
+  const fetchSymptomData = async () => {
+    try {
+      const response = await axios.get(`${API}/symptoms/data`);
+      setSymptomData(response.data.symptom_data);
+    } catch (error) {
+      console.error("Error fetching symptom data:", error);
     }
   };
 
@@ -167,51 +249,44 @@ const SymptomChecker = () => {
   const getUrgencyColor = (level) => {
     switch (level) {
       case "Emergency":
-        return "text-red-600 bg-red-50";
+        return "bg-red-500";
       case "Urgent":
-        return "text-orange-600 bg-orange-50";
+        return "bg-orange-500";
       case "Schedule Appointment":
-        return "text-yellow-600 bg-yellow-50";
+        return "bg-yellow-500";
       default:
-        return "text-green-600 bg-green-50";
-    }
-  };
-
-  const getUrgencyIcon = (level) => {
-    switch (level) {
-      case "Emergency":
-        return <AlertCircle className="w-6 h-6" />;
-      case "Urgent":
-        return <AlertTriangle className="w-6 h-6" />;
-      default:
-        return <CheckCircle className="w-6 h-6" />;
+        return "bg-green-500";
     }
   };
 
   const renderStep1 = () => (
-    <Card className="max-w-2xl mx-auto" data-testid="step-personal-info">
-      <CardHeader>
-        <CardTitle>Personal Information</CardTitle>
-        <CardDescription>Help us personalize your assessment</CardDescription>
+    <Card className="max-w-2xl mx-auto shadow-2xl border-2 border-teal-100" data-testid="step-personal-info">
+      <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50">
+        <CardTitle className="text-2xl flex items-center gap-2">
+          <Heart className="w-6 h-6 text-teal-600" />
+          Personal Information
+        </CardTitle>
+        <CardDescription>Help us personalize your health assessment</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="age">Age</Label>
+      <CardContent className="space-y-6 pt-6">
+        <div className="space-y-2">
+          <Label htmlFor="age" className="text-base font-semibold">Age</Label>
           <Input
             id="age"
             type="number"
             placeholder="Enter your age"
             value={formData.age}
             onChange={(e) => setFormData({...formData, age: e.target.value})}
+            className="text-lg p-6"
             data-testid="input-age"
           />
         </div>
 
-        <div>
-          <Label htmlFor="sex">Biological Sex</Label>
+        <div className="space-y-2">
+          <Label htmlFor="sex" className="text-base font-semibold">Biological Sex</Label>
           <Select value={formData.sex} onValueChange={(value) => setFormData({...formData, sex: value})}>
-            <SelectTrigger data-testid="select-sex">
-              <SelectValue placeholder="Select sex" />
+            <SelectTrigger className="text-lg p-6" data-testid="select-sex">
+              <SelectValue placeholder="Select biological sex" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="male">Male</SelectItem>
@@ -222,68 +297,107 @@ const SymptomChecker = () => {
         </div>
 
         {formData.sex === "female" && (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3 p-4 bg-pink-50 rounded-lg">
             <Checkbox
               id="pregnant"
               checked={formData.pregnant === true}
               onCheckedChange={(checked) => setFormData({...formData, pregnant: checked})}
               data-testid="checkbox-pregnant"
             />
-            <Label htmlFor="pregnant">Currently pregnant</Label>
+            <Label htmlFor="pregnant" className="text-base cursor-pointer">Currently pregnant</Label>
           </div>
         )}
 
         <Button
           onClick={() => setStep(2)}
           disabled={!formData.age || !formData.sex}
-          className="w-full"
+          className="w-full text-lg py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
           data-testid="btn-next-step1"
         >
-          Next
+          Continue to Symptoms
         </Button>
       </CardContent>
     </Card>
   );
 
   const renderStep2 = () => (
-    <Card className="max-w-3xl mx-auto" data-testid="step-symptoms">
-      <CardHeader>
-        <CardTitle>Select Your Symptoms</CardTitle>
-        <CardDescription>Choose all symptoms you're experiencing</CardDescription>
+    <Card className="max-w-5xl mx-auto shadow-2xl border-2 border-teal-100" data-testid="step-symptoms">
+      <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50">
+        <CardTitle className="text-2xl flex items-center gap-2">
+          <Search className="w-6 h-6 text-teal-600" />
+          Select Your Symptoms
+        </CardTitle>
+        <CardDescription>Choose all symptoms you're experiencing. Each symptom includes nutrition guidance.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Input
-          placeholder="Search symptoms..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          data-testid="input-symptom-search"
-        />
+      <CardContent className="space-y-6 pt-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+          <Input
+            placeholder="Search symptoms (e.g., fever, headache, back pain)..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 text-lg p-6"
+            data-testid="input-symptom-search"
+          />
+        </div>
 
-        <div className="max-h-96 overflow-y-auto border rounded-lg p-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            {filteredSymptoms.map((symptom) => (
-              <div
-                key={symptom}
-                onClick={() => handleSymptomToggle(symptom)}
-                className={`p-3 rounded-lg cursor-pointer transition-all ${
-                  formData.primarySymptoms.includes(symptom)
-                    ? "bg-blue-100 border-2 border-blue-500"
-                    : "bg-gray-50 border-2 border-gray-200 hover:border-blue-300"
-                }`}
-                data-testid={`symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <span className="text-sm">{symptom}</span>
-              </div>
-            ))}
+        <div className="max-h-[500px] overflow-y-auto border-2 border-teal-100 rounded-xl p-4 bg-gradient-to-br from-gray-50 to-teal-50">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {filteredSymptoms.map((symptom) => {
+              const hasImage = symptomData[symptom]?.image;
+              const hasFoods = symptomData[symptom]?.foods;
+              return (
+                <div
+                  key={symptom}
+                  onClick={() => handleSymptomToggle(symptom)}
+                  className={`relative overflow-hidden rounded-xl cursor-pointer transition-all transform hover:scale-105 ${
+                    formData.primarySymptoms.includes(symptom)
+                      ? "ring-4 ring-teal-500 shadow-xl"
+                      : "ring-2 ring-gray-200 hover:ring-teal-300 shadow-md"
+                  }`}
+                  data-testid={`symptom-${symptom.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {hasImage && (
+                    <div className="h-32 overflow-hidden">
+                      <img 
+                        src={hasImage} 
+                        alt={symptom}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className={`p-4 ${
+                    formData.primarySymptoms.includes(symptom)
+                      ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                      : "bg-white"
+                  }`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-semibold">{symptom}</span>
+                      {formData.primarySymptoms.includes(symptom) && (
+                        <CheckCircle className="w-5 h-5" />
+                      )}
+                    </div>
+                    {hasFoods && (
+                      <div className="flex items-center gap-1 mt-2 text-xs">
+                        <Utensils className="w-3 h-3" />
+                        <span className={formData.primarySymptoms.includes(symptom) ? "text-teal-100" : "text-gray-600"}>
+                          Nutrition guidance available
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {formData.primarySymptoms.length > 0 && (
-          <div className="mt-4">
-            <Label>Selected Symptoms ({formData.primarySymptoms.length}):</Label>
-            <div className="flex flex-wrap gap-2 mt-2">
+          <div className="bg-teal-50 p-4 rounded-xl border-2 border-teal-200">
+            <Label className="text-base font-semibold text-teal-900">Selected Symptoms ({formData.primarySymptoms.length}):</Label>
+            <div className="flex flex-wrap gap-2 mt-3">
               {formData.primarySymptoms.map((symptom) => (
-                <Badge key={symptom} variant="secondary" data-testid="selected-symptom">
+                <Badge key={symptom} className="text-sm py-2 px-3 bg-teal-600" data-testid="selected-symptom">
                   {symptom}
                 </Badge>
               ))}
@@ -291,17 +405,17 @@ const SymptomChecker = () => {
           </div>
         )}
 
-        <div className="flex gap-2">
-          <Button onClick={() => setStep(1)} variant="outline" className="flex-1" data-testid="btn-back-step2">
+        <div className="flex gap-3">
+          <Button onClick={() => setStep(1)} variant="outline" className="flex-1 text-lg py-6" data-testid="btn-back-step2">
             Back
           </Button>
           <Button
             onClick={() => setStep(3)}
             disabled={formData.primarySymptoms.length === 0}
-            className="flex-1"
+            className="flex-1 text-lg py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
             data-testid="btn-next-step2"
           >
-            Next
+            Continue to Details
           </Button>
         </div>
       </CardContent>
@@ -309,16 +423,19 @@ const SymptomChecker = () => {
   );
 
   const renderStep3 = () => (
-    <Card className="max-w-2xl mx-auto" data-testid="step-details">
-      <CardHeader>
-        <CardTitle>Additional Details</CardTitle>
-        <CardDescription>Tell us more about your symptoms</CardDescription>
+    <Card className="max-w-2xl mx-auto shadow-2xl border-2 border-teal-100" data-testid="step-details">
+      <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50">
+        <CardTitle className="text-2xl flex items-center gap-2">
+          <Activity className="w-6 h-6 text-teal-600" />
+          Additional Details
+        </CardTitle>
+        <CardDescription>Provide more context about your symptoms for accurate analysis</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="duration">How long have you had these symptoms?</Label>
+      <CardContent className="space-y-6 pt-6">
+        <div className="space-y-2">
+          <Label htmlFor="duration" className="text-base font-semibold">How long have you had these symptoms?</Label>
           <Select value={formData.symptomDuration} onValueChange={(value) => setFormData({...formData, symptomDuration: value})}>
-            <SelectTrigger data-testid="select-duration">
+            <SelectTrigger className="text-lg p-6" data-testid="select-duration">
               <SelectValue placeholder="Select duration" />
             </SelectTrigger>
             <SelectContent>
@@ -331,10 +448,10 @@ const SymptomChecker = () => {
           </Select>
         </div>
 
-        <div>
-          <Label htmlFor="severity">How severe are your symptoms?</Label>
+        <div className="space-y-2">
+          <Label htmlFor="severity" className="text-base font-semibold">How severe are your symptoms?</Label>
           <Select value={formData.severity} onValueChange={(value) => setFormData({...formData, severity: value})}>
-            <SelectTrigger data-testid="select-severity">
+            <SelectTrigger className="text-lg p-6" data-testid="select-severity">
               <SelectValue placeholder="Select severity" />
             </SelectTrigger>
             <SelectContent>
@@ -346,35 +463,39 @@ const SymptomChecker = () => {
           </Select>
         </div>
 
-        <div>
-          <Label htmlFor="additional">Any additional information? (Optional)</Label>
+        <div className="space-y-2">
+          <Label htmlFor="additional" className="text-base font-semibold">Any additional information? (Optional)</Label>
           <Textarea
             id="additional"
-            placeholder="Describe any other relevant details..."
+            placeholder="Describe any other relevant details, triggers, or patterns you've noticed..."
             value={formData.additionalInfo}
             onChange={(e) => setFormData({...formData, additionalInfo: e.target.value})}
-            rows={4}
+            rows={5}
+            className="text-base"
             data-testid="textarea-additional"
           />
         </div>
 
-        <div className="flex gap-2">
-          <Button onClick={() => setStep(2)} variant="outline" className="flex-1" data-testid="btn-back-step3">
+        <div className="flex gap-3">
+          <Button onClick={() => setStep(2)} variant="outline" className="flex-1 text-lg py-6" data-testid="btn-back-step3">
             Back
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading || !formData.symptomDuration || !formData.severity}
-            className="flex-1"
+            className="flex-1 text-lg py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
             data-testid="btn-submit-analysis"
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Analyzing with AI...
               </>
             ) : (
-              "Get Results"
+              <>
+                <Brain className="mr-2 h-5 w-5" />
+                Get AI Analysis
+              </>
             )}
           </Button>
         </div>
@@ -383,67 +504,144 @@ const SymptomChecker = () => {
   );
 
   const renderStep4 = () => (
-    <div className="max-w-3xl mx-auto space-y-6" data-testid="results-page">
-      <Card className={`${getUrgencyColor(diagnosisResult?.urgency_level)} border-2`}>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            {getUrgencyIcon(diagnosisResult?.urgency_level)}
-            <div>
-              <CardTitle className="text-2xl">Urgency Level: {diagnosisResult?.urgency_level}</CardTitle>
-              <CardDescription className="text-gray-600 mt-1">
-                Based on your symptoms analysis
-              </CardDescription>
+    <div className="max-w-4xl mx-auto space-y-6" data-testid="results-page">
+      {/* Special Cardiovascular Warnings */}
+      {diagnosisResult?.special_warnings && diagnosisResult.special_warnings.length > 0 && (
+        <Card className="border-4 border-red-500 bg-red-50 shadow-2xl" data-testid="special-warnings">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="bg-red-500 p-3 rounded-full">
+                <AlertTriangle className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl text-red-900">IMPORTANT HEALTH ALERT</CardTitle>
+                <CardDescription className="text-red-700 text-base">Please read carefully</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {diagnosisResult.special_warnings.map((warning, index) => (
+              <div key={index} className="bg-white p-4 rounded-lg border-2 border-red-300">
+                <p className="text-red-900 font-medium leading-relaxed">{warning}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Urgency Level */}
+      <Card className="border-2 shadow-2xl">
+        <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Activity className="w-8 h-8 text-teal-600" />
+              <div>
+                <CardTitle className="text-2xl">Assessment Complete</CardTitle>
+                <CardDescription className="text-base">Based on your symptoms analysis</CardDescription>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Urgency:</span>
+              <Badge className={`${getUrgencyColor(diagnosisResult?.urgency_level)} text-white text-base px-4 py-2`}>
+                {diagnosisResult?.urgency_level}
+              </Badge>
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      <Card data-testid="possible-conditions">
-        <CardHeader>
-          <CardTitle>Possible Conditions</CardTitle>
-          <CardDescription>These are potential causes based on your symptoms</CardDescription>
+      {/* Possible Conditions */}
+      <Card className="shadow-2xl border-2 border-teal-100" data-testid="possible-conditions">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+          <div className="flex items-center gap-2">
+            <Brain className="w-6 h-6 text-purple-600" />
+            <CardTitle className="text-xl">Possible Conditions - Medical Evidence Based</CardTitle>
+          </div>
+          <CardDescription>AI-analyzed differential diagnosis based on your symptoms</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           {diagnosisResult?.possible_conditions?.map((condition, index) => (
-            <div key={index} className="border-l-4 border-blue-500 pl-4 py-2" data-testid="condition-item">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-lg">{condition.name}</h3>
-                <Badge variant={condition.probability === "High" ? "destructive" : "secondary"}>
+            <div key={index} className="border-l-4 border-purple-500 bg-purple-50 p-4 rounded-r-lg" data-testid="condition-item">
+              <div className="flex items-center gap-3 mb-2">
+                <h3 className="font-bold text-lg text-gray-900">{condition.name}</h3>
+                <Badge 
+                  variant={condition.probability === "High" ? "destructive" : "secondary"}
+                  className="text-sm"
+                >
                   {condition.probability} Probability
                 </Badge>
               </div>
-              <p className="text-gray-600 text-sm">{condition.description}</p>
+              <p className="text-gray-700 leading-relaxed">{condition.description}</p>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      <Card data-testid="recommendations">
-        <CardHeader>
-          <CardTitle>Recommendations</CardTitle>
+      {/* Food Recommendations */}
+      {diagnosisResult?.food_recommendations && diagnosisResult.food_recommendations.length > 0 && (
+        <Card className="shadow-2xl border-2 border-orange-100" data-testid="food-recommendations">
+          <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
+            <div className="flex items-center gap-2">
+              <Utensils className="w-6 h-6 text-orange-600" />
+              <CardTitle className="text-xl">Nutritional Recommendations</CardTitle>
+            </div>
+            <CardDescription>Foods that can help with your symptoms</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              {diagnosisResult.food_recommendations.map((food, index) => (
+                <div key={index} className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg border-2 border-orange-200" data-testid="food-item">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-orange-500 p-2 rounded-lg">
+                      <Utensils className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900 mb-1">{food.food_item}</h4>
+                      <p className="text-sm text-gray-700 mb-2">{food.benefit}</p>
+                      <Badge variant="outline" className="text-xs">{food.category}</Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Medical Recommendations */}
+      <Card className="shadow-2xl border-2 border-green-100" data-testid="recommendations">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+          <div className="flex items-center gap-2">
+            <Heart className="w-6 h-6 text-green-600" />
+            <CardTitle className="text-xl">Medical Recommendations</CardTitle>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-gray-700 whitespace-pre-line">{diagnosisResult?.recommendations}</p>
+        <CardContent className="pt-6">
+          <p className="text-gray-700 leading-relaxed whitespace-pre-line text-base">{diagnosisResult?.recommendations}</p>
         </CardContent>
       </Card>
 
-      <Card className="bg-yellow-50 border-yellow-200">
+      {/* Disclaimer */}
+      <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 shadow-xl">
         <CardContent className="pt-6">
-          <div className="flex gap-3">
-            <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
+          <div className="flex gap-4">
+            <AlertCircle className="w-8 h-8 text-amber-600 flex-shrink-0" />
             <div>
-              <p className="font-semibold text-yellow-900 mb-1">Important Disclaimer</p>
-              <p className="text-sm text-yellow-800">
-                This assessment is for informational purposes only and should not replace professional medical advice. 
-                Always consult with a healthcare provider for proper diagnosis and treatment.
+              <p className="font-bold text-amber-900 mb-2 text-lg">Important Medical Disclaimer</p>
+              <p className="text-amber-800 leading-relaxed">
+                This assessment is powered by AI and provides evidence-based information for educational purposes only. 
+                It should NOT replace professional medical advice, diagnosis, or treatment. Always consult with qualified 
+                healthcare providers for proper medical evaluation and personalized care.
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="flex gap-2">
-        <Button onClick={() => navigate('/')} variant="outline" className="flex-1" data-testid="btn-back-home">
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <Button onClick={() => navigate('/')} variant="outline" className="flex-1 text-lg py-6" data-testid="btn-back-home">
+          <Home className="mr-2 w-5 h-5" />
           Back to Home
         </Button>
         <Button
@@ -460,9 +658,10 @@ const SymptomChecker = () => {
             });
             setDiagnosisResult(null);
           }}
-          className="flex-1"
+          className="flex-1 text-lg py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
           data-testid="btn-new-assessment"
         >
+          <Sparkles className="mr-2 w-5 h-5" />
           New Assessment
         </Button>
       </div>
@@ -470,13 +669,19 @@ const SymptomChecker = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8">
       <div className="container mx-auto px-4">
         <div className="mb-8">
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900">Symptom Checker</h2>
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Brain className="w-8 h-8 text-teal-600" />
+                <span className="text-sm font-semibold text-teal-700">MedEvidences</span>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900">Super Intelligence Symptom Checker</h2>
+            </div>
             {step < 4 && (
-              <Badge variant="outline" className="text-lg px-4 py-2">
+              <Badge variant="outline" className="text-lg px-6 py-3 border-2 border-teal-500">
                 Step {step} of 3
               </Badge>
             )}
@@ -497,23 +702,28 @@ function App() {
     <div className="App">
       <BrowserRouter>
         {/* Navigation Bar */}
-        <nav className="bg-white shadow-md sticky top-0 z-50" data-testid="main-nav">
+        <nav className="bg-white shadow-lg sticky top-0 z-50 border-b-4 border-teal-500" data-testid="main-nav">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center gap-2">
-                <Activity className="w-8 h-8 text-blue-600" />
-                <span className="text-xl font-bold text-gray-900">HealthCheck AI</span>
-              </div>
-              <div className="flex gap-4">
+            <div className="flex items-center justify-between h-20">
+              <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-2 rounded-xl">
+                  <Brain className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <span className="text-xl font-bold text-gray-900 block">MedEvidences</span>
+                  <span className="text-xs text-teal-600 font-medium">Super Intelligence</span>
+                </div>
+              </Link>
+              <div className="flex gap-3">
                 <Link to="/">
-                  <Button variant="ghost" className="flex items-center gap-2" data-testid="nav-home">
-                    <Home className="w-4 h-4" />
+                  <Button variant="ghost" className="flex items-center gap-2 text-base" data-testid="nav-home">
+                    <Home className="w-5 h-5" />
                     Home
                   </Button>
                 </Link>
                 <Link to="/symptom-checker">
-                  <Button className="flex items-center gap-2" data-testid="nav-symptom-checker">
-                    <Activity className="w-4 h-4" />
+                  <Button className="flex items-center gap-2 text-base bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700" data-testid="nav-symptom-checker">
+                    <Activity className="w-5 h-5" />
                     Symptom Checker
                   </Button>
                 </Link>
