@@ -479,7 +479,7 @@ const SymptomChecker = () => {
                     Click on your pain area
                   </div>
                   
-                  {/* Interactive Clickable Hotspots - Like Ubie Health */}
+                  {/* Interactive Clickable Hotspots - MedEvidences Technology */}
                   <svg className="absolute top-0 left-0 w-full h-full" style={{ maxHeight: '500px' }} viewBox="0 0 100 100" preserveAspectRatio="none">
                     {/* Upper back */}
                     <rect 
