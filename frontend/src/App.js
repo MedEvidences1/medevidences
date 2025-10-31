@@ -232,6 +232,21 @@ const SymptomChecker = () => {
         additional_info: formData.additionalInfo
       };
 
+      // Add back pain location if available
+      if (formData.backPainLocation) {
+        payload.pain_locations = [{
+          body_part: "Back pain",
+          specific_location: formData.backPainLocation,
+          side: formData.backPainLocation.includes("Left") ? "left" : 
+                formData.backPainLocation.includes("Right") ? "right" : "center"
+        }];
+      }
+
+      // Add AM erection duration if available
+      if (formData.amErectionDuration) {
+        payload.am_erection_duration = formData.amErectionDuration;
+      }
+
       const response = await axios.post(`${API}/symptoms/analyze`, payload);
       setDiagnosisResult(response.data);
       setStep(4);
