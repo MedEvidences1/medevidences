@@ -96,9 +96,17 @@ SYMPTOM_DATA = {
     },
     "Back pain": {
         "image": "https://images.unsplash.com/photo-1513447269-5b4e55e75bb8",
-        "foods": ["Turmeric", "Salmon", "Tart cherries", "Green tea", "Olive oil"],
+        "foods": [
+            "Third-party lab certified Cocoa powder (anti-inflammatory)",
+            "Seabuckthorn berries (muscle recovery)",
+            "Red Korean ginseng extract - 6 yr old roots (pain relief)",
+            "Kiwi pulp (vitamin C for tissue repair)",
+            "Turmeric with Allulose sweetener",
+            "Wild-caught Salmon (Omega-3)"
+        ],
         "requires_location": True,
-        "location_type": "back"
+        "location_type": "back",
+        "premium_supplements": True
     },
     "Chest pain": {
         "image": "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7",
