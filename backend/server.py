@@ -141,9 +141,19 @@ SYMPTOM_DATA = {
     },
     "AM erection issues/Cardio health": {
         "image": "https://images.unsplash.com/photo-1516841273335-e39b37888115",
-        "foods": ["Watermelon", "Dark leafy greens", "Nuts", "Salmon", "Berries", "Whole grains"],
+        "foods": [
+            "Watermelon with Allulose (natural vasodilator)",
+            "Red Korean ginseng extract - 6 yr old roots (blood flow)",
+            "Third-party lab certified Cocoa powder (circulation)",
+            "Seabuckthorn berries (vascular health)",
+            "Dark leafy greens",
+            "Kiwi pulp (vitamin C)",
+            "Wild-caught Salmon",
+            "Whole grains"
+        ],
         "requires_location": False,
-        "warning": "⚠️ CARDIOVASCULAR HEALTH CONCERN: Absence of morning erections can be an early indicator of cardiovascular health issues. This may suggest reduced blood circulation. Please schedule an examination with a Cardiologist for comprehensive evaluation."
+        "requires_duration_tracking": True,
+        "warning": "⚠️ CARDIOVASCULAR HEALTH ALERT: Absence of morning erections is an early indicator of cardiovascular health issues indicating reduced blood circulation. If this problem has persisted for MORE THAN 2 DAYS CONTINUOUSLY and is REPEATED EVERY WEEK, or ongoing for 1+ months, you MUST consult a Cardiologist immediately for comprehensive cardiovascular evaluation. Early detection can prevent serious heart conditions."
     }
 }
 
