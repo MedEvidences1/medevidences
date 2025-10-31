@@ -88,7 +88,7 @@ const CalculatorPage = () => {
             <Activity className="w-5 h-5" />
             <span className="text-sm font-medium">Science-Based Assessment</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">Gut Microbiome Score Calculator</h1>
+          <h1 className="text-5xl font-bold mb-4">MedEvidences - Gut Super Intelligence</h1>
           <p className="text-xl text-emerald-50 max-w-3xl mx-auto">
             Discover how your daily habits affect your gut health. Get personalized insights and actionable recommendations to improve your microbiome.
           </p>
