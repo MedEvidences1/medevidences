@@ -177,14 +177,12 @@ SYMPTOM_DATA = {
     "AM erection issues/Cardio health": {
         "image": "https://images.unsplash.com/photo-1516841273335-e39b37888115",
         "foods": [
-            "Watermelon with Allulose (natural vasodilator)",
-            "Red Korean ginseng extract - 6 yr old roots (blood flow)",
             "Third-party lab certified Cocoa powder (circulation)",
-            "Seabuckthorn berries (vascular health)",
+            "Seabuckthorn berries pulp (vascular health)",
+            "Red Korean ginseng extract - 6 yr old roots (blood flow)",
+            "Watermelon with Allulose (natural vasodilator)",
             "Dark leafy greens",
-            "Kiwi pulp (vitamin C)",
-            "Wild-caught Salmon",
-            "Whole grains"
+            "Kiwi pulp (vitamin C)"
         ],
         "requires_location": False,
         "requires_duration_tracking": True,
