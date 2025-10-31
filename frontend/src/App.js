@@ -463,7 +463,7 @@ const SymptomChecker = () => {
                 <AlertCircle className="w-6 h-6 text-purple-600" />
                 Pinpoint Your Back Pain Location
               </CardTitle>
-              <CardDescription className="text-base">Click on the specific area where you feel pain (like Ubie Health)</CardDescription>
+              <CardDescription className="text-base">Click directly on the body diagram where you feel pain</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid md:grid-cols-2 gap-8">
