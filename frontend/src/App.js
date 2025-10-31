@@ -467,52 +467,162 @@ const SymptomChecker = () => {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="grid md:grid-cols-2 gap-8">
-                {/* Body Diagram */}
+                {/* Interactive Body Diagram - Click directly on the image! */}
                 <div className="relative">
                   <img 
                     src="https://images.unsplash.com/photo-1716996236828-18583f5abe5d"
                     alt="Back anatomy diagram"
                     className="w-full rounded-xl shadow-lg border-4 border-purple-200"
+                    style={{ maxHeight: '500px', objectFit: 'cover' }}
                   />
-                  <div className="absolute top-4 left-4 bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                    Back Pain Locator
+                  <div className="absolute top-4 left-4 bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10">
+                    Click on your pain area
                   </div>
+                  
+                  {/* Interactive Clickable Hotspots - Like Ubie Health */}
+                  <svg className="absolute top-0 left-0 w-full h-full" style={{ maxHeight: '500px' }} viewBox="0 0 100 100" preserveAspectRatio="none">
+                    {/* Upper back */}
+                    <rect 
+                      x="30" y="15" width="40" height="15" 
+                      fill={formData.backPainLocation === "Upper back" ? "rgba(147, 51, 234, 0.6)" : "rgba(147, 51, 234, 0.1)"}
+                      stroke="rgba(147, 51, 234, 0.8)" 
+                      strokeWidth="0.5"
+                      className="cursor-pointer hover:fill-purple-400 transition-all"
+                      onClick={() => setFormData({...formData, backPainLocation: "Upper back"})}
+                      data-testid="hotspot-upper-back"
+                    />
+                    
+                    {/* Mid back */}
+                    <rect 
+                      x="35" y="32" width="30" height="18" 
+                      fill={formData.backPainLocation === "Mid back" ? "rgba(147, 51, 234, 0.6)" : "rgba(147, 51, 234, 0.1)"}
+                      stroke="rgba(147, 51, 234, 0.8)" 
+                      strokeWidth="0.5"
+                      className="cursor-pointer hover:fill-purple-400 transition-all"
+                      onClick={() => setFormData({...formData, backPainLocation: "Mid back"})}
+                      data-testid="hotspot-mid-back"
+                    />
+                    
+                    {/* Lower back */}
+                    <rect 
+                      x="38" y="52" width="24" height="18" 
+                      fill={formData.backPainLocation === "Lower back" ? "rgba(147, 51, 234, 0.6)" : "rgba(147, 51, 234, 0.1)"}
+                      stroke="rgba(147, 51, 234, 0.8)" 
+                      strokeWidth="0.5"
+                      className="cursor-pointer hover:fill-purple-400 transition-all"
+                      onClick={() => setFormData({...formData, backPainLocation: "Lower back"})}
+                      data-testid="hotspot-lower-back"
+                    />
+                    
+                    {/* Left side */}
+                    <rect 
+                      x="15" y="30" width="18" height="35" 
+                      fill={formData.backPainLocation === "Left side" ? "rgba(147, 51, 234, 0.6)" : "rgba(147, 51, 234, 0.1)"}
+                      stroke="rgba(147, 51, 234, 0.8)" 
+                      strokeWidth="0.5"
+                      className="cursor-pointer hover:fill-purple-400 transition-all"
+                      onClick={() => setFormData({...formData, backPainLocation: "Left side"})}
+                      data-testid="hotspot-left-side"
+                    />
+                    
+                    {/* Right side */}
+                    <rect 
+                      x="67" y="30" width="18" height="35" 
+                      fill={formData.backPainLocation === "Right side" ? "rgba(147, 51, 234, 0.6)" : "rgba(147, 51, 234, 0.1)"}
+                      stroke="rgba(147, 51, 234, 0.8)" 
+                      strokeWidth="0.5"
+                      className="cursor-pointer hover:fill-purple-400 transition-all"
+                      onClick={() => setFormData({...formData, backPainLocation: "Right side"})}
+                      data-testid="hotspot-right-side"
+                    />
+                    
+                    {/* Tailbone */}
+                    <ellipse 
+                      cx="50" cy="75" rx="10" ry="8" 
+                      fill={formData.backPainLocation === "Tailbone" ? "rgba(147, 51, 234, 0.6)" : "rgba(147, 51, 234, 0.1)"}
+                      stroke="rgba(147, 51, 234, 0.8)" 
+                      strokeWidth="0.5"
+                      className="cursor-pointer hover:fill-purple-400 transition-all"
+                      onClick={() => setFormData({...formData, backPainLocation: "Tailbone"})}
+                      data-testid="hotspot-tailbone"
+                    />
+                    
+                    {/* Labels on hover */}
+                    {!formData.backPainLocation && (
+                      <>
+                        <text x="50" y="22" textAnchor="middle" fill="white" fontSize="3" fontWeight="bold" className="pointer-events-none">Upper</text>
+                        <text x="50" y="41" textAnchor="middle" fill="white" fontSize="3" fontWeight="bold" className="pointer-events-none">Mid</text>
+                        <text x="50" y="61" textAnchor="middle" fill="white" fontSize="3" fontWeight="bold" className="pointer-events-none">Lower</text>
+                        <text x="24" y="48" textAnchor="middle" fill="white" fontSize="2.5" fontWeight="bold" className="pointer-events-none">Left</text>
+                        <text x="76" y="48" textAnchor="middle" fill="white" fontSize="2.5" fontWeight="bold" className="pointer-events-none">Right</text>
+                        <text x="50" y="77" textAnchor="middle" fill="white" fontSize="2.5" fontWeight="bold" className="pointer-events-none">Tailbone</text>
+                      </>
+                    )}
+                  </svg>
                 </div>
 
-                {/* Location Selectors */}
+                {/* Location Confirmation */}
                 <div className="space-y-4">
+                  <div className="bg-purple-50 p-6 rounded-xl border-2 border-purple-200">
+                    <h3 className="text-lg font-bold text-purple-900 mb-4">📍 How to Use (Like Ubie Health):</h3>
+                    <ol className="space-y-2 text-sm text-purple-800">
+                      <li className="flex items-start gap-2">
+                        <span className="font-bold">1.</span>
+                        <span>Click directly on the body image where you feel pain</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-bold">2.</span>
+                        <span>The area will highlight in purple</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="font-bold">3.</span>
+                        <span>You can change your selection by clicking another area</span>
+                      </li>
+                    </ol>
+                  </div>
+
+                  {formData.backPainLocation ? (
+                    <div className="bg-purple-600 p-6 rounded-xl border-4 border-purple-400 shadow-2xl animate-pulse">
+                      <div className="flex items-center gap-3 mb-2">
+                        <CheckCircle className="w-8 h-8 text-white" />
+                        <Label className="text-xl font-bold text-white">Pain Location Selected:</Label>
+                      </div>
+                      <p className="text-3xl font-bold text-white mt-3">✓ {formData.backPainLocation}</p>
+                      <p className="text-purple-100 text-sm mt-2">Click another area to change</p>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50 p-6 rounded-xl border-2 border-amber-300">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertCircle className="w-6 h-6 text-amber-600" />
+                        <Label className="text-base font-bold text-amber-900">Please select a location</Label>
+                      </div>
+                      <p className="text-sm text-amber-800">Click on the body diagram above to pinpoint your pain</p>
+                    </div>
+                  )}
+
+                  {/* Quick selection buttons as backup */}
                   <div>
-                    <Label className="text-lg font-bold mb-4 block text-purple-900">Select Exact Location:</Label>
-                    <div className="grid grid-cols-1 gap-3">
+                    <Label className="text-sm font-semibold mb-2 block text-purple-700">Or select from list:</Label>
+                    <div className="grid grid-cols-2 gap-2">
                       {["Upper back", "Mid back", "Lower back", "Left side", "Right side", "Tailbone"].map((location) => {
                         const isSelected = formData.backPainLocation === location;
                         return (
                           <button
                             key={location}
                             onClick={() => setFormData({...formData, backPainLocation: location})}
-                            className={`p-4 rounded-xl text-left transition-all text-lg font-semibold ${
+                            className={`p-2 rounded-lg text-sm font-medium transition-all ${
                               isSelected
-                                ? 'bg-purple-600 text-white ring-4 ring-purple-400 shadow-xl transform scale-105'
-                                : 'bg-purple-50 hover:bg-purple-100 text-gray-900 border-2 border-purple-200'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-purple-100 hover:bg-purple-200 text-purple-900'
                             }`}
                             data-testid={`back-location-${location.toLowerCase().replace(/\s+/g, '-')}`}
                           >
-                            <div className="flex items-center justify-between">
-                              <span>{location}</span>
-                              {isSelected && <CheckCircle className="w-6 h-6" />}
-                            </div>
+                            {location}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-
-                  {formData.backPainLocation && (
-                    <div className="bg-purple-100 p-4 rounded-xl border-2 border-purple-300">
-                      <Label className="text-sm font-bold text-purple-900">Selected Location:</Label>
-                      <p className="text-xl font-bold text-purple-700 mt-2">✓ {formData.backPainLocation}</p>
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>
