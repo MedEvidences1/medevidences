@@ -53,6 +53,7 @@ class SymptomInput(BaseModel):
     severity: str
     additional_info: Optional[str] = None
     pain_locations: Optional[List[PainLocation]] = None
+    am_erection_duration: Optional[str] = None  # For cardiovascular tracking
 
 class FoodRecommendation(BaseModel):
     food_item: str
