@@ -240,6 +240,11 @@ async def get_symptom_data():
 async def get_body_locations():
     return {"body_locations": BODY_LOCATIONS}
 
+# Get premium supplements information
+@api_router.get("/nutrition/supplements")
+async def get_premium_supplements():
+    return {"premium_supplements": PREMIUM_SUPPLEMENTS}
+
 # Analyze symptoms with AI (Ada-inspired enhanced analysis)
 @api_router.post("/symptoms/analyze", response_model=DiagnosisResult)
 async def analyze_symptoms(symptom_input: SymptomInput):
