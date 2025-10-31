@@ -840,7 +840,9 @@ const SymptomChecker = () => {
               primarySymptoms: [],
               symptomDuration: "",
               severity: "",
-              additionalInfo: ""
+              additionalInfo: "",
+              backPainLocation: null,
+              amErectionDuration: null
             });
             setDiagnosisResult(null);
           }}
