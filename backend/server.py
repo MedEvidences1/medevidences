@@ -90,8 +90,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (vitamin-rich)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (recovery)",
             "Third-party lab certified Brazil nuts (selenium for immunity)",
-            "Warm liquids with Allulose sweetener",
-            "Citrus fruits"
+            "Wild-caught Salmon (Omega-3 for inflammation)",
+            "Warm liquids with Allulose sweetener"
         ],
         "requires_location": False
     },
@@ -102,8 +102,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (anti-inflammatory)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (circulation)",
             "Third-party lab certified Brazil nuts (selenium for nerve health)",
-            "Water with Allulose",
-            "Almonds"
+            "Wild-caught Salmon (Omega-3 for brain health)",
+            "Water with Allulose"
         ],
         "requires_location": True,
         "location_type": "head"
@@ -115,8 +115,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (muscle recovery)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (pain relief)",
             "Third-party lab certified Brazil nuts (selenium for tissue repair)",
-            "Kiwi pulp with Allulose sweetener",
-            "Wild-caught Salmon"
+            "Wild-caught Salmon (Omega-3 for inflammation)",
+            "Kiwi pulp with Allulose sweetener"
         ],
         "requires_location": True,
         "location_type": "back",
@@ -129,8 +129,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (cardiovascular)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (circulation)",
             "Third-party lab certified Brazil nuts (selenium for heart)",
-            "Whole grains with Allulose",
-            "Omega-3 fatty acids"
+            "Wild-caught Salmon (Omega-3 for heart health)",
+            "Whole grains with Allulose"
         ],
         "requires_location": True,
         "location_type": "chest"
@@ -142,8 +142,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (gut health)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (inflammation)",
             "Third-party lab certified Brazil nuts (selenium for gut)",
-            "Ginger tea with Allulose",
-            "Bananas"
+            "Wild-caught Salmon (Omega-3 for gut inflammation)",
+            "Ginger tea with Allulose"
         ],
         "requires_location": True,
         "location_type": "abdomen"
@@ -155,8 +155,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (joint support)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (mobility)",
             "Third-party lab certified Brazil nuts (selenium for joints)",
-            "Fish oil with Allulose",
-            "Turmeric"
+            "Wild-caught Salmon (Omega-3 for joint health)",
+            "Fish oil with Allulose"
         ],
         "requires_location": True,
         "location_type": "joints"
@@ -168,8 +168,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (respiratory support)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (lung capacity)",
             "Third-party lab certified Brazil nuts (selenium for respiratory)",
-            "Leafy greens with Allulose",
-            "Beets"
+            "Wild-caught Salmon (Omega-3 for lung health)",
+            "Leafy greens with Allulose"
         ],
         "requires_location": False,
         "warning": "⚠️ CARDIOVASCULAR EMERGENCY: If experiencing shortness of breath while climbing just 5 stairs, this strongly indicates potential cardiovascular problems. This is a serious warning sign. Please consult a Cardiologist IMMEDIATELY for comprehensive heart examination and testing."
