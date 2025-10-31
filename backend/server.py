@@ -181,8 +181,8 @@ SYMPTOM_DATA = {
             "Third-party lab certified Seabuckthorn berries pulp (vascular health)",
             "Third-party lab certified Red Korean ginseng 6 yr old extract (blood flow)",
             "Third-party lab certified Brazil nuts (selenium for testosterone)",
-            "Watermelon with Allulose (natural vasodilator)",
-            "Dark leafy greens"
+            "Wild-caught Salmon (Omega-3 for cardiovascular health)",
+            "Watermelon with Allulose (natural vasodilator)"
         ],
         "requires_location": False,
         "requires_duration_tracking": True,
