@@ -853,7 +853,7 @@ const SymptomChecker = () => {
             </div>
             {step < 4 && (
               <Badge variant="outline" className="text-lg px-6 py-3 border-2 border-teal-500">
-                Step {step} of 3
+                Step {step === 2.5 ? '2.5' : Math.floor(step)} of 3
               </Badge>
             )}
           </div>
@@ -861,6 +861,7 @@ const SymptomChecker = () => {
 
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
+        {step === 2.5 && renderStep2_5()}
         {step === 3 && renderStep3()}
         {step === 4 && renderStep4()}
       </div>
