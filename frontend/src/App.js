@@ -412,7 +412,16 @@ const SymptomChecker = () => {
             Back
           </Button>
           <Button
-            onClick={() => setStep(3)}
+            onClick={() => {
+              // Check if back pain or AM erection is selected - go to step 2.5
+              const hasBackPain = formData.primarySymptoms.includes("Back pain");
+              const hasAmErection = formData.primarySymptoms.includes("AM erection issues/Cardio health");
+              if (hasBackPain || hasAmErection) {
+                setStep(2.5);  // Go to specialized input step
+              } else {
+                setStep(3);  // Skip to regular details
+              }
+            }}
             disabled={formData.primarySymptoms.length === 0}
             className="flex-1 text-lg py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
             data-testid="btn-next-step2"
