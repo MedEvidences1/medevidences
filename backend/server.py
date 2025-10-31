@@ -203,19 +203,19 @@ BODY_LOCATIONS = {
 PREMIUM_SUPPLEMENTS = {
     "Third-party lab certified Cocoa powder": {
         "benefits": "Anti-inflammatory, improves circulation, rich in antioxidants",
-        "use_for": ["Back pain", "Cardiovascular health", "General wellness"]
+        "use_for": ["All symptoms", "Cardiovascular health", "General wellness"]
     },
-    "Seabuckthorn berries": {
+    "Third-party lab certified Seabuckthorn berries pulp": {
         "benefits": "Muscle recovery, respiratory support, vascular health, vitamin-rich",
-        "use_for": ["Back pain", "Shortness of breath", "AM erection issues"]
+        "use_for": ["All symptoms", "Back pain", "Shortness of breath", "AM erection issues"]
     },
-    "Kiwi pulp": {
-        "benefits": "High vitamin C for tissue repair, digestive health, immune support",
-        "use_for": ["Back pain", "General health", "Recovery"]
-    },
-    "Red Korean ginseng extract (6 yr old roots)": {
+    "Third-party lab certified Red Korean ginseng 6 yr old extract": {
         "benefits": "Pain relief, blood flow enhancement, lung capacity, energy boost",
-        "use_for": ["Back pain", "Shortness of breath", "AM erection issues", "Fatigue"]
+        "use_for": ["All symptoms", "Back pain", "Shortness of breath", "AM erection issues", "Fatigue"]
+    },
+    "Third-party lab certified Brazil nuts": {
+        "benefits": "High selenium content, immune support, hormone regulation, antioxidant",
+        "use_for": ["All symptoms", "Immunity", "Cardiovascular health", "Reproductive health"]
     },
     "Allulose (natural sweetener)": {
         "benefits": "Zero-calorie sweetener, no blood sugar spike, safe for diabetics",
