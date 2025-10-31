@@ -376,14 +376,50 @@ Include at least 5-7 food recommendations."""
             if symptom in SYMPTOM_DATA and "warning" in SYMPTOM_DATA[symptom]:
                 special_warnings.append(SYMPTOM_DATA[symptom]["warning"])
         
-        # Parse food recommendations
+        # Get premium supplements from SYMPTOM_DATA for selected symptoms
         food_recs = []
+        premium_foods_added = set()
+        
+        # First, add all premium supplements from our database for each symptom
+        for symptom in symptom_input.primary_symptoms:
+            if symptom in SYMPTOM_DATA and "foods" in SYMPTOM_DATA[symptom]:
+                for food in SYMPTOM_DATA[symptom]["foods"]:
+                    # Parse food item and benefit
+                    if "(" in food and ")" in food:
+                        food_item = food.split("(")[0].strip()
+                        benefit = food.split("(")[1].split(")")[0].strip()
+                    else:
+                        food_item = food
+                        benefit = "Supports overall health"
+                    
+                    # Determine category
+                    if "Third-party lab certified" in food_item:
+                        category = "Premium Lab-Certified Supplement"
+                    elif "Allulose" in food_item:
+                        category = "Natural Sweetener"
+                    else:
+                        category = "Nutritional Food"
+                    
+                    # Avoid duplicates
+                    food_key = food_item.lower()
+                    if food_key not in premium_foods_added:
+                        food_recs.append(FoodRecommendation(
+                            food_item=food_item,
+                            benefit=benefit,
+                            category=category
+                        ))
+                        premium_foods_added.add(food_key)
+        
+        # Then add AI-generated recommendations if they don't duplicate our premium items
         for food in ai_result.get("food_recommendations", []):
-            food_recs.append(FoodRecommendation(
-                food_item=food.get("food_item", ""),
-                benefit=food.get("benefit", ""),
-                category=food.get("category", "General")
-            ))
+            ai_food_item = food.get("food_item", "")
+            if ai_food_item.lower() not in premium_foods_added:
+                food_recs.append(FoodRecommendation(
+                    food_item=ai_food_item,
+                    benefit=food.get("benefit", ""),
+                    category=food.get("category", "General")
+                ))
+                premium_foods_added.add(ai_food_item.lower())
         
         # Create diagnosis result
         diagnosis = DiagnosisResult(
