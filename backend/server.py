@@ -166,6 +166,30 @@ BODY_LOCATIONS = {
     "joints": ["Knees", "Elbows", "Shoulders", "Hips", "Wrists", "Ankles"]
 }
 
+# Premium Nutritional Supplements (Third-party lab certified)
+PREMIUM_SUPPLEMENTS = {
+    "Third-party lab certified Cocoa powder": {
+        "benefits": "Anti-inflammatory, improves circulation, rich in antioxidants",
+        "use_for": ["Back pain", "Cardiovascular health", "General wellness"]
+    },
+    "Seabuckthorn berries": {
+        "benefits": "Muscle recovery, respiratory support, vascular health, vitamin-rich",
+        "use_for": ["Back pain", "Shortness of breath", "AM erection issues"]
+    },
+    "Kiwi pulp": {
+        "benefits": "High vitamin C for tissue repair, digestive health, immune support",
+        "use_for": ["Back pain", "General health", "Recovery"]
+    },
+    "Red Korean ginseng extract (6 yr old roots)": {
+        "benefits": "Pain relief, blood flow enhancement, lung capacity, energy boost",
+        "use_for": ["Back pain", "Shortness of breath", "AM erection issues", "Fatigue"]
+    },
+    "Allulose (natural sweetener)": {
+        "benefits": "Zero-calorie sweetener, no blood sugar spike, safe for diabetics",
+        "use_for": ["All supplement combinations", "Sugar replacement"]
+    }
+}
+
 # Routes
 @api_router.get("/")
 async def root():
