@@ -217,6 +217,10 @@ PREMIUM_SUPPLEMENTS = {
         "benefits": "High selenium content, immune support, hormone regulation, antioxidant",
         "use_for": ["All symptoms", "Immunity", "Cardiovascular health", "Reproductive health"]
     },
+    "Wild-caught Salmon": {
+        "benefits": "Rich in Omega-3 fatty acids, reduces inflammation, supports heart and brain health",
+        "use_for": ["All symptoms", "Cardiovascular health", "Brain health", "Joint pain", "Inflammation"]
+    },
     "Allulose (natural sweetener)": {
         "benefits": "Zero-calorie sweetener, no blood sugar spike, safe for diabetics",
         "use_for": ["All supplement combinations", "Sugar replacement"]
