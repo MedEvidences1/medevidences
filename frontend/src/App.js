@@ -433,6 +433,166 @@ const SymptomChecker = () => {
     </Card>
   );
 
+  // Step 2.5: Back Pain Body Diagram & AM Erection Duration
+  const renderStep2_5 = () => {
+    const hasBackPain = formData.primarySymptoms.includes("Back pain");
+    const hasAmErection = formData.primarySymptoms.includes("AM erection issues/Cardio health");
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Back Pain Body Diagram */}
+        {hasBackPain && (
+          <Card className="border-2 border-purple-200 shadow-2xl" data-testid="back-pain-selector">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <AlertCircle className="w-6 h-6 text-purple-600" />
+                Pinpoint Your Back Pain Location
+              </CardTitle>
+              <CardDescription className="text-base">Click on the specific area where you feel pain (like Ubie Health)</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Body Diagram */}
+                <div className="relative">
+                  <img 
+                    src="https://images.unsplash.com/photo-1716996236828-18583f5abe5d"
+                    alt="Back anatomy diagram"
+                    className="w-full rounded-xl shadow-lg border-4 border-purple-200"
+                  />
+                  <div className="absolute top-4 left-4 bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                    Back Pain Locator
+                  </div>
+                </div>
+
+                {/* Location Selectors */}
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-lg font-bold mb-4 block text-purple-900">Select Exact Location:</Label>
+                    <div className="grid grid-cols-1 gap-3">
+                      {["Upper back", "Mid back", "Lower back", "Left side", "Right side", "Tailbone"].map((location) => {
+                        const isSelected = formData.backPainLocation === location;
+                        return (
+                          <button
+                            key={location}
+                            onClick={() => setFormData({...formData, backPainLocation: location})}
+                            className={`p-4 rounded-xl text-left transition-all text-lg font-semibold ${
+                              isSelected
+                                ? 'bg-purple-600 text-white ring-4 ring-purple-400 shadow-xl transform scale-105'
+                                : 'bg-purple-50 hover:bg-purple-100 text-gray-900 border-2 border-purple-200'
+                            }`}
+                            data-testid={`back-location-${location.toLowerCase().replace(/\s+/g, '-')}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span>{location}</span>
+                              {isSelected && <CheckCircle className="w-6 h-6" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {formData.backPainLocation && (
+                    <div className="bg-purple-100 p-4 rounded-xl border-2 border-purple-300">
+                      <Label className="text-sm font-bold text-purple-900">Selected Location:</Label>
+                      <p className="text-xl font-bold text-purple-700 mt-2">✓ {formData.backPainLocation}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* AM Erection Duration Selector */}
+        {hasAmErection && (
+          <Card className="border-2 border-red-200 shadow-2xl" data-testid="am-erection-duration">
+            <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50">
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Heart className="w-6 h-6 text-red-600" />
+                Cardiovascular Health - Duration Tracking
+              </CardTitle>
+              <CardDescription className="text-base">How long has this issue persisted? (Critical for heart health assessment)</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <Label className="text-lg font-bold mb-4 block text-red-900">Select Duration:</Label>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {[
+                    { value: "1-week", label: "1 Week", warning: false },
+                    { value: "1-month", label: "1 Month", warning: true },
+                    { value: "2-months", label: "2 Months", warning: true },
+                    { value: "6-months", label: "6 Months or more", warning: true }
+                  ].map((duration) => {
+                    const isSelected = formData.amErectionDuration === duration.value;
+                    return (
+                      <button
+                        key={duration.value}
+                        onClick={() => setFormData({...formData, amErectionDuration: duration.value})}
+                        className={`p-4 rounded-xl text-left transition-all ${
+                          isSelected
+                            ? 'bg-red-600 text-white ring-4 ring-red-400 shadow-xl transform scale-105'
+                            : duration.warning
+                              ? 'bg-red-50 hover:bg-red-100 text-gray-900 border-2 border-red-300'
+                              : 'bg-gray-50 hover:bg-gray-100 text-gray-900 border-2 border-gray-300'
+                        }`}
+                        data-testid={`duration-${duration.value}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-lg font-bold block">{duration.label}</span>
+                            {duration.warning && !isSelected && (
+                              <span className="text-xs text-red-600 mt-1 block">⚠️ Cardiologist consultation needed</span>
+                            )}
+                          </div>
+                          {isSelected && <CheckCircle className="w-6 h-6" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {formData.amErectionDuration && (
+                  <div className="bg-red-100 p-5 rounded-xl border-2 border-red-400 mt-4">
+                    <div className="flex gap-3">
+                      <AlertTriangle className="w-8 h-8 text-red-600 flex-shrink-0" />
+                      <div>
+                        <p className="font-bold text-red-900 text-lg mb-2">Important Cardiovascular Alert</p>
+                        <p className="text-red-800 leading-relaxed">
+                          {formData.amErectionDuration !== "1-week" 
+                            ? "⚠️ If this problem persists for MORE THAN 2 DAYS CONTINUOUSLY and is REPEATED EVERY WEEK, you MUST consult a Cardiologist immediately. This can be an early sign of cardiovascular disease."
+                            : "Monitor this symptom closely. If it persists or worsens, consult a healthcare professional."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex gap-3">
+          <Button onClick={() => setStep(2)} variant="outline" className="flex-1 text-lg py-6" data-testid="btn-back-step2-5">
+            Back to Symptoms
+          </Button>
+          <Button
+            onClick={() => setStep(3)}
+            disabled={
+              (hasBackPain && !formData.backPainLocation) ||
+              (hasAmErection && !formData.amErectionDuration)
+            }
+            className="flex-1 text-lg py-6 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700"
+            data-testid="btn-next-step2-5"
+          >
+            Continue to Final Details
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   const renderStep3 = () => (
     <Card className="max-w-2xl mx-auto shadow-2xl border-2 border-teal-100" data-testid="step-details">
       <CardHeader className="bg-gradient-to-r from-teal-50 to-cyan-50">
