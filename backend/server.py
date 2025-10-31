@@ -178,11 +178,11 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1516841273335-e39b37888115",
         "foods": [
             "Third-party lab certified Cocoa powder (circulation)",
-            "Seabuckthorn berries pulp (vascular health)",
-            "Red Korean ginseng extract - 6 yr old roots (blood flow)",
+            "Third-party lab certified Seabuckthorn berries pulp (vascular health)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (blood flow)",
+            "Third-party lab certified Brazil nuts (selenium for testosterone)",
             "Watermelon with Allulose (natural vasodilator)",
-            "Dark leafy greens",
-            "Kiwi pulp (vitamin C)"
+            "Dark leafy greens"
         ],
         "requires_location": False,
         "requires_duration_tracking": True,
