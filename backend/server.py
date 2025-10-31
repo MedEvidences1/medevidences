@@ -128,9 +128,16 @@ SYMPTOM_DATA = {
     },
     "Shortness of breath": {
         "image": "https://images.unsplash.com/photo-1606618742198-99910cb01766",
-        "foods": ["Leafy greens", "Beets", "Omega-3 rich fish", "Berries", "Nuts"],
+        "foods": [
+            "Seabuckthorn berries (respiratory support)",
+            "Red Korean ginseng extract - 6 yr old roots (lung capacity)",
+            "Leafy greens with Allulose",
+            "Beets (nitric oxide boost)",
+            "Omega-3 rich fish",
+            "Berries with cocoa powder"
+        ],
         "requires_location": False,
-        "warning": "⚠️ CARDIOVASCULAR WARNING: If experiencing shortness of breath while climbing 5 stairs, this may indicate cardiovascular problems. Please consult a Cardiologist immediately for proper examination."
+        "warning": "⚠️ CARDIOVASCULAR EMERGENCY: If experiencing shortness of breath while climbing just 5 stairs, this strongly indicates potential cardiovascular problems. This is a serious warning sign. Please consult a Cardiologist IMMEDIATELY for comprehensive heart examination and testing."
     },
     "AM erection issues/Cardio health": {
         "image": "https://images.unsplash.com/photo-1516841273335-e39b37888115",
