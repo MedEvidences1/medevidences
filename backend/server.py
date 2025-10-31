@@ -87,10 +87,10 @@ SYMPTOM_DATA = {
         "image": "https://images.pexels.com/photos/3873179/pexels-photo-3873179.jpeg",
         "foods": [
             "Third-party lab certified Cocoa powder (immune boost)",
-            "Seabuckthorn berries pulp (vitamin-rich)",
-            "Red Korean ginseng extract - 6 yr old roots (recovery)",
-            "Warm liquids",
-            "Chicken soup",
+            "Third-party lab certified Seabuckthorn berries pulp (vitamin-rich)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (recovery)",
+            "Third-party lab certified Brazil nuts (selenium for immunity)",
+            "Warm liquids with Allulose sweetener",
             "Citrus fruits"
         ],
         "requires_location": False
@@ -99,11 +99,11 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1560591999-7ed516a308f1",
         "foods": [
             "Third-party lab certified Cocoa powder (magnesium)",
-            "Seabuckthorn berries pulp (anti-inflammatory)",
-            "Red Korean ginseng extract - 6 yr old roots (circulation)",
-            "Water",
-            "Almonds",
-            "Spinach"
+            "Third-party lab certified Seabuckthorn berries pulp (anti-inflammatory)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (circulation)",
+            "Third-party lab certified Brazil nuts (selenium for nerve health)",
+            "Water with Allulose",
+            "Almonds"
         ],
         "requires_location": True,
         "location_type": "head"
@@ -112,11 +112,11 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1513447269-5b4e55e75bb8",
         "foods": [
             "Third-party lab certified Cocoa powder (anti-inflammatory)",
-            "Seabuckthorn berries pulp (muscle recovery)",
-            "Red Korean ginseng extract - 6 yr old roots (pain relief)",
-            "Kiwi pulp (vitamin C for tissue repair)",
-            "Turmeric with Allulose sweetener",
-            "Wild-caught Salmon (Omega-3)"
+            "Third-party lab certified Seabuckthorn berries pulp (muscle recovery)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (pain relief)",
+            "Third-party lab certified Brazil nuts (selenium for tissue repair)",
+            "Kiwi pulp with Allulose sweetener",
+            "Wild-caught Salmon"
         ],
         "requires_location": True,
         "location_type": "back",
@@ -126,11 +126,11 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7",
         "foods": [
             "Third-party lab certified Cocoa powder (heart health)",
-            "Seabuckthorn berries pulp (cardiovascular)",
-            "Red Korean ginseng extract - 6 yr old roots (circulation)",
-            "Whole grains",
-            "Omega-3 fatty acids",
-            "Berries"
+            "Third-party lab certified Seabuckthorn berries pulp (cardiovascular)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (circulation)",
+            "Third-party lab certified Brazil nuts (selenium for heart)",
+            "Whole grains with Allulose",
+            "Omega-3 fatty acids"
         ],
         "requires_location": True,
         "location_type": "chest"
@@ -139,10 +139,10 @@ SYMPTOM_DATA = {
         "image": "https://images.pexels.com/photos/5842113/pexels-photo-5842113.jpeg",
         "foods": [
             "Third-party lab certified Cocoa powder (digestive health)",
-            "Seabuckthorn berries pulp (gut health)",
-            "Red Korean ginseng extract - 6 yr old roots (inflammation)",
-            "Ginger",
-            "Peppermint tea",
+            "Third-party lab certified Seabuckthorn berries pulp (gut health)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (inflammation)",
+            "Third-party lab certified Brazil nuts (selenium for gut)",
+            "Ginger tea with Allulose",
             "Bananas"
         ],
         "requires_location": True,
@@ -152,11 +152,11 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1587624903959-9d8a64f874d1",
         "foods": [
             "Third-party lab certified Cocoa powder (anti-inflammatory)",
-            "Seabuckthorn berries pulp (joint support)",
-            "Red Korean ginseng extract - 6 yr old roots (mobility)",
-            "Fish oil",
-            "Turmeric",
-            "Ginger"
+            "Third-party lab certified Seabuckthorn berries pulp (joint support)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (mobility)",
+            "Third-party lab certified Brazil nuts (selenium for joints)",
+            "Fish oil with Allulose",
+            "Turmeric"
         ],
         "requires_location": True,
         "location_type": "joints"
@@ -165,11 +165,11 @@ SYMPTOM_DATA = {
         "image": "https://images.unsplash.com/photo-1606618742198-99910cb01766",
         "foods": [
             "Third-party lab certified Cocoa powder (lung function)",
-            "Seabuckthorn berries pulp (respiratory support)",
-            "Red Korean ginseng extract - 6 yr old roots (lung capacity)",
+            "Third-party lab certified Seabuckthorn berries pulp (respiratory support)",
+            "Third-party lab certified Red Korean ginseng 6 yr old extract (lung capacity)",
+            "Third-party lab certified Brazil nuts (selenium for respiratory)",
             "Leafy greens with Allulose",
-            "Beets (nitric oxide boost)",
-            "Omega-3 rich fish"
+            "Beets"
         ],
         "requires_location": False,
         "warning": "⚠️ CARDIOVASCULAR EMERGENCY: If experiencing shortness of breath while climbing just 5 stairs, this strongly indicates potential cardiovascular problems. This is a serious warning sign. Please consult a Cardiologist IMMEDIATELY for comprehensive heart examination and testing."
