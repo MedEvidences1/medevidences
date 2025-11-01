@@ -124,6 +124,9 @@ function App() {
           path="/matched-jobs"
           element={user && user.role === 'candidate' ? <MatchedJobs user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
+        <Route path="/auth/callback" element={<AuthCallback onLogin={handleLogin} />} />
+        <Route path="/select-role" element={<SelectRole onLogin={handleLogin} />} />
+        <Route path="/admin" element={user && user.email === 'admin@medevidences.com' ? <AdminPanel user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
