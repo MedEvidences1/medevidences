@@ -1522,12 +1522,14 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
     if subscription_status not in ['active', 'cancelled']:
         raise HTTPException(status_code=400, detail=f"No active subscription to cancel. Current status: {subscription_status}")
     
+    # Import stripe at the top level
+    import stripe
+    
     try:
         # Cancel in Stripe (only if not already cancelled)
         stripe_sub_id = profile.get('stripe_subscription_id')
         
         if stripe_sub_id and subscription_status == 'active':
-            import stripe
             stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
             
             logging.info(f"Cancelling Stripe subscription {stripe_sub_id} for user {current_user['id']}")
