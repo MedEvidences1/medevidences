@@ -211,7 +211,7 @@ function JobDetails({ user, onLogout }) {
                     <span data-testid="company-location">{job.company_location}</span>
                   </div>
                 )}
-                {job.company_website && (
+                {job.company_website && job.company_website !== 'https://example.com' && (
                   <div className="flex items-center text-gray-700">
                     <Globe className="w-5 h-5 mr-3 text-gray-400" />
                     <a href={job.company_website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline" data-testid="company-website">
