@@ -72,6 +72,9 @@ function LandingPage({ user, onLogout }) {
                 </>
               ) : (
                 <>
+                  <Link to="/admin">
+                    <Button variant="ghost" className="text-xs text-gray-500 hover:text-gray-700">Admin</Button>
+                  </Link>
                   <Link to="/login">
                     <Button variant="ghost" data-testid="login-link">Login</Button>
                   </Link>
