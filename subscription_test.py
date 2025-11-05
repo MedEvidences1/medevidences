@@ -211,8 +211,8 @@ class SubscriptionFlowTester:
             
         # Test invalid plan
         print("\nTesting invalid plan...")
-        response = self.session.post(f"{self.base_url}/subscription/create-checkout", 
-                                   json={"plan": "invalid"}, headers=headers)
+        response = self.session.post(f"{self.base_url}/subscription/create-checkout?plan=invalid", 
+                                   headers=headers)
         
         if response.status_code == 400:
             print("✓ Invalid plan properly rejected")
