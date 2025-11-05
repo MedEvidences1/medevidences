@@ -27,21 +27,63 @@ export default function SubscriptionPlans() {
     try {
       const token = localStorage.getItem('token');
       
+      if (!token) {
+        console.error('No token found');
+        navigate('/login');
+        return;
+      }
+      
       // Fetch pricing plans
       const plansRes = await fetch(`${API}/subscription/pricing`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const plansData = await plansRes.json();
-      setPlans(plansData.plans || []);
+      
+      if (!plansRes.ok) {
+        console.error('Failed to fetch pricing plans');
+        setPlans([]);
+      } else {
+        const plansData = await plansRes.json();
+        setPlans(plansData.plans || []);
+      }
 
       // Fetch current subscription
       const subRes = await fetch(`${API}/subscription/status`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const subData = await subRes.json();
-      setCurrentSubscription(subData);
+      
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        setCurrentSubscription(subData);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
+      // Still show the page even if there's an error
+      setPlans([{
+        id: 'basic',
+        name: 'Basic Plan',
+        price: 29,
+        description: 'Perfect for job seekers',
+        features: [
+          'Apply to unlimited jobs',
+          'Access to AI interview',
+          'Basic candidate badge',
+          'Email support'
+        ]
+      },
+      {
+        id: 'premium',
+        name: 'Premium Plan',
+        price: 49,
+        description: 'For serious professionals',
+        features: [
+          'Everything in Basic',
+          'Priority support',
+          'Advanced analytics',
+          'Featured profile',
+          'Job match alerts'
+        ],
+        popular: true
+      }]);
     } finally {
       setLoading(false);
     }
