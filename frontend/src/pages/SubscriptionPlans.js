@@ -92,24 +92,34 @@ export default function SubscriptionPlans() {
   const handleSubscribe = async (planId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API}/subscription/create-checkout`, {
+      const response = await fetch(`${API}/subscription/create-checkout?plan=${planId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ plan_id: planId })
+          'Authorization': `Bearer ${token}`
+        }
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.detail || 'Failed to create checkout session');
+        return;
+      }
 
       const data = await response.json();
       
-      if (response.ok) {
-        // In production, redirect to Stripe checkout
-        toast.success('Redirecting to payment...');
-        window.location.href = data.checkout_url;
-      } else {
-        toast.error(data.detail || 'Failed to create checkout session');
+      // Check if it's mock mode
+      if (data.mock) {
+        toast.error(data.message);
+        console.log(data.instructions);
+        return;
       }
+
+      // Redirect to Stripe checkout
+      toast.success('Redirecting to Stripe checkout...');
+      setTimeout(() => {
+        window.location.href = data.checkout_url;
+      }, 500);
+      
     } catch (error) {
       toast.error('Error: ' + error.message);
     }
