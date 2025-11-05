@@ -466,18 +466,38 @@ def create_access_token(data: dict) -> str:
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
         
-        user = await db.users.find_one({"id": user_id}, {"_id": 0})
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
-        return user
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.JWTError:
+        # First try to decode as JWT (for regular auth)
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id = payload.get("sub")
+            if user_id is None:
+                raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+            
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if user is None:
+                raise HTTPException(status_code=401, detail="User not found")
+            return user
+        except jwt.JWTError:
+            # If JWT fails, check if it's an OAuth session token
+            session = await db.sessions.find_one({"session_token": token}, {"_id": 0})
+            if not session:
+                raise HTTPException(status_code=401, detail="Invalid token")
+            
+            # Check if session expired
+            expires_at = datetime.fromisoformat(session['expires_at'])
+            if expires_at < datetime.now(timezone.utc):
+                raise HTTPException(status_code=401, detail="Session expired")
+            
+            # Get user from session
+            user = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
+            if user is None:
+                raise HTTPException(status_code=401, detail="User not found")
+            return user
+            
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 # ============= Routes =============
