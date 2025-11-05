@@ -194,6 +194,36 @@ backend:
       - working: true
         agent: "main"
         comment: "Added EMERGENT_LLM_KEY to .env file. Installed emergentintegrations library. Using GPT-4o for AI features."
+  
+  - task: "Subscription Activation After Payment"
+    implemented: false
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports: After payment, not redirected to application screen and system still asking for subscription"
+      - working: "NA"
+        agent: "main"
+        comment: "Fixing /subscription/activate endpoint to properly retrieve plan from Stripe session and update user subscription status"
+  
+  - task: "Subscription Cancellation Logic"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports: No provision to cancel subscription after one month"
+      - working: "NA"
+        agent: "main"
+        comment: "Backend endpoint exists. Verifying it cancels at period end without refund for current month"
 
 frontend:
   - task: "Resume Upload UI"
