@@ -1315,11 +1315,14 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
     subscription_status = profile.get('subscription_status', 'free')
     subscription_end = profile.get('subscription_end')
     
-    # Check if subscription expired
-    if subscription_status == 'active' and subscription_end:
+    # Check if subscription expired (for both active and cancelled)
+    if subscription_status in ['active', 'cancelled'] and subscription_end:
         if isinstance(subscription_end, str):
-            subscription_end = datetime.fromisoformat(subscription_end)
-        if subscription_end < datetime.now(timezone.utc):
+            subscription_end_dt = datetime.fromisoformat(subscription_end)
+        else:
+            subscription_end_dt = subscription_end
+            
+        if subscription_end_dt < datetime.now(timezone.utc):
             # Update to expired
             await db.candidate_profiles.update_one(
                 {"user_id": current_user['id']},
@@ -1327,12 +1330,15 @@ async def get_subscription_status(current_user: dict = Depends(get_current_user)
             )
             subscription_status = "expired"
     
+    # User can apply if status is 'active' OR 'cancelled' (still has access until period end)
+    can_apply = subscription_status in ['active', 'cancelled']
+    
     return {
         "subscription_status": subscription_status,
         "subscription_plan": profile.get('subscription_plan'),
         "subscription_start": profile.get('subscription_start'),
         "subscription_end": profile.get('subscription_end'),
-        "can_apply": subscription_status == 'active'
+        "can_apply": can_apply
     }
 
 @api_router.post("/subscription/create-checkout")
