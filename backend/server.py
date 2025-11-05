@@ -1061,6 +1061,55 @@ async def delete_job(job_id: str, current_user: dict = Depends(get_current_user)
     
     return {"message": "Job deleted successfully"}
 
+@api_router.get("/jobs/{job_id}/can-apply")
+async def can_apply_to_job(job_id: str, current_user: dict = Depends(get_current_user)):
+    """Check if candidate can apply to a specific job"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        return {"can_apply": False, "reason": "Only candidates can apply to jobs"}
+    
+    # Check if job exists
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
+    if not job:
+        return {"can_apply": False, "reason": "Job not found"}
+    
+    # Check if profile exists
+    candidate_profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not candidate_profile:
+        return {"can_apply": False, "reason": "Please complete your profile first"}
+    
+    # Check subscription status
+    subscription_status = candidate_profile.get('subscription_status', 'free')
+    if subscription_status != 'active':
+        return {
+            "can_apply": False, 
+            "reason": "Subscription required to apply to jobs",
+            "subscription_status": subscription_status,
+            "requires_upgrade": True
+        }
+    
+    # Check if subscription is still valid
+    subscription_end = candidate_profile.get('subscription_end')
+    if subscription_end:
+        if isinstance(subscription_end, str):
+            subscription_end = datetime.fromisoformat(subscription_end)
+        if subscription_end < datetime.now(timezone.utc):
+            return {
+                "can_apply": False, 
+                "reason": "Your subscription has expired",
+                "subscription_status": "expired",
+                "requires_upgrade": True
+            }
+    
+    # Check if already applied
+    existing_app = await db.applications.find_one({
+        "job_id": job_id,
+        "candidate_id": current_user['id']
+    }, {"_id": 0})
+    if existing_app:
+        return {"can_apply": False, "reason": "Already applied to this job"}
+    
+    return {"can_apply": True, "reason": "Ready to apply"}
+
 # Application Routes
 @api_router.post("/applications", response_model=Application)
 async def create_application(
