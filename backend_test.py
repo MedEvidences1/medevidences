@@ -12,7 +12,7 @@ import tempfile
 import io
 
 # Get backend URL from environment
-BACKEND_URL = "https://sciexpertai.preview.emergentagent.com/api"
+BACKEND_URL = "https://medexpert-hire.preview.emergentagent.com/api"
 
 class MedEvidencesAPITester:
     def __init__(self):

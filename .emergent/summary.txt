@@ -1,151 +1,87 @@
 <analysis>
-The AI engineer's work involved rebuilding MedEvidences.com, a Mercor.com clone for medical/scientific hiring, after a previous session ended due to credit exhaustion. The initial phase focused on setting up the basic full-stack (FastAPI, React, MongoDB) platform with core functionalities like user authentication, job posting, and application management. Challenges included recurrent frontend compilation errors due to escaped quotes in component files, which required rewriting. The project evolved through several user-driven iterations, adding detailed job postings, AI interview logic, job seeding, and comprehensive candidate/employer dashboards. Recent efforts expanded to Google OAuth, email notifications, a payment system (backend models, frontend checkout page), and an admin panel. The user expressed frustration over repeated issues and deployment delays. The current state involves an application deployed to a test URL, with the last task being a verification of advanced AI features and payroll management, with a clear instruction to implement if missing.
+The AI engineer's work focused on expanding MedEvidences.com, an AI-powered hiring platform. Initial efforts established a full-stack application (FastAPI, React, MongoDB) with core features like user authentication, job posting, and application management, overcoming persistent frontend compilation errors. Significant enhancements included detailed job models, AI interview logic, job seeding, and comprehensive dashboards. The project then integrated Google OAuth, email notifications, a payment system, and an admin panel. Recent tasks primarily addressed critical bug fixes: Google OAuth login failures, incorrect dashboard redirects for admin users, security vulnerabilities (role bypass), display issues on various pages, and refining the subscription and payment flow. The engineer also integrated Apify for Mercor job scraping and implemented a Forgot Password feature. The current focus is on finalizing the post-payment subscription activation and cancellation logic, and ensuring proper redirection and user experience after payment.
 </analysis>
 
 <product_requirements>
-The goal is to build MedEvidences.com, an AI-powered hiring platform for medical and scientific professionals, cloning Mercor.com but with smart modifications.
-
-**Core Features:**
-*   **User Management:** Register/Login with distinct roles (Candidate/Employer), Google OAuth.
-*   **Job Management:** Employers post jobs with detailed requirements (role, experience, payment, terms, company info, education, skills, communication, AI understanding, English proficiency, project summary, work type, compensation). Candidates browse/apply.
-*   **Candidate Profile:** Create/update profiles, LinkedIn URL, portfolio, other links, resume upload (PDF up to 3MB).
-*   **AI Interview & Vetting:** In-depth Q&A format AI interview; AI vets candidates by analyzing transcripts, performance, project work for searchable profiles.
-*   **Job Matching:** AI-powered algorithms to match candidates to relevant jobs.
-*   **Dashboards:**
-    *   **Candidate:** Contracts, offers, applications, interviews, support, settings (name, email, phone, city, country).
-    *   **Employer:** Post jobs, view received applications, manage application status.
-*   **Landing Page:** Enhance Future Of AI title, Grab top remote jobs with AI roles subtitle. Categories: Doctors/Physicians, Medicine, Scientific Research, Nutrition, Physics, Consulting, Teaching, Chemistry, Medical Tutoring, Behavioral Science, Mathematics. Sections like Search roles, Start working, For companies, Human data, For candidates, Support, Resources.
-*   **Notifications:** Email notifications for new applications and status changes.
-*   **Payment System:** Mercor-style model: 49/job post (30 days), 99/month premium subscription (unlimited jobs), 10% success fee on first-year salary. Payment processing for platform fees (Stripe integration). Facilitate hiring, but platform does not handle employee payments.
-*   **Admin Panel:** For platform owners to monitor activity.
-*   **Deployment:** Ability to deploy to a custom domain like  or subdomains.
-
-**Future/Pending Specifics (from latest requests):**
-*   Auto resume screening.
-*   Intelligent candidate matching using AI (beyond basic implementation).
-*   Managing payroll and compliance for contractors on the platform.
-*   Dynamic collection of data to continuously improve talent matching predictions.
-*   Retrieving job listing from Mercor automatically.
+MedEvidences.com aims to be an AI-powered hiring platform for medical/scientific professionals, akin to Mercor.com. Key features include user management (Candidate/Employer roles, Google OAuth), detailed job postings, candidate profiles with resume upload, AI interview and vetting, AI job matching, and comprehensive dashboards. A landing page features specific job categories. Notifications via email, a Stripe-integrated payment system (49/job, 99/month premium, 10% success fee), and an admin panel for platform management are crucial. Recent requests added auto resume screening, intelligent AI matching, payroll/compliance tracking, dynamic data collection, and automatic job retrieval (initially from Mercor, now via Apify). A subscription model for candidates (free browse, paid apply) was also implemented.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Full-stack Development:** FastAPI (Backend), React (Frontend).
--   **Database:** MongoDB.
--   **Containerization/Orchestration:** Kubernetes, Supervisor.
+-   **Database:** MongoDB for persistence.
+-   **Containerization:** Kubernetes, Supervisor for process management.
 -   **Styling:** Tailwind CSS.
 -   **Authentication:** JWT, Google OAuth (via Emergent Integrations).
--   **Payments:** Stripe Integration (planned/partially implemented).
--   **Notifications:** Email (planned/partially implemented).
+-   **Payments:** Stripe Integration.
 -   **AI/ML:** For job matching, AI interviews, candidate vetting.
+-   **Third-party Integrations:** Emergent LLM Key, Apify (for job scraping).
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a standard full-stack architecture with a FastAPI backend, a React frontend, and MongoDB for data persistence.
+The application uses a FastAPI backend, a React frontend, and MongoDB.
 
 
 
-**Key Files and Changes:**
-
-*   **/app/backend/server.py**:
-    *   **Importance**: The heart of the backend, defining all API endpoints, database models (User, Job, Candidate, Employer, Application, Contract, Offer, CompanyContact, AIInterview, StripePayment, EmailNotification), and core business logic.
-    *   **Changes**:
-        *   Initial setup with user authentication (JWT), CORS, and basic job/application models.
-        *   Added detailed models for , , ,  to support AI vetting, interviews, and comprehensive job descriptions.
-        *   Integrated AI interview and job matching logic.
-        *   Added a  endpoint for populating sample data.
-        *   Included models for , , , , and .
-        *   Implemented endpoints for Google OAuth session management (, , ).
-        *   Added placeholder  for payment logic.
-        *   Fixed an error in AI interview duration parsing ().
-        *   Fixed hardcoded OAuth URL.
-        *   Updated  endpoints to make  and  optional or derive them.
-
-*   **/app/backend/.env**:
-    *   **Importance**: Stores environment-specific variables for the backend, crucial for database connection and other configurations.
-    *   **Changes**: Added  and  (set to ).
-
-*   **/app/frontend/src/App.js**:
-    *   **Importance**: Main React component, handles global state (user authentication), defines all application routes, and conditionally renders components based on user role.
-    *   **Changes**:
-        *   Added routes for numerous pages: , , , , , , , , , , , , , , , , , .
-        *   Implemented role-based redirection to ensure users access appropriate dashboards.
-        *   Temporarily reverted to  (old) from  during compilation error troubleshooting.
-
-*   **/app/frontend/src/pages/LandingPage.js**:
-    *   **Importance**: The public-facing entry point of the application, showcasing featured jobs, job categories, and calls to action.
-    *   **Changes**:
-        *   Implemented sections for Enhance Future Of AI title, Start Working, featured jobs with categories, and the For Companies section with a placeholder .
-        *   Added logic to fetch and display seeded jobs.
-        *   Temporarily removed  import and section during compilation error troubleshooting.
-
-*   **/app/frontend/src/pages/PostJob.js**:
-    *   **Importance**: Form for employers to create and publish new job listings.
-    *   **Changes**:
-        *   Rewritten to include all detailed company requirements as specified by the user (role, experience, payment, etc.).
-        *   Added role-based access control, redirecting candidates to their dashboard.
-        *   Added a debug badge for clear identification during testing.
-
-*   **/app/frontend/src/pages/AIInterview.js**:
-    *   **Importance**: Provides the interface for candidates to take AI-powered interviews.
-    *   **Changes**: Updated to generate and display an 8-question comprehensive interview format and results.
-
-*   **/app/frontend/src/pages/CandidateDashboard.js**:
-    *   **Importance**: Main interface for job seekers to manage their profile, applications, and access features.
-    *   **Changes**: Added a link and a prominent card for the AI Interview.
-
-*   **/app/frontend/src/pages/Settings.js**:
-    *   **Importance**: User settings page for candidates to update their profile information.
-    *   **Changes**: Created to include fields for name, email, phone, city, country, LinkedIn URL, and resume upload (though upload functionality is implied, not explicitly detailed). Faced and resolved escape sequence issues during creation.
-
-*   **/app/frontend/src/components/CompanyContactForm.js**:
-    *   **Importance**: Form for companies to express interest in the platform.
-    *   **Changes**: Created to capture company details and requirements.
-
-*   **/app/frontend/src/pages/Login.js & Register.js**:
-    *   **Importance**: User authentication entry points.
-    *   **Changes**: Rewritten multiple times to fix persistent escaped quote compilation errors. Added Google OAuth login button.
-
-*   **/app/frontend/src/pages/AuthCallback.js**:
-    *   **Importance**: Handles the callback from third-party OAuth providers like Google.
-    *   **Changes**: Created as part of Google OAuth integration.
-
-*   **/app/frontend/src/pages/SelectRole.js**:
-    *   **Importance**: Allows users to choose between 'Candidate' and 'Employer' roles after registration.
-    *   **Changes**: Created to facilitate user role selection.
-
-*   **/app/frontend/src/pages/AdminPanel.js**:
-    *   **Importance**: Dashboard for platform administrators.
-    *   **Changes**: Created as a placeholder for administrative functions.
-
-*   **/app/frontend/src/pages/PaymentCheckout.js**:
-    *   **Importance**: Interface for users to make payments.
-    *   **Changes**: Created as a placeholder for Stripe integration for job posting fees or subscriptions.
-
-*   **/app/frontend/src/constants.js**:
-    *   **Importance**: Stores global constants for the frontend.
-    *   **Changes**: Created to house a  list.
-
+-   **/app/backend/server.py**:
+    -   **Importance**: Centralizes all API endpoints, database models, and core business logic.
+    -   **Changes**: Added new models (, , , , ), and corresponding CRUD endpoints. Integrated Google OAuth session handling. Implemented password reset logic, Stripe payment processing (checkout, activate, cancel subscription), and Apify Mercor job scraping endpoints with admin role protection. Improved logging and error handling.
+-   **/app/backend/.env**:
+    -   **Importance**: Stores environment variables like .
+    -   **Changes**: Added , , , , and .
+-   **/app/frontend/src/App.js**:
+    -   **Importance**: Manages application routing and global state (authentication).
+    -   **Changes**: Added routes for , , , , , , , and . Updated authentication logic to handle OAuth sessions, admin redirects, and role-based access.
+-   **/app/frontend/src/pages/Login.js**:
+    -   **Importance**: User login interface.
+    -   **Changes**: Corrected Google OAuth redirect URL. Updated login handler for role-based redirection to dashboards (including admin).
+-   **/app/frontend/src/pages/AuthCallback.js**:
+    -   **Importance**: Handles OAuth redirects.
+    -   **Changes**: Updated to process session_id and redirect appropriately.
+-   **/app/frontend/src/pages/CandidateDashboard.js**:
+    -   **Importance**: Candidate's main dashboard.
+    -   **Changes**: Added links for Resume AI, Payroll and Subscription. Improved role validation feedback.
+-   **/app/frontend/src/pages/EmployerDashboard.js**:
+    -   **Importance**: Employer's main dashboard.
+    -   **Changes**: Added links for AI Matching, Payroll and Import from Mercor (later removed from employer). Improved role validation feedback.
+-   **/app/frontend/src/pages/AdminPanel.js**:
+    -   **Importance**: Admin dashboard for platform management.
+    -   **Changes**: Added Import Jobs (from Mercor) button. Fixed rendering issues, added loading state, and ensured strict admin-only access and redirect.
+-   **/app/frontend/src/pages/JobDetails.js**:
+    -   **Importance**: Displays details of a specific job.
+    -   **Changes**: Implemented subscription check before allowing job applications, redirecting to subscription page if not subscribed.
+-   **/app/frontend/src/pages/MercorJobs.js**:
+    -   **Importance**: Admin interface to browse and import jobs from external sources via Apify.
+    -   **Changes**: Created. Updated to remove Mercor name from UI, change titles, and modify button texts (e.g., Import External Jobs).
+-   **/app/frontend/src/pages/SubscriptionPlans.js**:
+    -   **Importance**: Displays subscription plans and initiates payment.
+    -   **Changes**: Created. Updated to correctly pass  as a query parameter for Stripe checkout.
+-   **/app/frontend/src/pages/SubscriptionSuccess.js**:
+    -   **Importance**: Landing page after successful Stripe payment.
+    -   **Changes**: Created (pending full implementation for post-payment actions).
+-   **/app/frontend/src/pages/ForgotPassword.js** & **/app/frontend/src/pages/ResetPassword.js**:
+    -   **Importance**: Handle password reset flow.
+    -   **Changes**: Created for user-requested password reset functionality.
 </code_architecture>
 
 <pending_tasks>
--   **Advanced AI Features:**
-    -   Auto resume screening.
-    -   Intelligent candidate matching using AI (beyond basic implementation).
-    -   Dynamic collection of data to continuously improve talent matching predictions.
--   **Business Operations:**
-    -   Managing payroll and compliance for contractors on the platform (explicitly stated that the platform won't handle payments but user asked if it has).
-    -   Implementing the full success fee tracking logic (calculation, invoicing, collection).
-    -   Completing the communication system (in-platform messaging, email between employer & candidate, interview scheduling).
-    -   Detailed implementation of an Admin Panel with monitoring, revenue, analytics, and user management.
-    -   Full contract and agreement system (terms of service, employer agreements, legal compliance).
--   **External Integration:**
-    -   Retrieving job listing from Mercor automatically.
+-   Complete the post-payment flow for candidates (redirect to application screen, activate subscription).
+-   Implement the ability to cancel a subscription after one month.
+-   Refine error handling and user feedback for subscription status.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing the user's explicit request to verify the implementation of several advanced features. The user asked if the platform includes: auto resume screening, intelligent AI candidate matching, managing payroll and compliance for contractors, dynamic data collection for improved predictions, and automatic job listing retrieval from Mercor.com. If these features were not present, the user requested their implementation. The AI engineer has just initiated the process of checking the codebase ( after  command in message 480) to determine the current status of these complex functionalities. This task involves reviewing existing code to see if these components are already partially or fully built, or if they require new development.
+Immediately before this summary request, the AI engineer was addressing three critical issues reported by the user regarding the subscription and post-payment flow.
+1.  **After payment, not redirected to application screen:** The user reported that after a successful Stripe payment, the applicant is not taken to the application screen to complete their job application.
+2.  **Asking for subscription again:** When navigating back to apply for a job after a payment, the system still asks for a subscription, indicating the subscription status is not being properly updated or recognized.
+3.  **No provision to cancel subscription:** The user noted that there is no feature to cancel a subscription after one month.
+
+The AI engineer has initiated fixes by:
+-   Creating a new frontend page: .
+-   Modifying  to save a pending application before redirecting to the subscription page.
+-   Updating the Stripe redirect URLs in the backend.
+-   The next step involves updating the backend  endpoint to properly activate the subscription by getting the plan from the Stripe session and updating the backend  endpoint to actually cancel the subscription in Stripe.
 </current_work>
 
 <optional_next_step>
-The next step is to continue checking the codebase for the presence of auto resume screening, advanced AI matching, payroll/compliance management, dynamic data collection, and Mercor job retrieval, and then implement any identified missing features as requested by the user.
+Continue implementing the backend logic for subscription activation and cancellation, then ensure proper redirection to the job application page post-payment.
 </optional_next_step>
