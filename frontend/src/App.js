@@ -18,6 +18,9 @@ import ReceivedApplications from '@/pages/ReceivedApplications';
 import AIInterview from '@/pages/AIInterview';
 import MatchedJobs from '@/pages/MatchedJobs';
 import AdminPanel from '@/pages/AdminPanel';
+import ResumeUpload from '@/pages/ResumeUpload';
+import MatchScores from '@/pages/MatchScores';
+import PayrollTracking from '@/pages/PayrollTracking';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
