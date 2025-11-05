@@ -374,8 +374,12 @@ function LandingPage({ user, onLogout }) {
               <a href="/privacy" className="hover:text-white">Privacy Policy</a>
               <a href="/terms" className="hover:text-white">Terms of Service</a>
               <a href="/cookies" className="hover:text-white">Cookie Policy</a>
-              <span className="text-gray-600">|</span>
-              <Link to="/admin" className="hover:text-white text-xs">Admin</Link>
+              {!user && (
+                <>
+                  <span className="text-gray-600">|</span>
+                  <Link to="/admin" className="hover:text-white text-xs">Admin</Link>
+                </>
+              )}
             </div>
           </div>
         </div>
