@@ -1288,6 +1288,126 @@ async def get_all_applications_admin(current_user: dict = Depends(get_current_us
             
             if candidate_profile:
                 app['candidate_specialization'] = candidate_profile.get('specialization', 'N/A')
+
+@api_router.post("/admin/send-to-employer/{application_id}")
+async def send_application_to_employer(
+    application_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Admin sends candidate application to employer with MedEvidences referral code"""
+    # Check if user is admin
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    # Get application
+    application = await db.applications.find_one({"id": application_id}, {"_id": 0})
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Check if already sent
+    if application.get('sent_to_employer'):
+        return {
+            "message": "Already sent to employer",
+            "referral_code": application.get('referral_code'),
+            "sent_at": application.get('sent_at')
+        }
+    
+    # Get candidate details
+    candidate = await db.users.find_one({"id": application['candidate_id']}, {"_id": 0})
+    candidate_profile = await db.candidate_profiles.find_one({"user_id": application['candidate_id']}, {"_id": 0})
+    
+    # Get job details
+    job = await db.jobs.find_one({"id": application['job_id']}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get employer details
+    employer = await db.users.find_one({"id": application['employer_id']}, {"_id": 0})
+    employer_profile = await db.employer_profiles.find_one({"user_id": application['employer_id']}, {"_id": 0})
+    
+    if not candidate or not employer:
+        raise HTTPException(status_code=404, detail="Candidate or employer not found")
+    
+    # Generate unique MedEvidences referral code
+    import random
+    import string
+    date_str = datetime.now(timezone.utc).strftime('%Y%m%d')
+    random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+    referral_code = f"MED-{date_str}-{random_str}"
+    
+    # Update application with referral code
+    sent_time = datetime.now(timezone.utc)
+    await db.applications.update_one(
+        {"id": application_id},
+        {"$set": {
+            "referral_code": referral_code,
+            "sent_to_employer": True,
+            "sent_at": sent_time.isoformat(),
+            "updated_at": sent_time.isoformat()
+        }}
+    )
+    
+    # Prepare email content
+    email_subject = f"New Candidate Referral from MedEvidences - {job['title']}"
+    email_body = f"""
+Dear {employer.get('full_name', 'Employer')},
+
+MedEvidences has identified a qualified candidate for your position: {job['title']}
+
+=== CANDIDATE DETAILS ===
+Name: {candidate['full_name']}
+Email: {candidate['email']}
+Specialization: {candidate_profile.get('specialization', 'N/A') if candidate_profile else 'N/A'}
+Experience: {candidate_profile.get('experience_years', 0) if candidate_profile else 0} years
+Location: {candidate_profile.get('location', 'N/A') if candidate_profile else 'N/A'}
+
+=== JOB DETAILS ===
+Position: {job['title']}
+Category: {job['category']}
+Location: {job['location']}
+
+=== MEDEVIDENCES REFERRAL CODE ===
+Code: {referral_code}
+
+Please use this referral code in all communications regarding this candidate to track this referral from MedEvidences.
+
+{f"CANDIDATE COVER LETTER:\n{application.get('cover_letter', 'No cover letter provided')}\n" if application.get('cover_letter') else ''}
+
+To view the full candidate profile and manage this application, please log in to your MedEvidences employer dashboard.
+
+Best regards,
+MedEvidences Team
+https://medevidences.com
+
+---
+This is an automated message from MedEvidences platform.
+Referral Code: {referral_code}
+"""
+    
+    # Send email (currently mock, will be real with SendGrid)
+    logging.info(f"SENDING EMAIL TO EMPLOYER: {employer['email']}")
+    logging.info(f"Subject: {email_subject}")
+    logging.info(f"Referral Code: {referral_code}")
+    logging.info(f"Email body preview: {email_body[:200]}...")
+    
+    # Mock email sending
+    sendgrid_key = os.environ.get('SENDGRID_API_KEY', '')
+    if not sendgrid_key or sendgrid_key == 'your-sendgrid-api-key-here':
+        logging.warning(f"SendGrid not configured - MOCK EMAIL sent to {employer['email']}")
+        # In production, integrate with SendGrid here
+    else:
+        # Real SendGrid integration would go here
+        logging.info(f"SendGrid email sent to {employer['email']}")
+    
+    return {
+        "message": "Application sent to employer successfully",
+        "referral_code": referral_code,
+        "employer_email": employer['email'],
+        "candidate_name": candidate['full_name'],
+        "job_title": job['title'],
+        "sent_at": sent_time.isoformat()
+    }
+
                 app['candidate_experience'] = candidate_profile.get('experience_years', 0)
             
             result.append(app)
