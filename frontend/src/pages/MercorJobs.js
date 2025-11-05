@@ -93,7 +93,7 @@ export default function MercorJobs() {
 
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Import Jobs from Mercor</CardTitle>
+            <CardTitle>Import External Jobs</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
