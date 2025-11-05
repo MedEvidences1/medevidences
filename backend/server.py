@@ -2575,55 +2575,93 @@ async def get_compliance_documents(current_user: dict = Depends(get_current_user
     return {"documents": documents}
 
 
-# 5. Mercor Job Scraping
+# 5. Mercor Job Scraping via Apify
 @api_router.post("/scrape/mercor-jobs")
-async def scrape_mercor_jobs(current_user: dict = Depends(get_current_user)):
-    """Scrape job listings from Mercor.com"""
-    from bs4 import BeautifulSoup
-    import requests
+async def scrape_mercor_jobs(
+    order_by: str = "newest",
+    search_query: Optional[str] = None,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Fetch job listings from Mercor via Apify API"""
+    from apify_client import ApifyClient
     
-    # Only allow admin or employer users
-    if current_user['role'] not in ['employer']:
-        raise HTTPException(status_code=403, detail="Not authorized to scrape jobs")
+    # Only allow employers to fetch jobs
+    if current_user['role'] != 'employer':
+        raise HTTPException(status_code=403, detail="Only employers can fetch Mercor jobs")
     
     try:
-        # Note: This is a placeholder implementation
-        # Real scraping would need to handle Mercor's actual structure
-        url = "https://mercor.com/jobs"  # Example URL
+        # Initialize Apify client
+        apify_token = os.environ.get('APIFY_API_TOKEN')
+        if not apify_token:
+            raise HTTPException(status_code=500, detail="Apify API token not configured")
         
-        # For MVP, we'll return a placeholder message
-        # Actual scraping would require analysis of Mercor's HTML structure
+        client = ApifyClient(apify_token)
         
-        return {
-            "message": "Job scraping endpoint ready",
-            "note": "This is a placeholder. Actual Mercor scraping requires their current HTML structure analysis and may need authentication/API access.",
-            "suggestion": "Consider contacting Mercor for an official API partnership for job data sharing."
+        # Prepare actor input
+        run_input = {
+            "orderBy": order_by,  # newest, oldest, or search
+            "limit": min(limit, 100)  # Cap at 100 to avoid excessive usage
         }
         
-        # Example scraping code (would need actual Mercor structure):
-        # response = requests.get(url)
-        # soup = BeautifulSoup(response.content, 'html.parser')
-        # jobs = soup.find_all('div', class_='job-listing')
-        # 
-        # scraped_count = 0
-        # for job_element in jobs:
-        #     title = job_element.find('h2').text
-        #     description = job_element.find('p', class_='description').text
-        #     # ... extract other fields
-        #     
-        #     scraped_job = ScrapedJob(
-        #         title=title,
-        #         description=description,
-        #         category="Scientific Research"
-        #     )
-        #     
-        #     await db.scraped_jobs.insert_one(scraped_job.model_dump())
-        #     scraped_count += 1
-        # 
-        # return {"message": f"Scraped {scraped_count} jobs from Mercor"}
+        # Add search query if provided and ordering by search
+        if search_query and order_by == "search":
+            run_input["searchQuery"] = search_query
+        
+        logging.info(f"Fetching Mercor jobs via Apify with params: {run_input}")
+        
+        # Run the actor and wait for results
+        run = client.actor("fantastic-jobs/mercor-job-search-api").call(run_input=run_input)
+        
+        # Fetch results from dataset
+        jobs_data = []
+        for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+            # Store in scraped_jobs collection
+            scraped_job = ScrapedJob(
+                source="mercor",
+                external_id=item.get('listingId'),
+                title=item.get('title', 'Untitled'),
+                description=item.get('description', ''),
+                category=item.get('category', 'General'),
+                location=item.get('location', 'Remote'),
+                salary_range=f"${item.get('rateMin', 0)} - ${item.get('rateMax', 0)} / {item.get('payRateFrequency', 'year')}"
+            )
+            
+            scraped_dict = scraped_job.model_dump()
+            scraped_dict['imported_at'] = scraped_dict['imported_at'].isoformat()
+            
+            # Check if already exists
+            existing = await db.scraped_jobs.find_one({"external_id": item.get('listingId')}, {"_id": 0})
+            if not existing:
+                await db.scraped_jobs.insert_one(scraped_dict)
+            
+            jobs_data.append({
+                "id": scraped_job.id,
+                "external_id": item.get('listingId'),
+                "title": item.get('title'),
+                "company": item.get('companyName'),
+                "location": item.get('location'),
+                "commitment": item.get('commitment'),
+                "salary_range": scraped_job.salary_range,
+                "description": item.get('description', '')[:500],  # First 500 chars
+                "referral_amount": item.get('referralAmount'),
+                "recent_candidates": item.get('recentCandidatesCount'),
+                "created_at": item.get('createdAt'),
+                "status": item.get('status'),
+                "url": f"https://work.mercor.com/explore?listingId={item.get('listingId')}"
+            })
+        
+        logging.info(f"Successfully fetched {len(jobs_data)} jobs from Mercor")
+        
+        return {
+            "message": f"Successfully fetched {len(jobs_data)} jobs from Mercor",
+            "count": len(jobs_data),
+            "jobs": jobs_data
+        }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error scraping jobs: {str(e)}")
+        logging.error(f"Error fetching Mercor jobs: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error fetching jobs from Mercor: {str(e)}")
 
 @api_router.get("/scrape/imported-jobs")
 async def get_imported_jobs(current_user: dict = Depends(get_current_user)):
