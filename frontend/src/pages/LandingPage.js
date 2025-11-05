@@ -319,7 +319,6 @@ function LandingPage({ user, onLogout }) {
                 <li><a href="/contact" className="hover:text-white">Get in Touch</a></li>
                 <li><a href="/human-data" className="hover:text-white">Human Data</a></li>
                 <li><a href="/post-job" className="hover:text-white">Post Jobs</a></li>
-                <li><a href="/pricing" className="hover:text-white">Pricing</a></li>
               </ul>
             </div>
 
