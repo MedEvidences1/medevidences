@@ -57,6 +57,8 @@ function App() {
       
       if (sessionId) {
         try {
+          console.log('Processing OAuth session_id...');
+          
           // Exchange session_id for user data and session_token
           const response = await fetch(`${API}/auth/session`, {
             method: 'POST',
@@ -70,26 +72,39 @@ function App() {
           const data = await response.json();
           
           if (response.ok) {
+            console.log('OAuth session created successfully');
+            
             // Store session token
             localStorage.setItem('token', data.session_token);
+            localStorage.setItem('user', JSON.stringify(data.user));
             
             // Clean URL
             window.history.replaceState(null, '', window.location.pathname);
             
             // If user has no role, redirect to role selection
             if (!data.user.role) {
+              console.log('User has no role, redirecting to role selection');
               window.location.href = '/select-role';
               return;
             }
             
             // Set user and redirect to dashboard
+            console.log('Redirecting to dashboard for role:', data.user.role);
             setUser(data.user);
             window.location.href = data.user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer';
             return;
+          } else {
+            console.error('OAuth session creation failed:', data);
+            alert('Authentication failed: ' + (data.detail || 'Unknown error'));
+            window.location.href = '/login';
           }
         } catch (error) {
           console.error('OAuth callback error:', error);
+          alert('Authentication error. Please try again.');
+          window.location.href = '/login';
         }
+        setLoading(false);
+        return;
       }
     }
     
