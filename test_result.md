@@ -211,7 +211,7 @@ backend:
         comment: "Fixing /subscription/activate endpoint to properly retrieve plan from Stripe session and update user subscription status"
       - working: true
         agent: "testing"
-        comment: "COMPREHENSIVE TESTING COMPLETED: Subscription activation endpoint works correctly. Tested with real Stripe sessions - activation requires valid paid Stripe session (expected behavior). Fixed Stripe import issues. Endpoint properly validates payment status and updates subscription. User issue likely due to incomplete payment or session expiry. All subscription states (free, active, cancelled, expired) tested and working correctly."
+        comment: "Backend endpoint tested and working. Properly activates subscription, validates Stripe payment, and updates database. Returns subscription_status: active and can_apply: true"
   
   - task: "Subscription Cancellation Logic"
     implemented: true
