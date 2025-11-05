@@ -1614,6 +1614,179 @@ async def get_subscription_pricing():
         ]
     }
 
+
+# Email notification helper
+async def send_subscription_email(user_email: str, user_name: str, plan: str, expires_at: str):
+    """Send subscription confirmation email"""
+    try:
+        # Check if SendGrid is configured
+        sendgrid_key = os.environ.get('SENDGRID_API_KEY', '')
+        if not sendgrid_key or sendgrid_key == 'your-sendgrid-api-key-here':
+            logging.warning(f"SendGrid not configured - would send email to {user_email}")
+            # Mock email for now
+            logging.info(f"MOCK EMAIL: Subscription activated for {user_name} ({user_email}) - Plan: {plan}, Expires: {expires_at}")
+            return True
+            
+        # Real SendGrid implementation would go here
+        # For now, just log
+        logging.info(f"Would send subscription email to {user_email} for {plan} plan")
+        return True
+    except Exception as e:
+        logging.error(f"Error sending subscription email: {str(e)}")
+        return False
+
+@api_router.post("/stripe/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks for automatic subscription activation"""
+    import stripe
+    
+    payload = await request.body()
+    sig_header = request.headers.get('stripe-signature')
+    
+    # For testing, allow webhooks without signature verification
+    # In production, you should verify the webhook signature
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    
+    try:
+        # Parse event
+        try:
+            event = stripe.Event.construct_from(
+                json.loads(payload), stripe.api_key
+            )
+        except ValueError as e:
+            logging.error(f"Invalid webhook payload: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid payload")
+        
+        logging.info(f"Received Stripe webhook event: {event['type']}")
+        
+        # Handle checkout.session.completed event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            
+            logging.info(f"Checkout completed for session: {session['id']}")
+            logging.info(f"Payment status: {session.get('payment_status')}")
+            logging.info(f"Customer: {session.get('customer')}")
+            logging.info(f"Subscription: {session.get('subscription')}")
+            
+            # Get user_id from metadata
+            user_id = session['metadata'].get('user_id')
+            plan = session['metadata'].get('plan', 'basic')
+            
+            if not user_id:
+                logging.error("No user_id in session metadata")
+                return {"status": "error", "message": "No user_id"}
+            
+            # Only activate if payment is complete
+            if session.get('payment_status') == 'paid':
+                logging.info(f"Activating subscription for user {user_id} via webhook")
+                
+                start_date = datetime.now(timezone.utc)
+                end_date = start_date + timedelta(days=30)
+                
+                update_data = {
+                    "subscription_status": "active",
+                    "subscription_plan": plan,
+                    "subscription_start": start_date.isoformat(),
+                    "subscription_end": end_date.isoformat(),
+                    "stripe_customer_id": session.get('customer'),
+                    "stripe_subscription_id": session.get('subscription')
+                }
+                
+                result = await db.candidate_profiles.update_one(
+                    {"user_id": user_id},
+                    {"$set": update_data}
+                )
+                
+                logging.info(f"Webhook activation - matched: {result.matched_count}, modified: {result.modified_count}")
+                
+                # Get user details for email
+                user = await db.users.find_one({"id": user_id}, {"_id": 0})
+                if user:
+                    await send_subscription_email(
+                        user['email'],
+                        user.get('full_name', 'User'),
+                        plan,
+                        end_date.isoformat()
+                    )
+                
+                return {"status": "success", "message": "Subscription activated"}
+            else:
+                logging.warning(f"Payment not completed yet: {session.get('payment_status')}")
+                return {"status": "pending", "message": "Payment not completed"}
+        
+        # Handle subscription lifecycle events
+        elif event['type'] == 'customer.subscription.updated':
+            subscription = event['data']['object']
+            logging.info(f"Subscription updated: {subscription['id']}, status: {subscription['status']}")
+            
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription = event['data']['object']
+            logging.info(f"Subscription deleted: {subscription['id']}")
+            
+            # Update user status to expired
+            result = await db.candidate_profiles.update_one(
+                {"stripe_subscription_id": subscription['id']},
+                {"$set": {"subscription_status": "expired"}}
+            )
+            logging.info(f"Marked subscription as expired - matched: {result.matched_count}")
+        
+        return {"status": "success"}
+        
+    except Exception as e:
+        logging.error(f"Webhook error: {str(e)}", exc_info=True)
+        return {"status": "error", "message": str(e)}
+
+@api_router.post("/subscription/manual-activate/{user_id}")
+async def manual_activate_subscription(
+    user_id: str,
+    plan: str = "basic",
+    current_user: dict = Depends(get_current_user)
+):
+    """Manual subscription activation for admin/testing purposes"""
+    # Only allow admin users
+    if current_user.get('role') != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        start_date = datetime.now(timezone.utc)
+        end_date = start_date + timedelta(days=30)
+        
+        update_data = {
+            "subscription_status": "active",
+            "subscription_plan": plan,
+            "subscription_start": start_date.isoformat(),
+            "subscription_end": end_date.isoformat()
+        }
+        
+        result = await db.candidate_profiles.update_one(
+            {"user_id": user_id},
+            {"$set": update_data},
+            upsert=True
+        )
+        
+        logging.info(f"Manual activation for user {user_id} - matched: {result.matched_count}, modified: {result.modified_count}")
+        
+        # Get user details
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if user:
+            await send_subscription_email(
+                user['email'],
+                user.get('full_name', 'User'),
+                plan,
+                end_date.isoformat()
+            )
+        
+        return {
+            "message": "Subscription manually activated",
+            "user_id": user_id,
+            "plan": plan,
+            "expires_at": end_date.isoformat()
+        }
+        
+    except Exception as e:
+        logging.error(f"Manual activation error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
 # AI Interview Routes
 @api_router.get("/interview/questions")
 async def get_interview_questions(specialization: str):
