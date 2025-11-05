@@ -39,8 +39,7 @@ function AdminPanel({ user, onLogout }) {
       return;
     }
     fetchDashboardData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user, navigate]);
 
   const fetchDashboardData = async () => {
     try {
