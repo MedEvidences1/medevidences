@@ -101,3 +101,166 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Implement 5 advanced features for MedEvidences.com:
+  1. Auto Resume Screening - Parse PDFs, extract skills/experience using AI
+  2. Intelligent AI Candidate Matching - Score candidates against jobs using LLM
+  3. Dynamic Data Collection - Track feedback and improve predictions
+  4. Payroll Tracking - Timesheet submission, compliance docs (no actual payments)
+  5. Mercor Job Scraping - Import job listings from Mercor.com
+
+backend:
+  - task: "Auto Resume Screening API"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added /api/resume/parse endpoint to parse PDF resumes using PyPDF2 and AI (GPT-4o). Extracts skills, experience, education, certifications. Added /api/resume/data to retrieve parsed data."
+  
+  - task: "Intelligent AI Matching"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added /api/matching/generate-scores/{job_id} to generate AI match scores for all candidates. Uses GPT-4o to analyze candidate-job fit. Added /api/matching/scores/{job_id} to retrieve sorted scores."
+  
+  - task: "Dynamic Feedback Collection"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added /api/feedback/submit to collect hire outcome feedback. Added /api/feedback/analytics to view aggregated analytics (hire rate, ratings, etc.)."
+  
+  - task: "Payroll Tracking System"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added timesheet endpoints: /api/payroll/timesheet (submit), /api/payroll/timesheets (list), /api/payroll/approve/{id} (approve). Added compliance doc endpoints: /api/compliance/upload, /api/compliance/documents. No actual payment processing."
+  
+  - task: "Mercor Job Scraping"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added /api/scrape/mercor-jobs endpoint (placeholder - needs actual Mercor HTML structure), /api/scrape/imported-jobs to list scraped jobs, /api/scrape/convert-to-job/{id} to convert scraped jobs to actual postings. Installed BeautifulSoup4 for scraping."
+  
+  - task: "Database Models for Advanced Features"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added new models: ResumeData, MatchScore, FeedbackData, PayrollRecord, ComplianceDocument, ScrapedJob. All use UUID for IDs and proper datetime handling."
+  
+  - task: "Emergent LLM Integration"
+    implemented: true
+    working: true
+    file: "backend/.env"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added EMERGENT_LLM_KEY to .env file. Installed emergentintegrations library. Using GPT-4o for AI features."
+
+frontend:
+  - task: "Resume Upload UI"
+    implemented: false
+    working: "NA"
+    file: "NA"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Frontend UI for resume upload not yet implemented. Backend API is ready."
+  
+  - task: "Match Scores Dashboard"
+    implemented: false
+    working: "NA"
+    file: "NA"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Frontend UI for viewing match scores not yet implemented. Backend API is ready."
+  
+  - task: "Timesheet & Compliance UI"
+    implemented: false
+    working: "NA"
+    file: "NA"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Frontend UI for payroll tracking not yet implemented. Backend API is ready."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Auto Resume Screening API"
+    - "Intelligent AI Matching"
+    - "Dynamic Feedback Collection"
+    - "Payroll Tracking System"
+    - "Mercor Job Scraping"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: |
+      Implemented all 5 advanced features on the backend:
+      1. Resume parsing with AI extraction
+      2. AI-powered candidate matching with scoring
+      3. Feedback collection and analytics
+      4. Payroll tracking (timesheets + compliance docs)
+      5. Job scraping infrastructure (placeholder for Mercor)
+      
+      All endpoints use Emergent LLM key with GPT-4o.
+      Dependencies installed: PyPDF2, BeautifulSoup4.
+      Backend restarted successfully.
+      
+      Ready for backend API testing. Frontend UI implementation pending.
