@@ -120,6 +120,17 @@ function EmployerDashboard({ user, onLogout }) {
                   Applications
                 </Button>
               </Link>
+              <Link to="/match-scores">
+                <Button variant="ghost" className="bg-purple-50 hover:bg-purple-100">
+                  <Users className="w-4 h-4 mr-2" />
+                  AI Matching
+                </Button>
+              </Link>
+              <Link to="/payroll-tracking">
+                <Button variant="ghost">
+                  Payroll
+                </Button>
+              </Link>
               <Button variant="outline" onClick={onLogout} data-testid="logout-button">Logout</Button>
             </div>
           </div>
