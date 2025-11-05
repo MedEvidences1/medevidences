@@ -160,6 +160,49 @@ function AdminPanel({ user, onLogout }) {
     }
   };
 
+  const handleComposeManual = async (app) => {
+    // Generate email content
+    const referralCode = app.referral_code || `MED-${Date.now()}`;
+    const emailContent = `To: [Enter employer email here]
+Subject: Candidate Referral from MedEvidences - ${app.job_title}
+
+Dear Hiring Manager,
+
+I am forwarding an excellent candidate for your ${app.job_title} position through MedEvidences.
+
+=== CANDIDATE DETAILS ===
+Name: ${app.candidate_name}
+Email: ${app.candidate_email}
+Specialization: ${app.candidate_specialization || 'N/A'}
+Experience: ${app.candidate_experience || 0} years
+
+=== JOB DETAILS ===
+Position: ${app.job_title}
+Company: ${app.company_name}
+
+=== MEDEVIDENCES REFERRAL CODE ===
+${referralCode}
+
+⚠️ IMPORTANT: Please use referral code ${referralCode} when contacting this candidate or in your system for tracking purposes.
+
+NEXT STEPS:
+1. Review the attached PDF (download separately)
+2. Contact candidate at: ${app.candidate_email}
+3. Reference code: ${referralCode}
+
+Best regards,
+MedEvidences Admin Team
+https://medevidences.com
+
+---
+This is a manual forward from MedEvidences platform
+Generated: ${new Date().toLocaleString()}`;
+
+    setManualEmailContent(emailContent);
+    setSelectedApp(app);
+    setShowManualModal(true);
+  };
+
   const handleViewEmailDetails = (app) => {
     const emailContent = `
 TO: ${app.employer_email}
