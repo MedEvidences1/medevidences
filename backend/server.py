@@ -1083,9 +1083,9 @@ async def can_apply_to_job(job_id: str, current_user: dict = Depends(get_current
     if not candidate_profile:
         return {"can_apply": False, "reason": "Please complete your profile first"}
     
-    # Check subscription status
+    # Check subscription status (both active and cancelled have access until period end)
     subscription_status = candidate_profile.get('subscription_status', 'free')
-    if subscription_status != 'active':
+    if subscription_status not in ['active', 'cancelled']:
         return {
             "can_apply": False, 
             "reason": "Subscription required to apply to jobs",
