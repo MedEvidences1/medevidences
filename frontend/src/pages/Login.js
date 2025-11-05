@@ -23,7 +23,11 @@ function Login({ onLogin }) {
       const response = await axios.post(`${API}/auth/login`, { email, password });
       onLogin(response.data.user, response.data.access_token);
       toast.success('Login successful!');
-      if (response.data.user.role === 'candidate') {
+      
+      // Check if admin
+      if (response.data.user.email === 'admin@medevidences.com') {
+        navigate('/admin');
+      } else if (response.data.user.role === 'candidate') {
         navigate('/dashboard/candidate');
       } else {
         navigate('/dashboard/employer');
