@@ -364,6 +364,90 @@ class SuccessFee(BaseModel):
     hire_confirmed_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     payment_due_date: datetime
 
+# New Models for Advanced Features
+
+class ResumeData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    file_name: str
+    parsed_skills: List[str] = []
+    parsed_experience_years: Optional[int] = None
+    parsed_education: List[str] = []
+    parsed_certifications: List[str] = []
+    raw_text: str
+    ai_summary: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class MatchScore(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    job_id: str
+    overall_score: float  # 0-100
+    skills_match: float
+    experience_match: float
+    education_match: float
+    ai_interview_score: Optional[float] = None
+    ai_reasoning: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class FeedbackData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    match_id: str
+    candidate_id: str
+    job_id: str
+    employer_id: str
+    hire_outcome: str  # hired, rejected, withdrawn
+    employer_rating: Optional[int] = None  # 1-5
+    candidate_rating: Optional[int] = None  # 1-5
+    employer_feedback: Optional[str] = None
+    candidate_feedback: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PayrollRecord(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    contract_id: str
+    candidate_id: str
+    employer_id: str
+    period_start: datetime
+    period_end: datetime
+    hours_worked: float
+    hourly_rate: float
+    total_amount: float
+    status: str = "pending"  # pending, approved, paid
+    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    approved_at: Optional[datetime] = None
+
+class ComplianceDocument(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    contract_id: str
+    candidate_id: str
+    document_type: str  # w9, i9, nda, contract
+    file_name: str
+    file_url: Optional[str] = None
+    status: str = "pending"  # pending, approved, rejected
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    reviewed_at: Optional[datetime] = None
+
+class ScrapedJob(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    source: str = "mercor"
+    external_id: Optional[str] = None
+    title: str
+    description: str
+    category: str
+    location: Optional[str] = None
+    salary_range: Optional[str] = None
+    imported_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    converted_to_job: bool = False
+    job_id: Optional[str] = None
+
 # ============= Helper Functions =============
 
 def hash_password(password: str) -> str:
