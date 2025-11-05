@@ -215,11 +215,11 @@ backend:
   
   - task: "Subscription Cancellation Logic"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -227,6 +227,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Backend endpoint exists. Verifying it cancels at period end without refund for current month"
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: Subscription cancellation endpoint works correctly. Properly validates active subscriptions, sets cancel_at_period_end=True in Stripe, updates status to 'cancelled', and maintains user access until subscription_end date. No refund issued for current month as designed. Fixed Stripe import issues. Cancelled users retain job application access until period end."
 
 frontend:
   - task: "Resume Upload UI"
