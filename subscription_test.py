@@ -238,7 +238,11 @@ class SubscriptionFlowTester:
         
         if response.status_code in [400, 500]:
             print("✓ Invalid session ID properly rejected")
-            print(f"  Error: {response.json().get('detail', 'No error message')}")
+            try:
+                error_detail = response.json().get('detail', 'No error message')
+                print(f"  Error: {error_detail}")
+            except:
+                print(f"  Error: {response.text}")
         else:
             print(f"⚠️  Expected error for invalid session, got: {response.status_code}")
             
