@@ -1415,36 +1415,64 @@ async def create_subscription_checkout(
 
 @api_router.post("/subscription/activate")
 async def activate_subscription(
-    plan: str,
-    session_id: str,  # Stripe session ID
+    request: dict,
     current_user: dict = Depends(get_current_user)
 ):
     """Activate subscription after successful payment"""
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can activate subscriptions")
     
-    # In production, verify payment with Stripe
-    # For demo purposes, we'll activate directly
+    session_id = request.get('session_id')
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID required")
     
-    start_date = datetime.now(timezone.utc)
-    end_date = start_date + timedelta(days=30)  # 30-day subscription
-    
-    await db.candidate_profiles.update_one(
-        {"user_id": current_user['id']},
-        {"$set": {
-            "subscription_status": "active",
-            "subscription_plan": plan,
-            "subscription_start": start_date.isoformat(),
-            "subscription_end": end_date.isoformat()
-        }}
-    )
-    
-    return {
-        "message": "Subscription activated successfully!",
-        "plan": plan,
-        "expires_at": end_date.isoformat(),
-        "can_apply": True
-    }
+    try:
+        # Verify payment with Stripe
+        import stripe
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        # Retrieve the session to verify payment
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status != 'paid':
+            raise HTTPException(status_code=400, detail="Payment not completed")
+        
+        # Get plan from session metadata
+        plan = session.metadata.get('plan', 'basic')
+        
+        logging.info(f"Activating subscription for user {current_user['id']}, plan: {plan}")
+        
+        start_date = datetime.now(timezone.utc)
+        end_date = start_date + timedelta(days=30)  # 30-day subscription
+        
+        # Update candidate profile
+        await db.candidate_profiles.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {
+                "subscription_status": "active",
+                "subscription_plan": plan,
+                "subscription_start": start_date.isoformat(),
+                "subscription_end": end_date.isoformat(),
+                "stripe_subscription_id": session.subscription,
+                "stripe_customer_id": session.customer
+            }},
+            upsert=True
+        )
+        
+        logging.info(f"Subscription activated successfully for user {current_user['id']}")
+        
+        return {
+            "message": "Subscription activated successfully!",
+            "plan": plan,
+            "expires_at": end_date.isoformat(),
+            "can_apply": True
+        }
+    except stripe.error.StripeError as e:
+        logging.error(f"Stripe error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
+    except Exception as e:
+        logging.error(f"Activation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Activation error: {str(e)}")
 
 @api_router.post("/subscription/cancel")
 async def cancel_subscription(current_user: dict = Depends(get_current_user)):
