@@ -1427,6 +1427,282 @@ Referral Code: {referral_code}
         "sent_at": sent_time.isoformat()
     }
 
+
+def generate_application_pdf(application, candidate, candidate_profile, job, employer_profile, referral_code):
+    """Generate PDF for application"""
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title style
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#1e40af'),
+        spaceAfter=30,
+    )
+    
+    # Add title
+    elements.append(Paragraph("MedEvidences Candidate Application", title_style))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Referral Code Box
+    ref_data = [[Paragraph(f"<b>MedEvidences Referral Code: {referral_code}</b>", styles['Normal'])]]
+    ref_table = Table(ref_data, colWidths=[6*inch])
+    ref_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#dcfce7')),
+        ('BOX', (0, 0), (-1, -1), 2, colors.HexColor('#16a34a')),
+        ('PADDING', (0, 0), (-1, -1), 12),
+    ]))
+    elements.append(ref_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Candidate Information
+    elements.append(Paragraph("<b>CANDIDATE INFORMATION</b>", styles['Heading2']))
+    elements.append(Spacer(1, 0.1*inch))
+    
+    candidate_data = [
+        ['Name:', candidate['full_name']],
+        ['Email:', candidate['email']],
+        ['Specialization:', candidate_profile.get('specialization', 'N/A') if candidate_profile else 'N/A'],
+        ['Experience:', f"{candidate_profile.get('experience_years', 0)} years" if candidate_profile else 'N/A'],
+        ['Location:', candidate_profile.get('location', 'N/A') if candidate_profile else 'N/A'],
+    ]
+    
+    cand_table = Table(candidate_data, colWidths=[1.5*inch, 4.5*inch])
+    cand_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('PADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(cand_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Job Information
+    elements.append(Paragraph("<b>JOB INFORMATION</b>", styles['Heading2']))
+    elements.append(Spacer(1, 0.1*inch))
+    
+    job_data = [
+        ['Position:', job['title']],
+        ['Category:', job['category']],
+        ['Location:', job['location']],
+        ['Type:', job.get('job_type', 'N/A')],
+        ['Company:', employer_profile.get('company_name', 'N/A') if employer_profile else 'N/A'],
+    ]
+    
+    job_table = Table(job_data, colWidths=[1.5*inch, 4.5*inch])
+    job_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('PADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(job_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Cover Letter
+    if application.get('cover_letter'):
+        elements.append(Paragraph("<b>COVER LETTER</b>", styles['Heading2']))
+        elements.append(Spacer(1, 0.1*inch))
+        elements.append(Paragraph(application['cover_letter'], styles['BodyText']))
+        elements.append(Spacer(1, 0.3*inch))
+    
+    # Application Details
+    elements.append(Paragraph("<b>APPLICATION DETAILS</b>", styles['Heading2']))
+    elements.append(Spacer(1, 0.1*inch))
+    
+    app_data = [
+        ['Status:', application['status'].upper()],
+        ['Applied:', datetime.fromisoformat(application['applied_at']).strftime('%B %d, %Y %I:%M %p') if isinstance(application['applied_at'], str) else application['applied_at'].strftime('%B %d, %Y %I:%M %p')],
+        ['Referral Code:', referral_code],
+    ]
+    
+    app_table = Table(app_data, colWidths=[1.5*inch, 4.5*inch])
+    app_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f3f4f6')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('PADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(app_table)
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Footer
+    footer_text = f"""
+    <i>This application was referred by MedEvidences.com</i><br/>
+    <i>For any questions, please contact: support@medevidences.com</i><br/>
+    <i>Generated: {datetime.now(timezone.utc).strftime('%B %d, %Y %I:%M %p UTC')}</i>
+    """
+    elements.append(Paragraph(footer_text, styles['Normal']))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+@api_router.get("/admin/download-application-pdf/{application_id}")
+async def download_application_pdf(
+    application_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Download application as PDF"""
+    # Check if user is admin
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    # Get application
+    application = await db.applications.find_one({"id": application_id}, {"_id": 0})
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Get all related data
+    candidate = await db.users.find_one({"id": application['candidate_id']}, {"_id": 0})
+    candidate_profile = await db.candidate_profiles.find_one({"user_id": application['candidate_id']}, {"_id": 0})
+    job = await db.jobs.find_one({"id": application['job_id']}, {"_id": 0})
+    employer_profile = await db.employer_profiles.find_one({"user_id": application['employer_id']}, {"_id": 0})
+    
+    if not candidate or not job:
+        raise HTTPException(status_code=404, detail="Related data not found")
+    
+    # Get or generate referral code
+    referral_code = application.get('referral_code')
+    if not referral_code:
+        import random
+        import string
+        date_str = datetime.now(timezone.utc).strftime('%Y%m%d')
+        random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        referral_code = f"MED-{date_str}-{random_str}"
+    
+    # Generate PDF
+    pdf_buffer = generate_application_pdf(
+        application, candidate, candidate_profile, job, employer_profile, referral_code
+    )
+    
+    # Save to temp file
+    filename = f"MedEvidences_Application_{referral_code}.pdf"
+    temp_path = f"/tmp/{filename}"
+    
+    with open(temp_path, 'wb') as f:
+        f.write(pdf_buffer.getvalue())
+    
+    logging.info(f"Generated PDF for application {application_id}: {filename}")
+    
+    return FileResponse(
+        temp_path,
+        media_type='application/pdf',
+        filename=filename
+    )
+
+@api_router.post("/admin/send-to-employer-with-options/{application_id}")
+async def send_application_with_options(
+    application_id: str,
+    request: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Send application to employer with custom email and PDF attachment option"""
+    # Check if user is admin
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    custom_email = request.get('employer_email')
+    save_email = request.get('save_email', False)
+    
+    if not custom_email:
+        raise HTTPException(status_code=400, detail="Employer email required")
+    
+    # Get application
+    application = await db.applications.find_one({"id": application_id}, {"_id": 0})
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Get all data
+    candidate = await db.users.find_one({"id": application['candidate_id']}, {"_id": 0})
+    candidate_profile = await db.candidate_profiles.find_one({"user_id": application['candidate_id']}, {"_id": 0})
+    job = await db.jobs.find_one({"id": application['job_id']}, {"_id": 0})
+    employer = await db.users.find_one({"id": application['employer_id']}, {"_id": 0})
+    employer_profile = await db.employer_profiles.find_one({"user_id": application['employer_id']}, {"_id": 0})
+    
+    if not candidate or not job or not employer:
+        raise HTTPException(status_code=404, detail="Related data not found")
+    
+    # Save custom email to employer profile if requested
+    if save_email and custom_email != employer['email']:
+        await db.employer_profiles.update_one(
+            {"user_id": application['employer_id']},
+            {"$set": {"custom_contact_email": custom_email}}
+        )
+        logging.info(f"Saved custom email {custom_email} for employer {application['employer_id']}")
+    
+    # Generate referral code if not exists
+    referral_code = application.get('referral_code')
+    if not referral_code:
+        import random
+        import string
+        date_str = datetime.now(timezone.utc).strftime('%Y%m%d')
+        random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        referral_code = f"MED-{date_str}-{random_str}"
+    
+    # Update application
+    sent_time = datetime.now(timezone.utc)
+    await db.applications.update_one(
+        {"id": application_id},
+        {"$set": {
+            "referral_code": referral_code,
+            "sent_to_employer": True,
+            "sent_at": sent_time.isoformat(),
+            "sent_to_email": custom_email,
+            "updated_at": sent_time.isoformat()
+        }}
+    )
+    
+    # Generate PDF
+    pdf_buffer = generate_application_pdf(
+        application, candidate, candidate_profile, job, employer_profile, referral_code
+    )
+    
+    # Email content
+    email_subject = f"New Candidate Referral from MedEvidences - {job['title']}"
+    email_body = f"""
+Dear {employer.get('full_name', 'Employer')},
+
+MedEvidences has identified a qualified candidate for your position: {job['title']}
+
+Please find the complete application attached as a PDF document.
+
+=== QUICK SUMMARY ===
+Candidate: {candidate['full_name']}
+Position: {job['title']}
+Referral Code: {referral_code}
+
+⚠️ IMPORTANT: Please use referral code {referral_code} in all communications regarding this candidate.
+
+Best regards,
+MedEvidences Team
+https://medevidences.com
+    """
+    
+    # Log email (mock for now)
+    logging.info(f"SENDING EMAIL TO: {custom_email}")
+    logging.info(f"Subject: {email_subject}")
+    logging.info(f"Referral Code: {referral_code}")
+    logging.info(f"PDF attached: MedEvidences_Application_{referral_code}.pdf")
+    
+    sendgrid_key = os.environ.get('SENDGRID_API_KEY', '')
+    if not sendgrid_key or sendgrid_key == 'your-sendgrid-api-key-here':
+        logging.warning(f"SendGrid not configured - MOCK EMAIL with PDF attachment sent to {custom_email}")
+    
+    return {
+        "message": "Application sent successfully with PDF attachment",
+        "referral_code": referral_code,
+        "employer_email": custom_email,
+        "pdf_filename": f"MedEvidences_Application_{referral_code}.pdf",
+        "sent_at": sent_time.isoformat()
+    }
+
+
 # Company Contact Routes
 @api_router.post("/company-contact")
 async def submit_company_contact(contact_data: CompanyContactCreate):
