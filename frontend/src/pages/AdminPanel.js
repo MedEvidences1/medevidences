@@ -269,52 +269,79 @@ function AdminPanel({ user, onLogout }) {
                 <div className="space-y-4">
                   {recentApplications.length > 0 ? (
                     recentApplications.map((app) => (
-                      <div key={app.id} className="flex justify-between items-center p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{app.candidate_name || 'Candidate'}</h3>
-                          <p className="text-sm text-gray-600">Applied for: {app.job_title}</p>
-                          <p className="text-xs text-gray-500">Company: {app.company_name}</p>
-                          <p className="text-xs text-gray-400">
-                            Applied: {new Date(app.applied_at).toLocaleDateString()}
-                          </p>
-                          {app.referral_code && (
-                            <div className="mt-2">
-                              <Badge className="bg-green-100 text-green-800">
-                                Ref: {app.referral_code}
+                      <div key={app.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-lg">{app.candidate_name || 'Candidate'}</h3>
+                              <Badge 
+                                variant={
+                                  app.status === 'pending' ? 'secondary' : 
+                                  app.status === 'accepted' ? 'default' : 
+                                  'destructive'
+                                }
+                              >
+                                {app.status}
                               </Badge>
-                              <span className="text-xs text-gray-500 ml-2">
-                                Sent: {new Date(app.sent_at).toLocaleDateString()}
-                              </span>
                             </div>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant={
-                              app.status === 'pending' ? 'secondary' : 
-                              app.status === 'accepted' ? 'default' : 
-                              'destructive'
-                            }
-                          >
-                            {app.status}
-                          </Badge>
-                          {!app.sent_to_employer ? (
-                            <Button
-                              size="sm"
-                              onClick={() => handleSendToEmployer(app.id)}
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              📧 Send to Employer
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled
-                            >
-                              ✓ Sent
-                            </Button>
-                          )}
+                            
+                            <div className="space-y-1 mb-3">
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">Job:</span> {app.job_title}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">Company:</span> {app.company_name}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">Candidate Email:</span>{' '}
+                                <a href={`mailto:${app.candidate_email}`} className="text-blue-600 hover:underline">
+                                  {app.candidate_email}
+                                </a>
+                              </p>
+                              {app.employer_email && (
+                                <p className="text-sm text-gray-600">
+                                  <span className="font-medium">Employer Email:</span>{' '}
+                                  <a href={`mailto:${app.employer_email}`} className="text-blue-600 hover:underline">
+                                    {app.employer_email}
+                                  </a>
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-400">
+                                Applied: {new Date(app.applied_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                            
+                            {app.referral_code && (
+                              <div className="mt-2">
+                                <Badge className="bg-green-100 text-green-800">
+                                  Ref: {app.referral_code}
+                                </Badge>
+                                <span className="text-xs text-gray-500 ml-2">
+                                  Sent: {new Date(app.sent_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="ml-4">
+                            {!app.sent_to_employer ? (
+                              <Button
+                                size="sm"
+                                onClick={() => handleSendToEmployer(app.id)}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                📧 Send to Employer
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled
+                              >
+                                ✓ Sent
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))
