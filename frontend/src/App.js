@@ -127,6 +127,22 @@ function App() {
           path="/matched-jobs"
           element={user && user.role === 'candidate' ? <MatchedJobs user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/resume-upload"
+          element={user && user.role === 'candidate' ? <ResumeUpload user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/match-scores"
+          element={user && user.role === 'employer' ? <MatchScores user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/match-scores/:jobId"
+          element={user && user.role === 'employer' ? <MatchScores user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/payroll-tracking"
+          element={user ? <PayrollTracking user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
         <Route path="/auth/callback" element={<AuthCallback onLogin={handleLogin} />} />
         <Route path="/select-role" element={<SelectRole onLogin={handleLogin} />} />
         <Route path="/admin" element={user && user.email === 'admin@medevidences.com' ? <AdminPanel user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} />
