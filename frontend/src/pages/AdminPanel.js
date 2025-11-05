@@ -186,6 +186,7 @@ function AdminPanel({ user, onLogout }) {
         <Tabs defaultValue="jobs" className="space-y-6">
           <TabsList>
             <TabsTrigger value="jobs">Recent Jobs</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
