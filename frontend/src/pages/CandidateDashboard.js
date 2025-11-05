@@ -47,6 +47,20 @@ function CandidateDashboard({ user, onLogout }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verify user role
+    if (user && user.role !== 'candidate') {
+      toast.error('Access denied. This page is for candidates only.');
+      setTimeout(() => {
+        if (user.role === 'employer') {
+          navigate('/dashboard/employer');
+        } else if (user.email === 'admin@medevidences.com') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      }, 2000);
+      return;
+    }
     fetchProfile();
   }, []);
 
