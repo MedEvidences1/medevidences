@@ -23,6 +23,7 @@ import MatchScores from '@/pages/MatchScores';
 import PayrollTracking from '@/pages/PayrollTracking';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
+import SubscriptionPlans from '@/pages/SubscriptionPlans';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
