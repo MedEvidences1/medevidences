@@ -109,7 +109,7 @@ function AdminPanel({ user, onLogout }) {
             <div className="flex items-center space-x-4">
               <Link to="/mercor-jobs">
                 <Button className="bg-orange-500 hover:bg-orange-600">
-                  📥 Import from Mercor
+                  📥 Import Jobs
                 </Button>
               </Link>
               <span className="text-sm text-gray-600">{user.email}</span>
