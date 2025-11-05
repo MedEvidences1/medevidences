@@ -119,6 +119,10 @@ class CandidateProfile(BaseModel):
     profile_searchable: bool = True
     referral_code: Optional[str] = None
     total_earnings: float = 0.0
+    subscription_status: str = "free"  # free, active, cancelled, expired
+    subscription_plan: Optional[str] = None  # basic, premium
+    subscription_start: Optional[datetime] = None
+    subscription_end: Optional[datetime] = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CandidateProfileCreate(BaseModel):
