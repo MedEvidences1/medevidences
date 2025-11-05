@@ -147,6 +147,11 @@ function CandidateDashboard({ user, onLogout }) {
                   Payroll
                 </Button>
               </Link>
+              <Link to="/subscription">
+                <Button variant="ghost" className="bg-yellow-50 hover:bg-yellow-100">
+                  ⭐ Subscription
+                </Button>
+              </Link>
               <Button variant="outline" onClick={onLogout} data-testid="logout-button">Logout</Button>
             </div>
           </div>
