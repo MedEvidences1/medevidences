@@ -78,6 +78,11 @@ function AdminPanel({ user, onLogout }) {
               <Badge variant="destructive">ADMIN</Badge>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/mercor-jobs">
+                <Button className="bg-orange-500 hover:bg-orange-600">
+                  📥 Import from Mercor
+                </Button>
+              </Link>
               <span className="text-sm text-gray-600">{user.email}</span>
               <Button variant="outline" onClick={onLogout}>Logout</Button>
             </div>
