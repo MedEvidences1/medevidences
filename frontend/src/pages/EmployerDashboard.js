@@ -131,11 +131,6 @@ function EmployerDashboard({ user, onLogout }) {
                   Payroll
                 </Button>
               </Link>
-              <Link to="/mercor-jobs">
-                <Button variant="ghost" className="bg-orange-50 hover:bg-orange-100">
-                  📥 Import from Mercor
-                </Button>
-              </Link>
               <Button variant="outline" onClick={onLogout} data-testid="logout-button">Logout</Button>
             </div>
           </div>
