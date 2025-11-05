@@ -1256,6 +1256,42 @@ async def update_application_status(
     
     return {"message": "Application status updated successfully"}
 
+
+@api_router.get("/admin/applications")
+async def get_all_applications_admin(current_user: dict = Depends(get_current_user)):
+    """Admin endpoint to view ALL applications across platform"""
+    # Check if user is admin
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    # Fetch all applications
+    applications = await db.applications.find({}, {"_id": 0}).sort([("applied_at", -1)]).to_list(500)
+    
+    # Enrich with candidate, job, and employer details
+    result = []
+    for app in applications:
+        candidate = await db.users.find_one({"id": app['candidate_id']}, {"_id": 0})
+        candidate_profile = await db.candidate_profiles.find_one({"user_id": app['candidate_id']}, {"_id": 0})
+        job = await db.jobs.find_one({"id": app['job_id']}, {"_id": 0})
+        
+        if candidate and job:
+            # Get employer info
+            employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
+            
+            app['candidate_name'] = candidate['full_name']
+            app['candidate_email'] = candidate['email']
+            app['job_title'] = job['title']
+            app['company_name'] = employer_profile.get('company_name', 'Unknown') if employer_profile else 'Unknown'
+            
+            if candidate_profile:
+                app['candidate_specialization'] = candidate_profile.get('specialization', 'N/A')
+                app['candidate_experience'] = candidate_profile.get('experience_years', 0)
+            
+            result.append(app)
+    
+    logging.info(f"Admin fetched {len(result)} applications")
+    return result
+
 # Company Contact Routes
 @api_router.post("/company-contact")
 async def submit_company_contact(contact_data: CompanyContactCreate):
