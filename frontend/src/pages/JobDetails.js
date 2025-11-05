@@ -66,6 +66,8 @@ function JobDetails({ user, onLogout }) {
       // Check if it's a subscription error (402 Payment Required)
       if (error.response?.status === 402) {
         toast.error('Subscription required to apply to jobs');
+        // Save the job ID so we can return after subscription
+        sessionStorage.setItem('pendingJobApplication', jobId);
         // Redirect to subscription page
         setTimeout(() => {
           navigate('/subscription');
