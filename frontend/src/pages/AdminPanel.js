@@ -104,26 +104,56 @@ function AdminPanel({ user, onLogout }) {
     }
   };
 
-  const handleSendToEmployer = async (applicationId) => {
-    if (!confirm('Send this application to employer with MedEvidences referral code?')) {
-      return;
-    }
+  const handleSendToEmployer = (app) => {
+    setSelectedApp(app);
+    setCustomEmail(app.employer_email || '');
+    setSaveEmail(false);
+    setShowSendModal(true);
+  };
 
+  const handleConfirmSend = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${API}/admin/send-to-employer/${applicationId}`,
-        {},
+        `${API}/admin/send-to-employer-with-options/${selectedApp.id}`,
+        {
+          employer_email: customEmail,
+          save_email: saveEmail
+        },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
-      toast.success(`✓ Sent to employer! Referral Code: ${response.data.referral_code}`);
-      
-      // Refresh applications to show updated status
+      toast.success(`✓ Sent to ${customEmail}! Referral Code: ${response.data.referral_code}`);
+      setShowSendModal(false);
       fetchDashboardData();
     } catch (error) {
       console.error('Error sending to employer:', error);
       toast.error(error.response?.data?.detail || 'Failed to send to employer');
+    }
+  };
+
+  const handleDownloadPDF = async (appId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/admin/download-application-pdf/${appId}`,
+        {
+          headers: { 'Authorization': `Bearer ${token}` },
+          responseType: 'blob'
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Application_${appId.substring(0, 8)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error('Failed to download PDF');
     }
   };
 
