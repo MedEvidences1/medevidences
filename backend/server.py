@@ -576,19 +576,28 @@ async def create_session_from_google(request: Request):
     """Handle Google OAuth session creation"""
     try:
         session_id = request.headers.get('X-Session-ID')
+        logging.info(f"OAuth session request received with session_id: {session_id[:20] if session_id else 'None'}...")
+        
         if not session_id:
             raise HTTPException(status_code=400, detail="Session ID required")
         
         # Get user data from Emergent OAuth service
         import aiohttp
         oauth_service_url = os.environ.get('OAUTH_SERVICE_URL', 'https://demobackend.emergentagent.com')
+        logging.info(f"Fetching user data from OAuth service: {oauth_service_url}")
+        
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 f'{oauth_service_url}/auth/v1/env/oauth/session-data',
                 headers={'X-Session-ID': session_id}
             ) as response:
+                response_text = await response.text()
+                logging.info(f"OAuth service response status: {response.status}")
+                
                 if response.status != 200:
-                    raise HTTPException(status_code=401, detail="Invalid session")
+                    logging.error(f"OAuth service error: {response_text}")
+                    raise HTTPException(status_code=401, detail=f"Invalid session: {response_text}")
+                
                 user_data = await response.json()
         
         # Check if user exists
