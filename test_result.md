@@ -479,6 +479,21 @@ agent_communication:
       - User can now apply to jobs ✅
       - Cancel subscription feature available on /subscription page ✅
   
+  - agent: "main"
+    message: |
+      ADDITIONAL FIXES:
+      
+      1. Fixed "example.com" display issue:
+         - Hidden example.com website links in JobDetails.js
+         - Only shows company website if it's not the default example.com
+         - Mercor imported jobs show actual company names from Mercor data
+      
+      2. Clarified application viewing for employers:
+         - Applications are visible in Employer Dashboard → "Applications" button
+         - Route: /received-applications
+         - User's applications are saved and visible to employers
+         - Verified 2 applications submitted successfully
+  
   - agent: "testing"
     message: |
       COMPREHENSIVE SUBSCRIPTION TESTING COMPLETED ✅
