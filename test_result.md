@@ -372,8 +372,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Subscription Activation After Payment"
-    - "Subscription Cancellation Logic"
     - "Post-Payment Redirect to Job Application"
     - "Cancel Subscription UI"
   stuck_tasks: []
