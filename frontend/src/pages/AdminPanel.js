@@ -28,8 +28,11 @@ function AdminPanel({ user, onLogout }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (hasCheckedAuth) return;
+    
     if (!user) {
       navigate('/login');
+      setHasCheckedAuth(true);
       return;
     }
     if (user.email !== 'admin@medevidences.com') {
@@ -37,10 +40,12 @@ function AdminPanel({ user, onLogout }) {
       setTimeout(() => {
         navigate('/');
       }, 1500);
+      setHasCheckedAuth(true);
       return;
     }
+    setHasCheckedAuth(true);
     fetchDashboardData();
-  }, [user, navigate]);
+  }, [user, navigate, hasCheckedAuth]);
 
   const fetchDashboardData = async () => {
     try {
