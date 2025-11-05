@@ -60,6 +60,7 @@ function Login({ onLogin }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
               <div className="space-y-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+              <div className="text-right text-sm"><Link to="/forgot-password" className="text-blue-600 hover:underline">Forgot password?</Link></div>
               <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</Button>
             </form>
           </div>
