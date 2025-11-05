@@ -514,6 +514,79 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
         </Tabs>
       </div>
 
+      {/* Send to Employer Modal */}
+      <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Send Application to Employer</DialogTitle>
+          </DialogHeader>
+          {selectedApp && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm"><b>Candidate:</b> {selectedApp.candidate_name}</p>
+                <p className="text-sm"><b>Job:</b> {selectedApp.job_title}</p>
+                <p className="text-sm"><b>Company:</b> {selectedApp.company_name}</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium">
+                  Employer Email Address *
+                </label>
+                <input
+                  type="email"
+                  value={customEmail}
+                  onChange={(e) => setCustomEmail(e.target.value)}
+                  placeholder="Enter employer email"
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  You can edit this email address if needed
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="saveEmail"
+                  checked={saveEmail}
+                  onChange={(e) => setSaveEmail(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="saveEmail" className="text-sm">
+                  Save this email for future use with this employer
+                </label>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  <b>📧 Email will include:</b>
+                  <br/>• Candidate details & cover letter
+                  <br/>• MedEvidences Referral Code
+                  <br/>• <b>PDF attachment</b> with full application
+                </p>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSendModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleConfirmSend}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={!customEmail}
+                >
+                  📧 Send with PDF Attachment
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Email Details Modal */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
