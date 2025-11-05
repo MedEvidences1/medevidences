@@ -1246,6 +1246,165 @@ async def get_offers(current_user: dict = Depends(get_current_user)):
     
     return result
 
+# Subscription Routes
+@api_router.get("/subscription/status")
+async def get_subscription_status(current_user: dict = Depends(get_current_user)):
+    """Get current subscription status for candidate"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can check subscription status")
+    
+    profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    subscription_status = profile.get('subscription_status', 'free')
+    subscription_end = profile.get('subscription_end')
+    
+    # Check if subscription expired
+    if subscription_status == 'active' and subscription_end:
+        if isinstance(subscription_end, str):
+            subscription_end = datetime.fromisoformat(subscription_end)
+        if subscription_end < datetime.now(timezone.utc):
+            # Update to expired
+            await db.candidate_profiles.update_one(
+                {"user_id": current_user['id']},
+                {"$set": {"subscription_status": "expired"}}
+            )
+            subscription_status = "expired"
+    
+    return {
+        "subscription_status": subscription_status,
+        "subscription_plan": profile.get('subscription_plan'),
+        "subscription_start": profile.get('subscription_start'),
+        "subscription_end": profile.get('subscription_end'),
+        "can_apply": subscription_status == 'active'
+    }
+
+@api_router.post("/subscription/create-checkout")
+async def create_subscription_checkout(
+    plan: str,  # "basic" or "premium"
+    current_user: dict = Depends(get_current_user)
+):
+    """Create Stripe checkout session for subscription"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can subscribe")
+    
+    # Validate plan
+    if plan not in ["basic", "premium"]:
+        raise HTTPException(status_code=400, detail="Invalid plan. Choose 'basic' or 'premium'")
+    
+    # Pricing (in cents)
+    pricing = {
+        "basic": 2900,   # $29/month
+        "premium": 4900  # $49/month
+    }
+    
+    # In production, integrate with Stripe
+    # For now, return mock checkout URL
+    checkout_url = f"https://checkout.stripe.com/pay/mock-session-{plan}-{current_user['id']}"
+    
+    return {
+        "checkout_url": checkout_url,
+        "plan": plan,
+        "price": pricing[plan] / 100,
+        "message": "Redirecting to Stripe checkout..."
+    }
+
+@api_router.post("/subscription/activate")
+async def activate_subscription(
+    plan: str,
+    session_id: str,  # Stripe session ID
+    current_user: dict = Depends(get_current_user)
+):
+    """Activate subscription after successful payment"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can activate subscriptions")
+    
+    # In production, verify payment with Stripe
+    # For demo purposes, we'll activate directly
+    
+    start_date = datetime.now(timezone.utc)
+    end_date = start_date + timedelta(days=30)  # 30-day subscription
+    
+    await db.candidate_profiles.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {
+            "subscription_status": "active",
+            "subscription_plan": plan,
+            "subscription_start": start_date.isoformat(),
+            "subscription_end": end_date.isoformat()
+        }}
+    )
+    
+    return {
+        "message": "Subscription activated successfully!",
+        "plan": plan,
+        "expires_at": end_date.isoformat(),
+        "can_apply": True
+    }
+
+@api_router.post("/subscription/cancel")
+async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+    """Cancel active subscription"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can cancel subscriptions")
+    
+    profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not profile or profile.get('subscription_status') != 'active':
+        raise HTTPException(status_code=400, detail="No active subscription to cancel")
+    
+    await db.candidate_profiles.update_one(
+        {"user_id": current_user['id']},
+        {"$set": {"subscription_status": "cancelled"}}
+    )
+    
+    return {
+        "message": "Subscription cancelled. You can continue using premium features until your current period ends.",
+        "expires_at": profile.get('subscription_end')
+    }
+
+@api_router.get("/subscription/pricing")
+async def get_subscription_pricing():
+    """Get subscription pricing plans"""
+    return {
+        "plans": [
+            {
+                "id": "basic",
+                "name": "Basic Plan",
+                "price": 29,
+                "currency": "USD",
+                "interval": "month",
+                "features": [
+                    "Apply to unlimited jobs",
+                    "Access to AI interview",
+                    "Basic candidate badge",
+                    "Email support"
+                ]
+            },
+            {
+                "id": "premium", 
+                "name": "Premium Plan",
+                "price": 49,
+                "currency": "USD", 
+                "interval": "month",
+                "features": [
+                    "Apply to unlimited jobs",
+                    "Access to AI interview",
+                    "Premium candidate badge",
+                    "Priority in employer searches",
+                    "Advanced analytics",
+                    "Priority support"
+                ]
+            }
+        ],
+        "free_features": [
+            "Browse all job listings",
+            "View job details", 
+            "Create candidate profile",
+            "Basic profile visibility"
+        ]
+    }
+
 # AI Interview Routes
 @api_router.get("/interview/questions")
 async def get_interview_questions(specialization: str):
