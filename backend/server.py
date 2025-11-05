@@ -1493,6 +1493,14 @@ async def activate_subscription(
         updated_profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
         logging.info(f"Updated profile subscription_status: {updated_profile.get('subscription_status')}")
         
+        # Send confirmation email
+        await send_subscription_email(
+            current_user['email'],
+            current_user.get('full_name', 'User'),
+            plan,
+            end_date.isoformat()
+        )
+        
         return {
             "message": "Subscription activated successfully!",
             "plan": plan,
