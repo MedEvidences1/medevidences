@@ -318,11 +318,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Auto Resume Screening API"
-    - "Intelligent AI Matching"
-    - "Dynamic Feedback Collection"
-    - "Payroll Tracking System"
-    - "Mercor Job Scraping"
+    - "Subscription Activation After Payment"
+    - "Subscription Cancellation Logic"
+    - "Post-Payment Redirect to Job Application"
+    - "Cancel Subscription UI"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
