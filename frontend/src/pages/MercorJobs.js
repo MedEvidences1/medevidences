@@ -157,7 +157,7 @@ export default function MercorJobs() {
         {jobs.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold mb-4">
-              Found {jobs.length} Jobs from Mercor
+              Found {jobs.length} Jobs
             </h2>
             <div className="grid gap-4">
               {jobs.map((job) => (
