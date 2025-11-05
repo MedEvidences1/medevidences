@@ -122,6 +122,55 @@ function AdminPanel({ user, onLogout }) {
     }
   };
 
+  const handleViewEmailDetails = (app) => {
+    const emailContent = `
+TO: ${app.employer_email}
+FROM: MedEvidences Team <noreply@medevidences.com>
+SUBJECT: New Candidate Referral from MedEvidences - ${app.job_title}
+REFERRAL CODE: ${app.referral_code}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dear Employer,
+
+MedEvidences has identified a qualified candidate for your position: ${app.job_title}
+
+=== CANDIDATE DETAILS ===
+Name: ${app.candidate_name}
+Email: ${app.candidate_email}
+Specialization: ${app.candidate_specialization || 'N/A'}
+Experience: ${app.candidate_experience || 0} years
+
+=== JOB DETAILS ===
+Position: ${app.job_title}
+Company: ${app.company_name}
+
+=== MEDEVIDENCES REFERRAL CODE ===
+Code: ${app.referral_code}
+
+⚠️ IMPORTANT: Please use this referral code (${app.referral_code}) in all communications regarding this candidate to track this referral from MedEvidences.
+
+${app.cover_letter ? `\nCANDIDATE COVER LETTER:\n${app.cover_letter}\n` : ''}
+
+To view the full candidate profile and manage this application, please log in to your MedEvidences employer dashboard at: https://medexpert-hire.preview.emergentagent.com
+
+Best regards,
+MedEvidences Team
+https://medevidences.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This is an automated message from MedEvidences platform.
+Referral Code: ${app.referral_code}
+Sent At: ${new Date(app.sent_at).toLocaleString()}
+    `;
+    
+    setSelectedEmail({
+      ...app,
+      emailContent
+    });
+    setShowEmailModal(true);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
