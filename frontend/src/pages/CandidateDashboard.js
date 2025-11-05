@@ -152,7 +152,9 @@ function CandidateDashboard({ user, onLogout }) {
                   ⭐ Subscription
                 </Button>
               </Link>
-              <Button variant="outline" onClick={onLogout} data-testid="logout-button">Logout</Button>
+              <Button variant="outline" onClick={onLogout} data-testid="logout-button" className="border-red-300 text-red-600 hover:bg-red-50">
+                Logout
+              </Button>
             </div>
           </div>
         </div>
