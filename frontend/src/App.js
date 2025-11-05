@@ -45,8 +45,57 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    handleOAuthCallback();
   }, []);
+
+  const handleOAuthCallback = async () => {
+    // Check for session_id in URL fragment (OAuth callback)
+    const hash = window.location.hash;
+    if (hash && hash.includes('session_id=')) {
+      const params = new URLSearchParams(hash.substring(1));
+      const sessionId = params.get('session_id');
+      
+      if (sessionId) {
+        try {
+          // Exchange session_id for user data and session_token
+          const response = await fetch(`${API}/auth/session`, {
+            method: 'POST',
+            headers: {
+              'X-Session-ID': sessionId,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            // Store session token
+            localStorage.setItem('token', data.session_token);
+            
+            // Clean URL
+            window.history.replaceState(null, '', window.location.pathname);
+            
+            // If user has no role, redirect to role selection
+            if (!data.user.role) {
+              window.location.href = '/select-role';
+              return;
+            }
+            
+            // Set user and redirect to dashboard
+            setUser(data.user);
+            window.location.href = data.user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer';
+            return;
+          }
+        } catch (error) {
+          console.error('OAuth callback error:', error);
+        }
+      }
+    }
+    
+    // Check existing auth
+    await checkAuth();
+  };
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
