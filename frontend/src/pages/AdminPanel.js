@@ -559,7 +559,7 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
       <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Send Application to Employer</DialogTitle>
+            <DialogTitle>Send Application to Employer Email</DialogTitle>
           </DialogHeader>
           {selectedApp && (
             <div className="space-y-4">
@@ -567,6 +567,11 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                 <p className="text-sm"><b>Candidate:</b> {selectedApp.candidate_name}</p>
                 <p className="text-sm"><b>Job:</b> {selectedApp.job_title}</p>
                 <p className="text-sm"><b>Company:</b> {selectedApp.company_name}</p>
+                {selectedApp.sent_to_email && (
+                  <p className="text-sm text-green-600 mt-2">
+                    <b>✓ Previously sent to:</b> {selectedApp.sent_to_email}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -577,12 +582,12 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                   type="email"
                   value={customEmail}
                   onChange={(e) => setCustomEmail(e.target.value)}
-                  placeholder="Enter employer email"
+                  placeholder="Enter employer email (can send to multiple)"
                   className="w-full px-3 py-2 border rounded-md"
                   required
                 />
                 <p className="text-xs text-gray-500">
-                  You can edit this email address if needed
+                  💡 You can send to different emails - just change the address and click send again
                 </p>
               </div>
 
