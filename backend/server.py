@@ -1431,47 +1431,71 @@ async def activate_subscription(
         import stripe
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
         
+        logging.info(f"Retrieving Stripe session {session_id} for user {current_user['id']}")
+        
         # Retrieve the session to verify payment
-        session = stripe.checkout.Session.retrieve(session_id)
+        session = stripe.checkout.Session.retrieve(
+            session_id,
+            expand=['subscription']  # Expand subscription to get full details
+        )
+        
+        logging.info(f"Session payment_status: {session.payment_status}, subscription: {session.subscription}")
         
         if session.payment_status != 'paid':
-            raise HTTPException(status_code=400, detail="Payment not completed")
+            logging.warning(f"Payment not completed for session {session_id}. Status: {session.payment_status}")
+            raise HTTPException(status_code=400, detail=f"Payment not completed. Current status: {session.payment_status}")
         
         # Get plan from session metadata
         plan = session.metadata.get('plan', 'basic')
         
-        logging.info(f"Activating subscription for user {current_user['id']}, plan: {plan}")
+        logging.info(f"Activating subscription for user {current_user['id']}, plan: {plan}, stripe_sub_id: {session.subscription}")
         
         start_date = datetime.now(timezone.utc)
         end_date = start_date + timedelta(days=30)  # 30-day subscription
         
+        # Prepare update data
+        update_data = {
+            "subscription_status": "active",
+            "subscription_plan": plan,
+            "subscription_start": start_date.isoformat(),
+            "subscription_end": end_date.isoformat(),
+            "stripe_customer_id": session.customer
+        }
+        
+        # Only add subscription ID if it exists
+        if session.subscription:
+            if isinstance(session.subscription, str):
+                update_data["stripe_subscription_id"] = session.subscription
+            else:
+                # If expanded, it's an object
+                update_data["stripe_subscription_id"] = session.subscription.id
+        
         # Update candidate profile
-        await db.candidate_profiles.update_one(
+        result = await db.candidate_profiles.update_one(
             {"user_id": current_user['id']},
-            {"$set": {
-                "subscription_status": "active",
-                "subscription_plan": plan,
-                "subscription_start": start_date.isoformat(),
-                "subscription_end": end_date.isoformat(),
-                "stripe_subscription_id": session.subscription,
-                "stripe_customer_id": session.customer
-            }},
+            {"$set": update_data},
             upsert=True
         )
         
+        logging.info(f"Database update result - matched: {result.matched_count}, modified: {result.modified_count}, upserted_id: {result.upserted_id}")
         logging.info(f"Subscription activated successfully for user {current_user['id']}")
+        
+        # Verify the update
+        updated_profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+        logging.info(f"Updated profile subscription_status: {updated_profile.get('subscription_status')}")
         
         return {
             "message": "Subscription activated successfully!",
             "plan": plan,
             "expires_at": end_date.isoformat(),
-            "can_apply": True
+            "can_apply": True,
+            "subscription_status": "active"
         }
     except stripe.error.StripeError as e:
-        logging.error(f"Stripe error: {str(e)}")
+        logging.error(f"Stripe error during activation: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
-        logging.error(f"Activation error: {str(e)}")
+        logging.error(f"Activation error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Activation error: {str(e)}")
 
 @api_router.post("/subscription/cancel")
