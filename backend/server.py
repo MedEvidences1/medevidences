@@ -1279,15 +1279,23 @@ async def get_all_applications_admin(current_user: dict = Depends(get_current_us
         
         if candidate and job:
             # Get employer info
+            employer = await db.users.find_one({"id": job['employer_id']}, {"_id": 0})
             employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
             
             app['candidate_name'] = candidate['full_name']
             app['candidate_email'] = candidate['email']
             app['job_title'] = job['title']
             app['company_name'] = employer_profile.get('company_name', 'Unknown') if employer_profile else 'Unknown'
+            app['employer_email'] = employer['email'] if employer else 'N/A'
             
             if candidate_profile:
                 app['candidate_specialization'] = candidate_profile.get('specialization', 'N/A')
+                app['candidate_experience'] = candidate_profile.get('experience_years', 0)
+            
+            result.append(app)
+    
+    logging.info(f"Admin fetched {len(result)} applications")
+    return result
 
 @api_router.post("/admin/send-to-employer/{application_id}")
 async def send_application_to_employer(
