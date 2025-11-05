@@ -1432,9 +1432,11 @@ async def activate_subscription(
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID required")
     
+    # Import stripe at the top level
+    import stripe
+    
     try:
         # Verify payment with Stripe
-        import stripe
         stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
         
         logging.info(f"Retrieving Stripe session {session_id} for user {current_user['id']}")
