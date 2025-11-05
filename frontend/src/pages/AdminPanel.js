@@ -49,8 +49,11 @@ function AdminPanel({ user, onLogout }) {
 
   const fetchDashboardData = async () => {
     try {
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
       // Fetch jobs
-      const jobsRes = await axios.get(`${API}/jobs`);
+      const jobsRes = await axios.get(`${API}/jobs`, { headers });
       const jobs = jobsRes.data;
       
       setStats(prev => ({
@@ -60,14 +63,33 @@ function AdminPanel({ user, onLogout }) {
       }));
       setRecentJobs(jobs.slice(0, 5));
 
+      // Fetch all applications (admin endpoint)
+      try {
+        const appsRes = await axios.get(`${API}/admin/applications`, { headers });
+        const applications = appsRes.data;
+        
+        setRecentApplications(applications.slice(0, 10)); // Show last 10
+        setStats(prev => ({
+          ...prev,
+          totalApplications: applications.length,
+          pendingApplications: applications.filter(a => a.status === 'pending').length
+        }));
+      } catch (appError) {
+        console.error('Error fetching applications:', appError);
+        // Fallback if endpoint doesn't exist yet
+        setStats(prev => ({
+          ...prev,
+          totalApplications: 0,
+          pendingApplications: 0
+        }));
+      }
+
       // Note: These would come from admin-specific endpoints in production
       setStats(prev => ({
         ...prev,
         totalUsers: 15,
         totalCandidates: 10,
         totalEmployers: 5,
-        totalApplications: 25,
-        pendingApplications: 8,
         revenue: 1490 // $149 x 10 jobs
       }));
     } catch (error) {
