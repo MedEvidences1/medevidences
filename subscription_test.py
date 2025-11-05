@@ -339,7 +339,11 @@ class SubscriptionFlowTester:
         
         if response.status_code == 400:
             print("✓ Cancellation properly blocked for non-active subscription")
-            print(f"  Error: {response.json().get('detail', 'No error message')}")
+            try:
+                error_detail = response.json().get('detail', 'No error message')
+                print(f"  Error: {error_detail}")
+            except:
+                print(f"  Error: {response.text}")
         else:
             print(f"⚠️  Expected 400 for cancelling non-active subscription, got: {response.status_code}")
             print(f"  Response: {response.text}")
