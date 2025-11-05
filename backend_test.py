@@ -337,7 +337,7 @@ Good Clinical Practice (GCP) Certification
         # Create a test compliance document
         test_doc = io.BytesIO(b"Test compliance document content")
         files = {
-            'document': ('w9_form.pdf', test_doc, 'application/pdf')
+            'document': ('w9_form.txt', test_doc, 'text/plain')
         }
         data = {
             'contract_id': 'test_contract_123',
