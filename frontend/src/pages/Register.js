@@ -13,6 +13,7 @@ const API = `${BACKEND_URL}/api`;
 
 function Register({ onLogin }) {
   const [formData, setFormData] = useState({ email: '', password: '', full_name: '', role: 'candidate' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
