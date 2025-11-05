@@ -294,3 +294,17 @@ agent_communication:
       - Updated get_current_user to support both JWT and OAuth session tokens
       - Added OAuth session handling in App.js
       - Google "Continue with Google" button now working correctly
+  
+  - agent: "main"
+    message: |
+      Starting subscription post-payment flow fixes:
+      ISSUES REPORTED BY USER:
+      1. After payment, not redirected to application screen
+      2. System still asking for subscription even after payment
+      3. No provision to cancel subscription after one month
+      
+      IMPLEMENTATION PLAN:
+      Phase 1: Fix subscription activation endpoint to properly retrieve Stripe session
+      Phase 2: Ensure SubscriptionSuccess.js redirects to job application
+      Phase 3: Verify cancellation works for next month only (no refund)
+      Phase 4: Test complete payment → activation → application flow with backend testing agent
