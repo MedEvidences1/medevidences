@@ -833,6 +833,10 @@ async def create_candidate_profile(
     profile_dict['profile_searchable'] = True
     profile_dict['referral_code'] = None
     profile_dict['total_earnings'] = 0.0
+    profile_dict['subscription_status'] = "free"
+    profile_dict['subscription_plan'] = None
+    profile_dict['subscription_start'] = None
+    profile_dict['subscription_end'] = None
     
     await db.candidate_profiles.insert_one(profile_dict)
     
