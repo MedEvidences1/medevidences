@@ -245,36 +245,39 @@ class CompleteSubscriptionTester:
         print("\n4. Testing EXPIRED subscription scenario...")
         
         # Manually set expired subscription
+        async def set_expired_subscription():
+            try:
+                mongo_url = "mongodb://localhost:27017"
+                client = AsyncIOMotorClient(mongo_url)
+                db = client["test_database"]
+                
+                # Set subscription end date to past
+                past_date = datetime.now(timezone.utc) - timedelta(days=5)
+                start_date = past_date - timedelta(days=25)
+                
+                update_data = {
+                    "subscription_status": "active",  # Will be detected as expired
+                    "subscription_plan": "basic",
+                    "subscription_start": start_date.isoformat(),
+                    "subscription_end": past_date.isoformat()
+                }
+                
+                await db.candidate_profiles.update_one(
+                    {"user_id": self.candidate_id},
+                    {"$set": update_data}
+                )
+                
+                client.close()
+                print("   ✓ Set up expired subscription")
+                return True
+                
+            except Exception as e:
+                print(f"   ✗ Failed to set up expired subscription: {e}")
+                return False
+        
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        
-        try:
-            mongo_url = "mongodb://localhost:27017"
-            client = AsyncIOMotorClient(mongo_url)
-            db = client["test_database"]
-            
-            # Set subscription end date to past
-            past_date = datetime.now(timezone.utc) - timedelta(days=5)
-            start_date = past_date - timedelta(days=25)
-            
-            update_data = {
-                "subscription_status": "active",  # Will be detected as expired
-                "subscription_plan": "basic",
-                "subscription_start": start_date.isoformat(),
-                "subscription_end": past_date.isoformat()
-            }
-            
-            await db.candidate_profiles.update_one(
-                {"user_id": self.candidate_id},
-                {"$set": update_data}
-            )
-            
-            client.close()
-            print("   ✓ Set up expired subscription")
-            
-        except Exception as e:
-            print(f"   ✗ Failed to set up expired subscription: {e}")
-            
+        loop.run_until_complete(set_expired_subscription())
         loop.close()
         
         # Test expired subscription
