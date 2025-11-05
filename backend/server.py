@@ -231,6 +231,9 @@ class Application(BaseModel):
     status: str = "pending"  # pending, reviewed, shortlisted, rejected, accepted
     applied_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    referral_code: Optional[str] = None  # MedEvidences tracking code
+    sent_to_employer: bool = False  # Admin sent to employer via email
+    sent_at: Optional[datetime] = None
 
 class ApplicationCreate(BaseModel):
     job_id: str
