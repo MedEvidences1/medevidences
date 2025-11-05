@@ -1412,13 +1412,6 @@ Referral Code: {referral_code}
         "sent_at": sent_time.isoformat()
     }
 
-                app['candidate_experience'] = candidate_profile.get('experience_years', 0)
-            
-            result.append(app)
-    
-    logging.info(f"Admin fetched {len(result)} applications")
-    return result
-
 # Company Contact Routes
 @api_router.post("/company-contact")
 async def submit_company_contact(contact_data: CompanyContactCreate):
