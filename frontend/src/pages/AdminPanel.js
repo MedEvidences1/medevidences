@@ -463,6 +463,58 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Email Details Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Email Sent to Employer</DialogTitle>
+          </DialogHeader>
+          {selectedEmail && (
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">📧 Email Details</h3>
+                <div className="space-y-1 text-sm">
+                  <p><span className="font-medium">To:</span> {selectedEmail.employer_email}</p>
+                  <p><span className="font-medium">Subject:</span> New Candidate Referral - {selectedEmail.job_title}</p>
+                  <p><span className="font-medium">Referral Code:</span> 
+                    <Badge className="ml-2 bg-green-600">{selectedEmail.referral_code}</Badge>
+                  </p>
+                  <p><span className="font-medium">Sent:</span> {new Date(selectedEmail.sent_at).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 border rounded-lg p-4">
+                <h3 className="font-semibold mb-2">📄 Email Content</h3>
+                <pre className="text-sm whitespace-pre-wrap font-mono bg-white p-4 rounded border">
+                  {selectedEmail.emailContent}
+                </pre>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedEmail.emailContent);
+                    toast.success('Email content copied to clipboard!');
+                  }}
+                  variant="outline"
+                >
+                  📋 Copy Email
+                </Button>
+                <Button
+                  onClick={() => {
+                    const mailto = `mailto:${selectedEmail.employer_email}?subject=${encodeURIComponent('New Candidate Referral - ' + selectedEmail.job_title)}&body=${encodeURIComponent(selectedEmail.emailContent)}`;
+                    window.location.href = mailto;
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  ✉️ Send via Your Email
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
