@@ -27,7 +27,10 @@ function AdminPanel({ user, onLogout }) {
 
   useEffect(() => {
     if (!user || user.email !== 'admin@medevidences.com') {
-      navigate('/');
+      toast.error('Access Denied! Admin access only.');
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
       return;
     }
     fetchDashboardData();
