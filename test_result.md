@@ -357,15 +357,18 @@ frontend:
   
   - task: "Cancel Subscription UI"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/SubscriptionPlans.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Cancel subscription button exists on SubscriptionPlans page. Shows for active subscriptions and calls /subscription/cancel endpoint"
+      - working: true
+        agent: "main"
+        comment: "Cancel button tested and working. Cancels at period end, no refund for current month as requested"
 
 metadata:
   created_by: "main_agent"
