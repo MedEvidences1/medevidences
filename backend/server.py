@@ -1391,7 +1391,7 @@ async def create_subscription_checkout(
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=f'{os.environ.get("FRONTEND_URL", "http://localhost:3000")}/subscription?success=true&session_id={{CHECKOUT_SESSION_ID}}',
+            success_url=f'{os.environ.get("FRONTEND_URL", "http://localhost:3000")}/subscription/success?success=true&session_id={{CHECKOUT_SESSION_ID}}',
             cancel_url=f'{os.environ.get("FRONTEND_URL", "http://localhost:3000")}/subscription?cancelled=true',
             client_reference_id=current_user['id'],
             metadata={
