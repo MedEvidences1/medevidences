@@ -24,6 +24,7 @@ function AdminPanel({ user, onLogout }) {
   });
   const [recentJobs, setRecentJobs] = useState([]);
   const [recentApplications, setRecentApplications] = useState([]);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
