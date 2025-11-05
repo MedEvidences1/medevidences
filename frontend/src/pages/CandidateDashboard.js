@@ -136,6 +136,17 @@ function CandidateDashboard({ user, onLogout }) {
                   My Applications
                 </Button>
               </Link>
+              <Link to="/resume-upload">
+                <Button variant="ghost" className="bg-green-50 hover:bg-green-100">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Resume AI
+                </Button>
+              </Link>
+              <Link to="/payroll-tracking">
+                <Button variant="ghost">
+                  Payroll
+                </Button>
+              </Link>
               <Button variant="outline" onClick={onLogout} data-testid="logout-button">Logout</Button>
             </div>
           </div>
