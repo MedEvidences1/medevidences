@@ -211,6 +211,8 @@ function App() {
         />
         <Route path="/auth/callback" element={<AuthCallback onLogin={handleLogin} />} />
         <Route path="/select-role" element={<SelectRole onLogin={handleLogin} />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/admin" element={user && user.email === 'admin@medevidences.com' ? <AdminPanel user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
