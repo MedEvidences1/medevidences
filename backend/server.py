@@ -1655,6 +1655,677 @@ async def seed_sample_jobs():
         "total": len(sample_jobs)
     }
 
+
+# ============= Advanced Features Endpoints =============
+
+# 1. Auto Resume Screening
+@api_router.post("/resume/parse")
+async def parse_resume(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Parse uploaded resume PDF and extract information using AI"""
+    from PyPDF2 import PdfReader
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    import io
+    
+    if current_user['role'] != 'candidate':
+        raise HTTPException(status_code=403, detail="Only candidates can upload resumes")
+    
+    form = await request.form()
+    resume_file = form.get('resume')
+    
+    if not resume_file:
+        raise HTTPException(status_code=400, detail="No resume file provided")
+    
+    # Read PDF
+    try:
+        pdf_content = await resume_file.read()
+        pdf_reader = PdfReader(io.BytesIO(pdf_content))
+        
+        # Extract text from all pages
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text()
+        
+        if not text.strip():
+            raise HTTPException(status_code=400, detail="Could not extract text from PDF")
+        
+        # Use AI to parse resume
+        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=f"resume_parse_{current_user['id']}",
+            system_message="You are an expert resume parser. Extract structured information from resumes."
+        ).with_model("openai", "gpt-4o")
+        
+        prompt = f"""Analyze this resume and extract the following information in JSON format:
+{{
+  "skills": ["list of technical and professional skills"],
+  "experience_years": number (total years of experience),
+  "education": ["list of degrees and institutions"],
+  "certifications": ["list of certifications"],
+  "summary": "brief professional summary in 2-3 sentences"
+}}
+
+Resume text:
+{text[:4000]}
+"""
+        
+        message = UserMessage(text=prompt)
+        response = await chat.send_message(message)
+        
+        # Parse AI response
+        import json
+        try:
+            parsed_data = json.loads(response)
+        except:
+            # If response isn't pure JSON, try to extract JSON from it
+            import re
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                parsed_data = json.loads(json_match.group())
+            else:
+                parsed_data = {
+                    "skills": [],
+                    "experience_years": 0,
+                    "education": [],
+                    "certifications": [],
+                    "summary": response[:200]
+                }
+        
+        # Store in database
+        resume_data = ResumeData(
+            candidate_id=current_user['id'],
+            file_name=resume_file.filename,
+            parsed_skills=parsed_data.get('skills', []),
+            parsed_experience_years=parsed_data.get('experience_years'),
+            parsed_education=parsed_data.get('education', []),
+            parsed_certifications=parsed_data.get('certifications', []),
+            raw_text=text[:2000],  # Store first 2000 chars
+            ai_summary=parsed_data.get('summary')
+        )
+        
+        resume_dict = resume_data.model_dump()
+        resume_dict['created_at'] = resume_dict['created_at'].isoformat()
+        await db.resume_data.insert_one(resume_dict)
+        
+        # Update candidate profile with parsed info
+        update_data = {}
+        if parsed_data.get('skills'):
+            update_data['skills'] = parsed_data['skills']
+        if parsed_data.get('experience_years'):
+            update_data['experience_years'] = parsed_data['experience_years']
+        if parsed_data.get('education'):
+            update_data['education'] = ', '.join(parsed_data['education'])
+        
+        if update_data:
+            await db.candidate_profiles.update_one(
+                {"user_id": current_user['id']},
+                {"$set": update_data}
+            )
+        
+        return {
+            "message": "Resume parsed successfully",
+            "data": parsed_data,
+            "resume_id": resume_data.id
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error parsing resume: {str(e)}")
+
+@api_router.get("/resume/data")
+async def get_resume_data(current_user: dict = Depends(get_current_user)):
+    """Get parsed resume data for current candidate"""
+    if current_user['role'] != 'candidate':
+        raise HTTPException(status_code=403, detail="Only candidates can view resume data")
+    
+    resume = await db.resume_data.find_one(
+        {"candidate_id": current_user['id']},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    
+    if not resume:
+        return {"message": "No resume data found", "data": None}
+    
+    return {"data": resume}
+
+
+# 2. Intelligent AI Candidate Matching
+@api_router.post("/matching/generate-scores/{job_id}")
+async def generate_match_scores(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate AI-powered match scores for all candidates for a specific job"""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    if current_user['role'] != 'employer':
+        raise HTTPException(status_code=403, detail="Only employers can generate match scores")
+    
+    # Get job details
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if job['employer_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not authorized to access this job")
+    
+    # Get all candidates
+    candidates = await db.candidate_profiles.find({}, {"_id": 0}).to_list(length=None)
+    
+    scores = []
+    llm_key = os.environ.get('EMERGENT_LLM_KEY')
+    
+    for candidate in candidates:
+        # Get AI interview results if available
+        interview = await db.ai_interviews.find_one(
+            {"candidate_id": candidate['user_id']},
+            {"_id": 0},
+            sort=[("completed_at", -1)]
+        )
+        
+        # Use AI to calculate match score
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=f"match_{job_id}_{candidate['user_id']}",
+            system_message="You are an expert recruiter. Analyze candidate-job fit and provide detailed scoring."
+        ).with_model("openai", "gpt-4o")
+        
+        prompt = f"""Analyze this candidate-job match and provide scores:
+
+Job Requirements:
+- Title: {job['title']}
+- Required Skills: {', '.join(job.get('skills_required', []))}
+- Experience: {job.get('experience_required', 'Not specified')}
+- Description: {job.get('description', '')[:300]}
+
+Candidate Profile:
+- Specialization: {candidate.get('specialization', 'Not specified')}
+- Experience: {candidate.get('experience_years', 0)} years
+- Skills: {', '.join(candidate.get('skills', []))}
+- Education: {candidate.get('education', 'Not specified')}
+- Bio: {candidate.get('bio', 'Not provided')[:200]}
+{f"- AI Interview Score: {interview.get('overall_score', 'N/A')}" if interview else ""}
+
+Provide scores (0-100) in JSON format:
+{{
+  "overall_score": number,
+  "skills_match": number,
+  "experience_match": number,
+  "education_match": number,
+  "reasoning": "brief explanation of the match quality"
+}}
+"""
+        
+        try:
+            message = UserMessage(text=prompt)
+            response = await chat.send_message(message)
+            
+            import json
+            import re
+            # Try to parse JSON from response
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                score_data = json.loads(json_match.group())
+            else:
+                score_data = {
+                    "overall_score": 50,
+                    "skills_match": 50,
+                    "experience_match": 50,
+                    "education_match": 50,
+                    "reasoning": "Unable to parse AI response"
+                }
+            
+            # Store match score
+            match_score = MatchScore(
+                candidate_id=candidate['user_id'],
+                job_id=job_id,
+                overall_score=score_data['overall_score'],
+                skills_match=score_data['skills_match'],
+                experience_match=score_data['experience_match'],
+                education_match=score_data['education_match'],
+                ai_interview_score=interview.get('overall_score') if interview else None,
+                ai_reasoning=score_data.get('reasoning')
+            )
+            
+            match_dict = match_score.model_dump()
+            match_dict['created_at'] = match_dict['created_at'].isoformat()
+            match_dict['updated_at'] = match_dict['updated_at'].isoformat()
+            
+            # Upsert (update or insert)
+            await db.match_scores.update_one(
+                {"candidate_id": candidate['user_id'], "job_id": job_id},
+                {"$set": match_dict},
+                upsert=True
+            )
+            
+            scores.append({
+                "candidate_id": candidate['user_id'],
+                "candidate_name": candidate.get('full_name', 'Unknown'),
+                "score": score_data['overall_score'],
+                "reasoning": score_data.get('reasoning')
+            })
+        except Exception as e:
+            print(f"Error calculating match for candidate {candidate['user_id']}: {str(e)}")
+            continue
+    
+    # Sort by score descending
+    scores.sort(key=lambda x: x['score'], reverse=True)
+    
+    return {
+        "message": f"Generated match scores for {len(scores)} candidates",
+        "matches": scores
+    }
+
+@api_router.get("/matching/scores/{job_id}")
+async def get_match_scores(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all match scores for a job, sorted by score"""
+    if current_user['role'] != 'employer':
+        raise HTTPException(status_code=403, detail="Only employers can view match scores")
+    
+    # Verify job belongs to employer
+    job = await db.jobs.find_one({"id": job_id, "employer_id": current_user['id']}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get all match scores for this job
+    scores = await db.match_scores.find(
+        {"job_id": job_id},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Enrich with candidate details
+    enriched_scores = []
+    for score in scores:
+        candidate = await db.candidate_profiles.find_one(
+            {"user_id": score['candidate_id']},
+            {"_id": 0}
+        )
+        if candidate:
+            enriched_scores.append({
+                **score,
+                "candidate_name": candidate.get('full_name', 'Unknown'),
+                "candidate_specialization": candidate.get('specialization', 'Not specified'),
+                "candidate_experience": candidate.get('experience_years', 0)
+            })
+    
+    # Sort by overall score descending
+    enriched_scores.sort(key=lambda x: x['overall_score'], reverse=True)
+    
+    return {"matches": enriched_scores}
+
+
+# 3. Dynamic Data Collection & Feedback
+@api_router.post("/feedback/submit")
+async def submit_feedback(
+    feedback_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Submit feedback on a hire/match outcome"""
+    
+    required_fields = ['candidate_id', 'job_id', 'hire_outcome']
+    for field in required_fields:
+        if field not in feedback_data:
+            raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+    
+    # Get match score to link feedback
+    match = await db.match_scores.find_one(
+        {
+            "candidate_id": feedback_data['candidate_id'],
+            "job_id": feedback_data['job_id']
+        },
+        {"_id": 0}
+    )
+    
+    if not match:
+        raise HTTPException(status_code=404, detail="Match record not found")
+    
+    # Get job to find employer
+    job = await db.jobs.find_one({"id": feedback_data['job_id']}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    feedback = FeedbackData(
+        match_id=match['id'],
+        candidate_id=feedback_data['candidate_id'],
+        job_id=feedback_data['job_id'],
+        employer_id=job['employer_id'],
+        hire_outcome=feedback_data['hire_outcome'],
+        employer_rating=feedback_data.get('employer_rating'),
+        candidate_rating=feedback_data.get('candidate_rating'),
+        employer_feedback=feedback_data.get('employer_feedback'),
+        candidate_feedback=feedback_data.get('candidate_feedback')
+    )
+    
+    feedback_dict = feedback.model_dump()
+    feedback_dict['created_at'] = feedback_dict['created_at'].isoformat()
+    await db.feedback_data.insert_one(feedback_dict)
+    
+    return {
+        "message": "Feedback submitted successfully",
+        "feedback_id": feedback.id
+    }
+
+@api_router.get("/feedback/analytics")
+async def get_feedback_analytics(current_user: dict = Depends(get_current_user)):
+    """Get analytics from collected feedback data"""
+    
+    # Get all feedback
+    all_feedback = await db.feedback_data.find({}, {"_id": 0}).to_list(length=None)
+    
+    if not all_feedback:
+        return {
+            "message": "No feedback data available yet",
+            "analytics": None
+        }
+    
+    # Calculate analytics
+    total_feedback = len(all_feedback)
+    hired_count = len([f for f in all_feedback if f['hire_outcome'] == 'hired'])
+    rejected_count = len([f for f in all_feedback if f['hire_outcome'] == 'rejected'])
+    withdrawn_count = len([f for f in all_feedback if f['hire_outcome'] == 'withdrawn'])
+    
+    employer_ratings = [f['employer_rating'] for f in all_feedback if f.get('employer_rating')]
+    candidate_ratings = [f['candidate_rating'] for f in all_feedback if f.get('candidate_rating')]
+    
+    analytics = {
+        "total_feedback_count": total_feedback,
+        "hire_outcomes": {
+            "hired": hired_count,
+            "rejected": rejected_count,
+            "withdrawn": withdrawn_count
+        },
+        "average_employer_rating": sum(employer_ratings) / len(employer_ratings) if employer_ratings else 0,
+        "average_candidate_rating": sum(candidate_ratings) / len(candidate_ratings) if candidate_ratings else 0,
+        "hire_rate": (hired_count / total_feedback * 100) if total_feedback > 0 else 0
+    }
+    
+    return {"analytics": analytics}
+
+
+# 4. Payroll Tracking & Compliance
+@api_router.post("/payroll/timesheet")
+async def submit_timesheet(
+    timesheet_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Submit timesheet for a contract period"""
+    
+    if current_user['role'] != 'candidate':
+        raise HTTPException(status_code=403, detail="Only candidates can submit timesheets")
+    
+    required_fields = ['contract_id', 'period_start', 'period_end', 'hours_worked', 'hourly_rate']
+    for field in required_fields:
+        if field not in timesheet_data:
+            raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+    
+    # Get contract details
+    contract = await db.contracts.find_one({"id": timesheet_data['contract_id']}, {"_id": 0})
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    if contract['candidate_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not authorized for this contract")
+    
+    # Calculate total amount
+    total_amount = timesheet_data['hours_worked'] * timesheet_data['hourly_rate']
+    
+    payroll_record = PayrollRecord(
+        contract_id=timesheet_data['contract_id'],
+        candidate_id=current_user['id'],
+        employer_id=contract['employer_id'],
+        period_start=datetime.fromisoformat(timesheet_data['period_start']),
+        period_end=datetime.fromisoformat(timesheet_data['period_end']),
+        hours_worked=timesheet_data['hours_worked'],
+        hourly_rate=timesheet_data['hourly_rate'],
+        total_amount=total_amount
+    )
+    
+    payroll_dict = payroll_record.model_dump()
+    payroll_dict['submitted_at'] = payroll_dict['submitted_at'].isoformat()
+    if payroll_dict.get('approved_at'):
+        payroll_dict['approved_at'] = payroll_dict['approved_at'].isoformat()
+    payroll_dict['period_start'] = payroll_dict['period_start'].isoformat()
+    payroll_dict['period_end'] = payroll_dict['period_end'].isoformat()
+    
+    await db.payroll_records.insert_one(payroll_dict)
+    
+    return {
+        "message": "Timesheet submitted successfully",
+        "payroll_id": payroll_record.id,
+        "total_amount": total_amount
+    }
+
+@api_router.get("/payroll/timesheets")
+async def get_timesheets(current_user: dict = Depends(get_current_user)):
+    """Get all timesheets for current user"""
+    
+    if current_user['role'] == 'candidate':
+        timesheets = await db.payroll_records.find(
+            {"candidate_id": current_user['id']},
+            {"_id": 0}
+        ).to_list(length=None)
+    elif current_user['role'] == 'employer':
+        timesheets = await db.payroll_records.find(
+            {"employer_id": current_user['id']},
+            {"_id": 0}
+        ).to_list(length=None)
+    else:
+        raise HTTPException(status_code=403, detail="Invalid role")
+    
+    return {"timesheets": timesheets}
+
+@api_router.put("/payroll/approve/{payroll_id}")
+async def approve_timesheet(
+    payroll_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Approve a timesheet (employer only)"""
+    
+    if current_user['role'] != 'employer':
+        raise HTTPException(status_code=403, detail="Only employers can approve timesheets")
+    
+    payroll = await db.payroll_records.find_one({"id": payroll_id}, {"_id": 0})
+    if not payroll:
+        raise HTTPException(status_code=404, detail="Timesheet not found")
+    
+    if payroll['employer_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not authorized to approve this timesheet")
+    
+    await db.payroll_records.update_one(
+        {"id": payroll_id},
+        {
+            "$set": {
+                "status": "approved",
+                "approved_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": "Timesheet approved successfully"}
+
+@api_router.post("/compliance/upload")
+async def upload_compliance_document(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload compliance document"""
+    
+    if current_user['role'] != 'candidate':
+        raise HTTPException(status_code=403, detail="Only candidates can upload compliance documents")
+    
+    form = await request.form()
+    contract_id = form.get('contract_id')
+    document_type = form.get('document_type')
+    document_file = form.get('document')
+    
+    if not all([contract_id, document_type, document_file]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    # Verify contract
+    contract = await db.contracts.find_one({"id": contract_id}, {"_id": 0})
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    
+    if contract['candidate_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not authorized for this contract")
+    
+    # In a real implementation, you would upload to S3 or similar
+    # For now, just store metadata
+    compliance_doc = ComplianceDocument(
+        contract_id=contract_id,
+        candidate_id=current_user['id'],
+        document_type=document_type,
+        file_name=document_file.filename,
+        file_url=f"/uploads/compliance/{document_file.filename}"  # Placeholder
+    )
+    
+    doc_dict = compliance_doc.model_dump()
+    doc_dict['uploaded_at'] = doc_dict['uploaded_at'].isoformat()
+    if doc_dict.get('reviewed_at'):
+        doc_dict['reviewed_at'] = doc_dict['reviewed_at'].isoformat()
+    
+    await db.compliance_documents.insert_one(doc_dict)
+    
+    return {
+        "message": "Compliance document uploaded successfully",
+        "document_id": compliance_doc.id
+    }
+
+@api_router.get("/compliance/documents")
+async def get_compliance_documents(current_user: dict = Depends(get_current_user)):
+    """Get all compliance documents for current user"""
+    
+    if current_user['role'] == 'candidate':
+        documents = await db.compliance_documents.find(
+            {"candidate_id": current_user['id']},
+            {"_id": 0}
+        ).to_list(length=None)
+    else:
+        # Employers can see documents for their contracts
+        contracts = await db.contracts.find(
+            {"employer_id": current_user['id']},
+            {"_id": 0}
+        ).to_list(length=None)
+        
+        contract_ids = [c['id'] for c in contracts]
+        documents = await db.compliance_documents.find(
+            {"contract_id": {"$in": contract_ids}},
+            {"_id": 0}
+        ).to_list(length=None)
+    
+    return {"documents": documents}
+
+
+# 5. Mercor Job Scraping
+@api_router.post("/scrape/mercor-jobs")
+async def scrape_mercor_jobs(current_user: dict = Depends(get_current_user)):
+    """Scrape job listings from Mercor.com"""
+    from bs4 import BeautifulSoup
+    import requests
+    
+    # Only allow admin or employer users
+    if current_user['role'] not in ['employer']:
+        raise HTTPException(status_code=403, detail="Not authorized to scrape jobs")
+    
+    try:
+        # Note: This is a placeholder implementation
+        # Real scraping would need to handle Mercor's actual structure
+        url = "https://mercor.com/jobs"  # Example URL
+        
+        # For MVP, we'll return a placeholder message
+        # Actual scraping would require analysis of Mercor's HTML structure
+        
+        return {
+            "message": "Job scraping endpoint ready",
+            "note": "This is a placeholder. Actual Mercor scraping requires their current HTML structure analysis and may need authentication/API access.",
+            "suggestion": "Consider contacting Mercor for an official API partnership for job data sharing."
+        }
+        
+        # Example scraping code (would need actual Mercor structure):
+        # response = requests.get(url)
+        # soup = BeautifulSoup(response.content, 'html.parser')
+        # jobs = soup.find_all('div', class_='job-listing')
+        # 
+        # scraped_count = 0
+        # for job_element in jobs:
+        #     title = job_element.find('h2').text
+        #     description = job_element.find('p', class_='description').text
+        #     # ... extract other fields
+        #     
+        #     scraped_job = ScrapedJob(
+        #         title=title,
+        #         description=description,
+        #         category="Scientific Research"
+        #     )
+        #     
+        #     await db.scraped_jobs.insert_one(scraped_job.model_dump())
+        #     scraped_count += 1
+        # 
+        # return {"message": f"Scraped {scraped_count} jobs from Mercor"}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error scraping jobs: {str(e)}")
+
+@api_router.get("/scrape/imported-jobs")
+async def get_imported_jobs(current_user: dict = Depends(get_current_user)):
+    """Get all scraped jobs from external sources"""
+    
+    jobs = await db.scraped_jobs.find({}, {"_id": 0}).to_list(length=None)
+    
+    return {
+        "count": len(jobs),
+        "jobs": jobs
+    }
+
+@api_router.post("/scrape/convert-to-job/{scraped_job_id}")
+async def convert_scraped_job(
+    scraped_job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Convert a scraped job into an actual job posting"""
+    
+    if current_user['role'] != 'employer':
+        raise HTTPException(status_code=403, detail="Only employers can convert scraped jobs")
+    
+    scraped_job = await db.scraped_jobs.find_one({"id": scraped_job_id}, {"_id": 0})
+    if not scraped_job:
+        raise HTTPException(status_code=404, detail="Scraped job not found")
+    
+    # Create actual job from scraped data
+    job = Job(
+        employer_id=current_user['id'],
+        title=scraped_job['title'],
+        description=scraped_job['description'],
+        category=scraped_job['category'],
+        location=scraped_job.get('location', 'Remote'),
+        job_type="Full-time",
+        salary_range=scraped_job.get('salary_range', 'Competitive'),
+        skills_required=[],
+        experience_required="Not specified"
+    )
+    
+    job_dict = job.model_dump()
+    job_dict['posted_at'] = job_dict['posted_at'].isoformat()
+    await db.jobs.insert_one(job_dict)
+    
+    # Mark scraped job as converted
+    await db.scraped_jobs.update_one(
+        {"id": scraped_job_id},
+        {"$set": {"converted_to_job": True, "job_id": job.id}}
+    )
+    
+    return {
+        "message": "Scraped job converted successfully",
+        "job_id": job.id
+    }
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
