@@ -1565,7 +1565,7 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
         else:
             raise HTTPException(status_code=400, detail="Unable to cancel subscription - no Stripe subscription ID found")
             
-    except stripe.error.StripeError as e:
+    except stripe.StripeError as e:
         logging.error(f"Stripe error during cancellation: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
