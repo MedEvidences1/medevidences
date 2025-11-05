@@ -230,6 +230,54 @@ backend:
       - working: true
         agent: "testing"
         comment: "TESTED SUCCESSFULLY: Subscription cancellation endpoint works correctly. Properly validates active subscriptions, sets cancel_at_period_end=True in Stripe, updates status to 'cancelled', and maintains user access until subscription_end date. No refund issued for current month as designed. Fixed Stripe import issues. Cancelled users retain job application access until period end."
+  
+  - task: "Subscription Status Check API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: GET /api/subscription/status endpoint works perfectly. Returns correct subscription_status (free, active, cancelled, expired), subscription_plan, dates, and can_apply field. Properly handles status transitions and expiry detection. Active and cancelled users can apply, free and expired cannot."
+  
+  - task: "Create Checkout Session API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: POST /api/subscription/create-checkout endpoint works with real Stripe integration. Creates valid checkout sessions for both basic ($29) and premium ($49) plans. Returns checkout_url, session_id, and metadata. Properly validates plan parameter and rejects invalid plans. Fixed parameter handling issue."
+  
+  - task: "Job Application Subscription Validation"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: Job application endpoints properly validate subscription status. GET /api/jobs/{job_id}/can-apply correctly checks subscription and returns can_apply boolean with reason. POST /api/applications properly blocks free/expired users with 402 Payment Required error. Active and cancelled users can apply until subscription_end date."
+  
+  - task: "Subscription Pricing API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: GET /api/subscription/pricing endpoint returns correct pricing information for Basic ($29/month) and Premium ($49/month) plans with feature lists and free tier features. Well-structured response for frontend consumption."
 
 frontend:
   - task: "Resume Upload UI"
