@@ -411,13 +411,22 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                           
                           <div className="ml-4 flex flex-col gap-2">
                             {!app.sent_to_employer ? (
-                              <Button
-                                size="sm"
-                                onClick={() => handleSendToEmployer(app.id)}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                📧 Send to Employer
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSendToEmployer(app)}
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                  📧 Send to Employer
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDownloadPDF(app.id)}
+                                >
+                                  📄 Download PDF
+                                </Button>
+                              </>
                             ) : (
                               <>
                                 <Button
@@ -433,6 +442,13 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                                   onClick={() => handleViewEmailDetails(app)}
                                 >
                                   👁️ View Email
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDownloadPDF(app.id)}
+                                >
+                                  📄 Download PDF
                                 </Button>
                               </>
                             )}
