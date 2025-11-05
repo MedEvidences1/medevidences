@@ -1125,19 +1125,19 @@ async def create_application(
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can apply to jobs")
     
-    # Check subscription status
+    # Check subscription status (both active and cancelled have access until period end)
     candidate_profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
     if not candidate_profile:
         raise HTTPException(status_code=404, detail="Please complete your profile first")
     
     subscription_status = candidate_profile.get('subscription_status', 'free')
-    if subscription_status != 'active':
+    if subscription_status not in ['active', 'cancelled']:
         raise HTTPException(
             status_code=402, 
             detail="Subscription required to apply to jobs. Please upgrade to a paid plan to apply."
         )
     
-    # Check if subscription is still valid
+    # Check if subscription is still valid (for both active and cancelled)
     subscription_end = candidate_profile.get('subscription_end')
     if subscription_end:
         if isinstance(subscription_end, str):
