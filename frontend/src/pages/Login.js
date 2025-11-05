@@ -37,8 +37,9 @@ function Login({ onLogin }) {
   };
 
   const handleGoogleLogin = () => {
-    const redirectUrl = `${window.location.origin}/auth/callback`;
-    window.location.href = `https://demobackend.emergentagent.com/auth/v1/env/oauth?redirect_url=${redirectUrl}`;
+    // Redirect to main app after OAuth, not callback page
+    const redirectUrl = `${window.location.origin}/dashboard/candidate`;
+    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   return (
