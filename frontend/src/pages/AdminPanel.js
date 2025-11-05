@@ -385,11 +385,17 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                                   {app.candidate_email}
                                 </a>
                               </p>
-                              {app.employer_email && (
-                                <p className="text-sm text-gray-600">
-                                  <span className="font-medium">Employer Email:</span>{' '}
-                                  <a href={`mailto:${app.employer_email}`} className="text-blue-600 hover:underline">
-                                    {app.employer_email}
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">Employer Email:</span>{' '}
+                                <a href={`mailto:${app.employer_email}`} className="text-blue-600 hover:underline">
+                                  {app.employer_email}
+                                </a>
+                              </p>
+                              {app.sent_to_email && app.sent_to_email !== app.employer_email && (
+                                <p className="text-sm text-green-600">
+                                  <span className="font-medium">✓ Also sent to:</span>{' '}
+                                  <a href={`mailto:${app.sent_to_email}`} className="text-green-600 hover:underline font-semibold">
+                                    {app.sent_to_email}
                                   </a>
                                 </p>
                               )}
