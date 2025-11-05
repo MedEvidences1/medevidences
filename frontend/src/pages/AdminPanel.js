@@ -97,6 +97,29 @@ function AdminPanel({ user, onLogout }) {
     }
   };
 
+  const handleSendToEmployer = async (applicationId) => {
+    if (!confirm('Send this application to employer with MedEvidences referral code?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/admin/send-to-employer/${applicationId}`,
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      toast.success(`✓ Sent to employer! Referral Code: ${response.data.referral_code}`);
+      
+      // Refresh applications to show updated status
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error sending to employer:', error);
+      toast.error(error.response?.data?.detail || 'Failed to send to employer');
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
