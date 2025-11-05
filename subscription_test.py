@@ -193,8 +193,8 @@ class SubscriptionFlowTester:
             
         # Test premium plan checkout
         print("\nTesting POST /api/subscription/create-checkout with plan='premium'...")
-        response = self.session.post(f"{self.base_url}/subscription/create-checkout", 
-                                   json={"plan": "premium"}, headers=headers)
+        response = self.session.post(f"{self.base_url}/subscription/create-checkout?plan=premium", 
+                                   headers=headers)
         
         premium_session = None
         if response.status_code == 200:
