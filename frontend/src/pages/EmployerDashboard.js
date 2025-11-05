@@ -25,8 +25,23 @@ function EmployerDashboard({ user, onLogout }) {
     website: ''
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Verify user role
+    if (user && user.role !== 'employer') {
+      toast.error('Access denied. This page is for employers only.');
+      setTimeout(() => {
+        if (user.role === 'candidate') {
+          navigate('/dashboard/candidate');
+        } else if (user.email === 'admin@medevidences.com') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
+      }, 2000);
+      return;
+    }
     fetchProfile();
     fetchJobs();
   }, []);
