@@ -28,6 +28,10 @@ function AdminPanel({ user, onLogout }) {
   const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState(null);
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [customEmail, setCustomEmail] = useState('');
+  const [saveEmail, setSaveEmail] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
