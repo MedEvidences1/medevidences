@@ -285,6 +285,30 @@ frontend:
       - working: true
         agent: "main"
         comment: "Added routes for /resume-upload, /match-scores, /match-scores/:jobId, and /payroll-tracking with proper role-based access control."
+  
+  - task: "Post-Payment Redirect to Job Application"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/SubscriptionSuccess.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "SubscriptionSuccess.js calls activate API and retrieves pendingJobApplication from sessionStorage to redirect user to job application page after successful payment"
+  
+  - task: "Cancel Subscription UI"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/SubscriptionPlans.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Cancel subscription button exists on SubscriptionPlans page. Shows for active subscriptions and calls /subscription/cancel endpoint"
 
 metadata:
   created_by: "main_agent"
