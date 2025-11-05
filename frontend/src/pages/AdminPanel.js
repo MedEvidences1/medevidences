@@ -254,16 +254,45 @@ function AdminPanel({ user, onLogout }) {
                           <p className="text-xs text-gray-400">
                             Applied: {new Date(app.applied_at).toLocaleDateString()}
                           </p>
+                          {app.referral_code && (
+                            <div className="mt-2">
+                              <Badge className="bg-green-100 text-green-800">
+                                Ref: {app.referral_code}
+                              </Badge>
+                              <span className="text-xs text-gray-500 ml-2">
+                                Sent: {new Date(app.sent_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        <Badge 
-                          variant={
-                            app.status === 'pending' ? 'secondary' : 
-                            app.status === 'accepted' ? 'default' : 
-                            'destructive'
-                          }
-                        >
-                          {app.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={
+                              app.status === 'pending' ? 'secondary' : 
+                              app.status === 'accepted' ? 'default' : 
+                              'destructive'
+                            }
+                          >
+                            {app.status}
+                          </Badge>
+                          {!app.sent_to_employer ? (
+                            <Button
+                              size="sm"
+                              onClick={() => handleSendToEmployer(app.id)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              📧 Send to Employer
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled
+                            >
+                              ✓ Sent
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (
