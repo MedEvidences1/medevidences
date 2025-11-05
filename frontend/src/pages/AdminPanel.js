@@ -323,7 +323,7 @@ function AdminPanel({ user, onLogout }) {
                             )}
                           </div>
                           
-                          <div className="ml-4">
+                          <div className="ml-4 flex flex-col gap-2">
                             {!app.sent_to_employer ? (
                               <Button
                                 size="sm"
@@ -333,13 +333,22 @@ function AdminPanel({ user, onLogout }) {
                                 📧 Send to Employer
                               </Button>
                             ) : (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled
-                              >
-                                ✓ Sent
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled
+                                >
+                                  ✓ Sent
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleViewEmailDetails(app)}
+                                >
+                                  👁️ View Email
+                                </Button>
+                              </>
                             )}
                           </div>
                         </div>
