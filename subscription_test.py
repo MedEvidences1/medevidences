@@ -301,7 +301,11 @@ class SubscriptionFlowTester:
         
         if response.status_code == 402:
             print("✓ Application properly blocked with 402 Payment Required")
-            print(f"  Error: {response.json().get('detail', 'No error message')}")
+            try:
+                error_detail = response.json().get('detail', 'No error message')
+                print(f"  Error: {error_detail}")
+            except:
+                print(f"  Error: {response.text}")
         else:
             print(f"⚠️  Expected 402 for free user application, got: {response.status_code}")
             print(f"  Response: {response.text}")
