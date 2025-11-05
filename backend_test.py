@@ -26,34 +26,30 @@ class MedEvidencesAPITester:
         self.contract_id = None
         
     def create_test_pdf(self):
-        """Create a test PDF resume for upload testing"""
-        buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        
-        # Add resume content
-        p.drawString(100, 750, "Dr. Sarah Johnson")
-        p.drawString(100, 730, "Senior Medical Researcher")
-        p.drawString(100, 710, "Email: sarah.johnson@email.com")
-        p.drawString(100, 690, "Phone: (555) 123-4567")
-        
-        p.drawString(100, 650, "EDUCATION:")
-        p.drawString(120, 630, "PhD in Medical Sciences - Harvard University (2018)")
-        p.drawString(120, 610, "MD - Johns Hopkins University (2014)")
-        
-        p.drawString(100, 570, "EXPERIENCE:")
-        p.drawString(120, 550, "Senior Research Scientist - Boston Medical Center (2020-Present)")
-        p.drawString(120, 530, "Clinical Research Fellow - Mass General (2018-2020)")
-        
-        p.drawString(100, 490, "SKILLS:")
-        p.drawString(120, 470, "Clinical Research, Data Analysis, Medical Writing")
-        p.drawString(120, 450, "Statistical Analysis, Protocol Development, FDA Regulations")
-        
-        p.drawString(100, 410, "CERTIFICATIONS:")
-        p.drawString(120, 390, "Board Certified Internal Medicine")
-        p.drawString(120, 370, "Good Clinical Practice (GCP) Certification")
-        
-        p.save()
-        buffer.seek(0)
+        """Create a test text file simulating a resume for upload testing"""
+        resume_content = """
+Dr. Sarah Johnson
+Senior Medical Researcher
+Email: sarah.johnson@email.com
+Phone: (555) 123-4567
+
+EDUCATION:
+PhD in Medical Sciences - Harvard University (2018)
+MD - Johns Hopkins University (2014)
+
+EXPERIENCE:
+Senior Research Scientist - Boston Medical Center (2020-Present)
+Clinical Research Fellow - Mass General (2018-2020)
+
+SKILLS:
+Clinical Research, Data Analysis, Medical Writing
+Statistical Analysis, Protocol Development, FDA Regulations
+
+CERTIFICATIONS:
+Board Certified Internal Medicine
+Good Clinical Practice (GCP) Certification
+"""
+        buffer = io.BytesIO(resume_content.encode('utf-8'))
         return buffer
         
     def setup_test_users(self):
