@@ -1476,7 +1476,7 @@ async def activate_subscription(
 
 @api_router.post("/subscription/cancel")
 async def cancel_subscription(current_user: dict = Depends(get_current_user)):
-    """Cancel active subscription"""
+    """Cancel active subscription in Stripe"""
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can cancel subscriptions")
     
@@ -1484,15 +1484,33 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
     if not profile or profile.get('subscription_status') != 'active':
         raise HTTPException(status_code=400, detail="No active subscription to cancel")
     
-    await db.candidate_profiles.update_one(
-        {"user_id": current_user['id']},
-        {"$set": {"subscription_status": "cancelled"}}
-    )
-    
-    return {
-        "message": "Subscription cancelled. You can continue using premium features until your current period ends.",
-        "expires_at": profile.get('subscription_end')
-    }
+    try:
+        # Cancel in Stripe
+        stripe_sub_id = profile.get('stripe_subscription_id')
+        if stripe_sub_id:
+            import stripe
+            stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+            
+            # Cancel at period end (user keeps access until current period expires)
+            subscription = stripe.Subscription.modify(
+                stripe_sub_id,
+                cancel_at_period_end=True
+            )
+            logging.info(f"Stripe subscription {stripe_sub_id} set to cancel at period end")
+        
+        # Update database
+        await db.candidate_profiles.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {"subscription_status": "cancelled"}}
+        )
+        
+        return {
+            "message": "Subscription cancelled. You can continue using premium features until your current period ends.",
+            "expires_at": profile.get('subscription_end')
+        }
+    except Exception as e:
+        logging.error(f"Cancel subscription error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error cancelling subscription: {str(e)}")
 
 @api_router.get("/subscription/pricing")
 async def get_subscription_pricing():
