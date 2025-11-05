@@ -27,13 +27,21 @@ function AdminPanel({ user, onLogout }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user || user.email !== 'admin@medevidences.com') {
+    console.log('AdminPanel: user check', user);
+    if (!user) {
+      console.log('AdminPanel: no user, redirecting to login');
+      navigate('/login');
+      return;
+    }
+    if (user.email !== 'admin@medevidences.com') {
+      console.log('AdminPanel: not admin, redirecting');
       toast.error('Access Denied! Admin access only.');
       setTimeout(() => {
         navigate('/');
       }, 1500);
       return;
     }
+    console.log('AdminPanel: admin verified, fetching data');
     fetchDashboardData();
   }, [user, navigate]);
 
