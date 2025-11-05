@@ -635,20 +635,27 @@ async def create_session_from_google(request: Request):
             'expires_at': expires_at.isoformat()
         }
         await db.sessions.insert_one(session_doc)
+        logging.info(f"Session created successfully for user {user_id}")
         
         # Return user data and session token
-        return {
+        user_response = {
             "session_token": session_token,
             "user": {
                 "id": user_id,
                 "email": user_data['email'],
-                "name": user_data['name'],
+                "full_name": user_data['name'],  # Changed to full_name to match User model
                 "picture": user_data.get('picture'),
                 "role": existing_user.get('role', '') if existing_user else ''
             }
         }
+        logging.info(f"OAuth session successful for {user_data['email']}, role: {user_response['user']['role']}")
+        return user_response
+    except HTTPException as he:
+        logging.error(f"OAuth HTTP error: {he.detail}")
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"OAuth unexpected error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"OAuth error: {str(e)}")
 
 @api_router.post("/auth/set-role")
 async def set_user_role(role: str, request: Request):
