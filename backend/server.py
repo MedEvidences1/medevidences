@@ -1500,40 +1500,66 @@ async def activate_subscription(
 
 @api_router.post("/subscription/cancel")
 async def cancel_subscription(current_user: dict = Depends(get_current_user)):
-    """Cancel active subscription in Stripe"""
+    """Cancel active subscription - cancels at period end, no refund for current month"""
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can cancel subscriptions")
     
     profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
-    if not profile or profile.get('subscription_status') != 'active':
-        raise HTTPException(status_code=400, detail="No active subscription to cancel")
+    if not profile:
+        raise HTTPException(status_code=400, detail="Profile not found")
+    
+    subscription_status = profile.get('subscription_status', 'free')
+    
+    # Allow cancellation for both 'active' and 'cancelled' (to show status), but prevent if already cancelled
+    if subscription_status not in ['active', 'cancelled']:
+        raise HTTPException(status_code=400, detail=f"No active subscription to cancel. Current status: {subscription_status}")
     
     try:
-        # Cancel in Stripe
+        # Cancel in Stripe (only if not already cancelled)
         stripe_sub_id = profile.get('stripe_subscription_id')
-        if stripe_sub_id:
+        
+        if stripe_sub_id and subscription_status == 'active':
             import stripe
             stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
             
-            # Cancel at period end (user keeps access until current period expires)
+            logging.info(f"Cancelling Stripe subscription {stripe_sub_id} for user {current_user['id']}")
+            
+            # Cancel at period end - user keeps access until subscription_end date
+            # NO REFUND - they pay for the full current month
             subscription = stripe.Subscription.modify(
                 stripe_sub_id,
                 cancel_at_period_end=True
             )
-            logging.info(f"Stripe subscription {stripe_sub_id} set to cancel at period end")
-        
-        # Update database
-        await db.candidate_profiles.update_one(
-            {"user_id": current_user['id']},
-            {"$set": {"subscription_status": "cancelled"}}
-        )
-        
-        return {
-            "message": "Subscription cancelled. You can continue using premium features until your current period ends.",
-            "expires_at": profile.get('subscription_end')
-        }
+            
+            logging.info(f"Stripe subscription {stripe_sub_id} set to cancel at period end. User retains access until {profile.get('subscription_end')}")
+            
+            # Update database to 'cancelled' status
+            await db.candidate_profiles.update_one(
+                {"user_id": current_user['id']},
+                {"$set": {"subscription_status": "cancelled"}}
+            )
+            
+            return {
+                "message": "Subscription cancelled successfully. You will retain access until the end of your current billing period. No refund will be issued for the current month.",
+                "expires_at": profile.get('subscription_end'),
+                "access_until": profile.get('subscription_end'),
+                "refund": False
+            }
+        elif subscription_status == 'cancelled':
+            return {
+                "message": "Subscription is already cancelled. You can continue using premium features until your current period ends.",
+                "expires_at": profile.get('subscription_end'),
+                "access_until": profile.get('subscription_end'),
+                "refund": False
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Unable to cancel subscription - no Stripe subscription ID found")
+            
+    except stripe.error.StripeError as e:
+        logging.error(f"Stripe error during cancellation: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
-        logging.error(f"Cancel subscription error: {str(e)}")
+        logging.error(f"Cancel subscription error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error cancelling subscription: {str(e)}")
 
 @api_router.get("/subscription/pricing")
