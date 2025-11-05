@@ -1354,16 +1354,64 @@ async def create_subscription_checkout(
         "premium": 4900  # $49/month
     }
     
-    # In production, integrate with Stripe
-    # For now, return mock checkout URL
-    checkout_url = f"https://checkout.stripe.com/pay/mock-session-{plan}-{current_user['id']}"
+    # Check for Stripe API key
+    stripe_key = os.environ.get('STRIPE_SECRET_KEY')
+    if not stripe_key or stripe_key.startswith('sk_test_your'):
+        # Mock mode - Stripe keys not configured
+        logging.warning("Stripe keys not configured - using mock checkout")
+        return {
+            "checkout_url": "#",
+            "plan": plan,
+            "price": pricing[plan] / 100,
+            "message": "⚠️ Stripe not configured. Please add STRIPE_SECRET_KEY to backend/.env",
+            "mock": True,
+            "instructions": "See /app/STRIPE_SETUP_GUIDE.md for setup instructions"
+        }
     
-    return {
-        "checkout_url": checkout_url,
-        "plan": plan,
-        "price": pricing[plan] / 100,
-        "message": "Redirecting to Stripe checkout..."
-    }
+    try:
+        # Real Stripe integration
+        import stripe
+        stripe.api_key = stripe_key
+        
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'unit_amount': pricing[plan],
+                    'product_data': {
+                        'name': f'{plan.capitalize()} Plan Subscription',
+                        'description': f'MedEvidences {plan.capitalize()} Plan - Monthly Subscription',
+                    },
+                    'recurring': {
+                        'interval': 'month',
+                    },
+                },
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=f'{os.environ.get("FRONTEND_URL", "http://localhost:3000")}/subscription?success=true&session_id={{CHECKOUT_SESSION_ID}}',
+            cancel_url=f'{os.environ.get("FRONTEND_URL", "http://localhost:3000")}/subscription?cancelled=true',
+            client_reference_id=current_user['id'],
+            metadata={
+                'user_id': current_user['id'],
+                'plan': plan
+            }
+        )
+        
+        logging.info(f"Stripe checkout created for user {current_user['id']}, plan: {plan}")
+        
+        return {
+            "checkout_url": checkout_session.url,
+            "session_id": checkout_session.id,
+            "plan": plan,
+            "price": pricing[plan] / 100,
+            "message": "Redirecting to Stripe checkout..."
+        }
+    except Exception as e:
+        logging.error(f"Stripe checkout error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Payment processing error: {str(e)}")
 
 @api_router.post("/subscription/activate")
 async def activate_subscription(
