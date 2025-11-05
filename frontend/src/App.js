@@ -155,11 +155,11 @@ function App() {
         <Route path="/" element={<LandingPage user={user} onLogout={handleLogout} />} />
         <Route
           path="/login"
-          element={!user ? <Login onLogin={handleLogin} /> : <Navigate to={user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer'} />}
+          element={!user ? <Login onLogin={handleLogin} /> : <Navigate to={user.email === 'admin@medevidences.com' ? '/admin' : (user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer')} />}
         />
         <Route
           path="/register"
-          element={!user ? <Register onLogin={handleLogin} /> : <Navigate to={user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer'} />}
+          element={!user ? <Register onLogin={handleLogin} /> : <Navigate to={user.email === 'admin@medevidences.com' ? '/admin' : (user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer')} />}
         />
         <Route
           path="/dashboard/candidate"
