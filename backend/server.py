@@ -2586,9 +2586,9 @@ async def scrape_mercor_jobs(
     """Fetch job listings from Mercor via Apify API"""
     from apify_client import ApifyClient
     
-    # Only allow employers to fetch jobs
-    if current_user['role'] != 'employer':
-        raise HTTPException(status_code=403, detail="Only employers can fetch Mercor jobs")
+    # Only allow admin to fetch jobs from Mercor
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Only admin can import jobs from Mercor")
     
     try:
         # Initialize Apify client
