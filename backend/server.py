@@ -691,6 +691,75 @@ async def logout(request: Request):
         await db.sessions.delete_one({"session_token": session_token})
     return {"message": "Logged out successfully"}
 
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: dict):
+    """Generate password reset token"""
+    email = request.get('email')
+    if not email:
+        raise HTTPException(status_code=400, detail="Email required")
+    
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Generate reset token (valid for 1 hour)
+    reset_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    
+    # Store reset token
+    await db.password_resets.insert_one({
+        "email": email,
+        "reset_token": reset_token,
+        "expires_at": expires_at.isoformat(),
+        "used": False
+    })
+    
+    # In production, send email with reset link
+    # For now, return token directly
+    return {
+        "message": "Reset token generated",
+        "reset_token": reset_token,
+        "note": "In production, this would be sent via email"
+    }
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: dict):
+    """Reset password using token"""
+    token = request.get('token')
+    new_password = request.get('new_password')
+    
+    if not token or not new_password:
+        raise HTTPException(status_code=400, detail="Token and new password required")
+    
+    # Find reset token
+    reset_doc = await db.password_resets.find_one({"reset_token": token}, {"_id": 0})
+    if not reset_doc:
+        raise HTTPException(status_code=400, detail="Invalid reset token")
+    
+    # Check if used
+    if reset_doc.get('used'):
+        raise HTTPException(status_code=400, detail="Reset token already used")
+    
+    # Check expiry
+    expires_at = datetime.fromisoformat(reset_doc['expires_at'])
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Reset token expired")
+    
+    # Update password
+    new_hash = hash_password(new_password)
+    await db.users.update_one(
+        {"email": reset_doc['email']},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    # Mark token as used
+    await db.password_resets.update_one(
+        {"reset_token": token},
+        {"$set": {"used": True}}
+    )
+    
+    return {"message": "Password reset successfully"}
+
 async def get_user_from_session(session_token: str):
     """Get user from session token"""
     session = await db.sessions.find_one({"session_token": session_token}, {"_id": 0})
