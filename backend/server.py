@@ -1499,7 +1499,7 @@ async def activate_subscription(
             "can_apply": True,
             "subscription_status": "active"
         }
-    except stripe.error.StripeError as e:
+    except stripe.StripeError as e:
         logging.error(f"Stripe error during activation: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
