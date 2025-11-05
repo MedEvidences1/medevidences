@@ -172,7 +172,7 @@ Good Clinical Practice (GCP) Certification
         
         pdf_buffer = self.create_test_pdf()
         files = {
-            'resume': ('test_resume.pdf', pdf_buffer, 'application/pdf')
+            'resume': ('test_resume.txt', pdf_buffer, 'text/plain')
         }
         
         response = self.session.post(f"{self.base_url}/resume/parse", 
