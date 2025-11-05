@@ -197,40 +197,64 @@ backend:
 
 frontend:
   - task: "Resume Upload UI"
-    implemented: false
-    working: "NA"
-    file: "NA"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/ResumeUpload.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "Frontend UI for resume upload not yet implemented. Backend API is ready."
+        comment: "Created ResumeUpload.js page with PDF upload, AI parsing display, and parsed data visualization. Added route and dashboard link."
   
   - task: "Match Scores Dashboard"
-    implemented: false
-    working: "NA"
-    file: "NA"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/MatchScores.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "Frontend UI for viewing match scores not yet implemented. Backend API is ready."
+        comment: "Created MatchScores.js page with job selection, AI score generation, and ranked candidate display. Added route and employer dashboard link."
   
   - task: "Timesheet & Compliance UI"
-    implemented: false
-    working: "NA"
-    file: "NA"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/PayrollTracking.js"
     stuck_count: 0
     priority: "medium"
     needs_retesting: false
     status_history:
-      - working: false
+      - working: true
         agent: "main"
-        comment: "Frontend UI for payroll tracking not yet implemented. Backend API is ready."
+        comment: "Created PayrollTracking.js page with timesheet submission, approval, and compliance docs viewing. Added route and dashboard links for both roles."
+  
+  - task: "Dashboard Navigation Updates"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/CandidateDashboard.js, EmployerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added navigation buttons for Resume AI and Payroll in candidate dashboard. Added AI Matching and Payroll buttons in employer dashboard."
+  
+  - task: "App.js Routes"
+    implemented: true
+    working: true
+    file: "frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added routes for /resume-upload, /match-scores, /match-scores/:jobId, and /payroll-tracking with proper role-based access control."
 
 metadata:
   created_by: "main_agent"
