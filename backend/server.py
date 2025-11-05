@@ -1349,6 +1349,12 @@ async def send_application_to_employer(
     
     # Prepare email content
     email_subject = f"New Candidate Referral from MedEvidences - {job['title']}"
+    
+    # Build cover letter section
+    cover_letter_section = ""
+    if application.get('cover_letter'):
+        cover_letter_section = f"\nCANDIDATE COVER LETTER:\n{application.get('cover_letter')}\n"
+    
     email_body = f"""
 Dear {employer.get('full_name', 'Employer')},
 
@@ -1370,9 +1376,7 @@ Location: {job['location']}
 Code: {referral_code}
 
 Please use this referral code in all communications regarding this candidate to track this referral from MedEvidences.
-
-{f"CANDIDATE COVER LETTER:\n{application.get('cover_letter', 'No cover letter provided')}\n" if application.get('cover_letter') else ''}
-
+{cover_letter_section}
 To view the full candidate profile and manage this application, please log in to your MedEvidences employer dashboard.
 
 Best regards,
