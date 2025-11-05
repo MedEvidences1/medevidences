@@ -24,13 +24,19 @@ function Login({ onLogin }) {
       onLogin(response.data.user, response.data.access_token);
       toast.success('Login successful!');
       
-      // Check if admin
+      // IMPORTANT: Check admin FIRST before role
       if (response.data.user.email === 'admin@medevidences.com') {
+        console.log('Admin login detected, redirecting to /admin');
         navigate('/admin');
       } else if (response.data.user.role === 'candidate') {
+        console.log('Candidate login, redirecting to candidate dashboard');
         navigate('/dashboard/candidate');
-      } else {
+      } else if (response.data.user.role === 'employer') {
+        console.log('Employer login, redirecting to employer dashboard');
         navigate('/dashboard/employer');
+      } else {
+        console.log('No valid role, redirecting to home');
+        navigate('/');
       }
     } catch (error) {
       console.error('Login error:', error);
