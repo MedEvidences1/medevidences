@@ -37,8 +37,8 @@ function Login({ onLogin }) {
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to main app after OAuth, not callback page
-    const redirectUrl = `${window.location.origin}/dashboard/candidate`;
+    // Redirect to homepage after OAuth (App.js will handle session_id and route to correct dashboard)
+    const redirectUrl = `${window.location.origin}/`;
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
