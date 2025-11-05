@@ -62,7 +62,17 @@ function JobDetails({ user, onLogout }) {
       setCoverLetter('');
     } catch (error) {
       console.error('Application error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to submit application');
+      
+      // Check if it's a subscription error (402 Payment Required)
+      if (error.response?.status === 402) {
+        toast.error('Subscription required to apply to jobs');
+        // Redirect to subscription page
+        setTimeout(() => {
+          navigate('/subscription');
+        }, 2000);
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to submit application');
+      }
     } finally {
       setApplying(false);
     }
