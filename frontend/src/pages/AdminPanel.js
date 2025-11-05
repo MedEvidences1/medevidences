@@ -73,8 +73,28 @@ function AdminPanel({ user, onLogout }) {
     }
   };
 
-  if (!user || user.email !== 'admin@medevidences.com') {
-    return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user.email !== 'admin@medevidences.com') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded">
+            <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+            <p>Admin access only</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
