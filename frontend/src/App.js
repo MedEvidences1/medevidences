@@ -216,6 +216,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/subscription" element={user && user.role === 'candidate' ? <SubscriptionPlans /> : <Navigate to="/login" />} />
+        <Route path="/mercor-jobs" element={user && user.role === 'employer' ? <MercorJobs /> : <Navigate to="/login" />} />
         <Route path="/admin" element={user && user.email === 'admin@medevidences.com' ? <AdminPanel user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
