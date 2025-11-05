@@ -10,8 +10,6 @@ import os
 from datetime import datetime
 import tempfile
 import io
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
 
 # Get backend URL from environment
 BACKEND_URL = "https://sciexpertai.preview.emergentagent.com/api"
