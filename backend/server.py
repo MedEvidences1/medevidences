@@ -467,6 +467,12 @@ def create_access_token(data: dict) -> str:
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def check_admin(user: dict):
+    """Check if user is admin"""
+    if user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    return True
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
