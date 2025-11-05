@@ -684,6 +684,89 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Manual Email Composer Modal */}
+      <Dialog open={showManualModal} onOpenChange={setShowManualModal}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>✍️ Compose Email Manually</DialogTitle>
+          </DialogHeader>
+          {selectedApp && (
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 className="font-semibold text-green-900 mb-2">📧 Manual Email Sending Instructions</h3>
+                <ol className="text-sm text-green-800 space-y-1 list-decimal list-inside">
+                  <li>Copy the email content below</li>
+                  <li>Open YOUR email client (Gmail, Outlook, etc.)</li>
+                  <li>Paste the content</li>
+                  <li>Replace "[Enter employer email here]" with actual email</li>
+                  <li>Attach the PDF (download using "Download PDF" button)</li>
+                  <li>Send!</li>
+                </ol>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="block text-sm font-medium">Email Content (Editable)</label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigator.clipboard.writeText(manualEmailContent);
+                      toast.success('Email content copied! Paste in your email client');
+                    }}
+                  >
+                    📋 Copy All
+                  </Button>
+                </div>
+                <textarea
+                  value={manualEmailContent}
+                  onChange={(e) => setManualEmailContent(e.target.value)}
+                  className="w-full h-96 px-3 py-2 border rounded-md font-mono text-sm"
+                />
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  <b>📎 Don't forget:</b>
+                  <br/>• Download PDF using "Download PDF" button
+                  <br/>• Attach PDF to your email
+                  <br/>• Replace placeholder email with real address
+                  <br/>• Reference Code: <span className="font-mono font-bold">{selectedApp.referral_code || 'To be generated'}</span>
+                </p>
+              </div>
+
+              <div className="flex gap-2 justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownloadPDF(selectedApp.id)}
+                  className="border-blue-600 text-blue-700"
+                >
+                  📄 Download PDF First
+                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowManualModal(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(manualEmailContent);
+                      toast.success('Copied! Now open your email client and paste');
+                      setShowManualModal(false);
+                    }}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    📋 Copy & Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
