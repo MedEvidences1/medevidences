@@ -21,6 +21,8 @@ import AdminPanel from '@/pages/AdminPanel';
 import ResumeUpload from '@/pages/ResumeUpload';
 import MatchScores from '@/pages/MatchScores';
 import PayrollTracking from '@/pages/PayrollTracking';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
