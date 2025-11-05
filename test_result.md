@@ -500,6 +500,16 @@ agent_communication:
          - Admin can now view: candidate name, email, job title, company, status
          - Available in Admin Panel → "Applications" tab
          - Real-time data from database
+      
+      4. Admin "Send to Employer" Feature with Referral Tracking:
+         - New endpoint: POST /api/admin/send-to-employer/{application_id}
+         - Generates unique MedEvidences referral code (format: MED-YYYYMMDD-XXXXX)
+         - Sends email to employer with candidate details and referral code
+         - Tracks which applications were sent (sent_to_employer flag)
+         - Shows referral code and sent date in admin panel
+         - Email includes: candidate info, job details, cover letter, referral code
+         - Button changes to "✓ Sent" after sending
+         - Prevents duplicate sends
   
   - agent: "testing"
     message: |
