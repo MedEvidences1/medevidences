@@ -602,9 +602,11 @@ async def create_session_from_google(request: Request):
         
         # Check if user exists
         existing_user = await db.users.find_one({"email": user_data['email']}, {"_id": 0})
+        logging.info(f"User lookup for {user_data['email']}: {'Found' if existing_user else 'Not found'}")
         
         if not existing_user:
             # Create new user (role will be set later)
+            logging.info(f"Creating new OAuth user: {user_data['email']}")
             user = User(
                 email=user_data['email'],
                 password_hash='',  # OAuth users don't have password
@@ -617,8 +619,10 @@ async def create_session_from_google(request: Request):
             user_dict['oauth_picture'] = user_data.get('picture', '')
             await db.users.insert_one(user_dict)
             user_id = user.id
+            logging.info(f"New user created with ID: {user_id}")
         else:
             user_id = existing_user['id']
+            logging.info(f"Using existing user ID: {user_id}")
         
         # Create session in database
         session_token = user_data['session_token']
