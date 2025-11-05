@@ -215,6 +215,43 @@ function AdminPanel({ user, onLogout }) {
             </Card>
           </TabsContent>
 
+          <TabsContent value="applications">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Applications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentApplications.length > 0 ? (
+                    recentApplications.map((app) => (
+                      <div key={app.id} className="flex justify-between items-center p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{app.candidate_name || 'Candidate'}</h3>
+                          <p className="text-sm text-gray-600">Applied for: {app.job_title}</p>
+                          <p className="text-xs text-gray-500">Company: {app.company_name}</p>
+                          <p className="text-xs text-gray-400">
+                            Applied: {new Date(app.applied_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={
+                            app.status === 'pending' ? 'secondary' : 
+                            app.status === 'accepted' ? 'default' : 
+                            'destructive'
+                          }
+                        >
+                          {app.status}
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-600 text-center py-8">No applications yet</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="users">
             <Card>
               <CardHeader>
