@@ -1180,15 +1180,26 @@ async def get_jobs(
     if location:
         query['location'] = {"$regex": location, "$options": "i"}
     
-    jobs = await db.jobs.find(query, {"_id": 0}).to_list(100)
+    jobs = await db.jobs.find(query, {"_id": 0}).to_list(500)  # Increased limit to 500
     
     # Get employer info for each job
     result = []
     for job in jobs:
-        employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
-        if employer_profile:
-            job['company_name'] = employer_profile['company_name']
-            job['company_location'] = employer_profile.get('location', '')
+        # Keep the original company_name from job (might be masked as "M")
+        original_company = job.get('company_name', 'M')
+        
+        # Only get employer profile if this is NOT an imported job
+        if not job.get('import_source'):
+            # This is a regular job posted by an employer
+            employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
+            if employer_profile:
+                job['company_name'] = employer_profile['company_name']
+                job['company_location'] = employer_profile.get('location', '')
+        else:
+            # This is an imported job - keep original company_name (already masked)
+            job['company_name'] = original_company
+            job['company_location'] = job.get('location', 'Remote')
+        
         result.append(job)
     
     # Include imported jobs if requested
