@@ -19,7 +19,7 @@ class VideoInterviewService:
     async def transcribe_audio(self, audio_file, language="en"):
         """Transcribe audio file using OpenAI Whisper"""
         try:
-            response = await self.client.audio.transcriptions.create(
+            response = await self.whisper_client.audio.transcriptions.create(
                 file=audio_file,
                 model="whisper-1",
                 response_format="verbose_json",
