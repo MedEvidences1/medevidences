@@ -3797,7 +3797,7 @@ async def activate_imported_jobs(
     source: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Convert imported jobs to regular jobs so they appear in main listings"""
+    """Convert imported/scraped jobs to regular jobs so they appear in main listings"""
     
     if current_user.get('email') != 'admin@medevidences.com':
         raise HTTPException(status_code=403, detail="Only admin can activate jobs")
@@ -3820,15 +3820,15 @@ async def activate_imported_jobs(
         await db.employer_profiles.insert_one(admin_employer_data)
         admin_employer = admin_employer_data
     
-    # Query for imported jobs
-    query = {}
-    if source:
-        query['source'] = source
-    
-    imported_jobs = await db.imported_jobs.find(query, {"_id": 0}).to_list(None)
-    
     activated_count = 0
     skipped_count = 0
+    
+    # Process jobs from imported_jobs collection (jobdata, JSearch)
+    imported_query = {}
+    if source:
+        imported_query['source'] = source
+    
+    imported_jobs = await db.imported_jobs.find(imported_query, {"_id": 0}).to_list(None)
     
     for imported_job in imported_jobs:
         # Check if already activated
@@ -3859,15 +3859,60 @@ async def activate_imported_jobs(
         
         job_dict = new_job.model_dump()
         job_dict['posted_at'] = job_dict['posted_at'].isoformat()
+        job_dict['import_source'] = imported_job.get('source', 'unknown')  # Track source privately
         
         await db.jobs.insert_one(job_dict)
         activated_count += 1
     
+    # Process jobs from scraped_jobs collection (Mercor)
+    scraped_query = {}
+    scraped_jobs = await db.scraped_jobs.find(scraped_query, {"_id": 0}).to_list(None)
+    
+    for scraped_job in scraped_jobs:
+        # Check if already activated
+        existing = await db.jobs.find_one({
+            "title": scraped_job.get('title'),
+            "company_name": scraped_job.get('company', 'M')
+        }, {"_id": 0})
+        
+        if existing:
+            skipped_count += 1
+            continue
+        
+        # Create regular job from scraped job
+        new_job = Job(
+            employer_id=current_user['id'],
+            title=scraped_job.get('title', 'Position Available'),
+            description=scraped_job.get('description', 'No description provided'),
+            category=scraped_job.get('category', 'Medical Research'),
+            location=scraped_job.get('location', 'Remote'),
+            job_type=scraped_job.get('commitment', 'Full-time'),
+            experience_required='',
+            skills_required=[],
+            salary_range=scraped_job.get('salary_range', ''),
+            benefits=[],
+            company_name=scraped_job.get('company', 'M'),
+            status='active'
+        )
+        
+        job_dict = new_job.model_dump()
+        job_dict['posted_at'] = job_dict['posted_at'].isoformat()
+        job_dict['import_source'] = 'mercor'  # Track Mercor source privately
+        
+        await db.jobs.insert_one(job_dict)
+        activated_count += 1
+    
+    total_processed = len(imported_jobs) + len(scraped_jobs)
+    
     return {
-        "message": f"Activated {activated_count} jobs from imported sources",
+        "message": f"Activated {activated_count} jobs from all sources",
         "activated": activated_count,
         "skipped": skipped_count,
-        "total_processed": len(imported_jobs)
+        "total_processed": total_processed,
+        "sources": {
+            "imported_jobs": len(imported_jobs),
+            "scraped_jobs": len(scraped_jobs)
+        }
     }
 
 
