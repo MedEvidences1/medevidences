@@ -61,14 +61,15 @@ Return ONLY a JSON array of questions:
 
 Make questions specific to the job description provided."""
             
-            response = await self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are an expert HR interviewer."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7
-            )
+            # Use emergentintegrations for chat
+            chat = LlmChat(
+                api_key=self.api_key,
+                session_id=str(uuid.uuid4()),
+                system_message="You are an expert HR interviewer."
+            ).with_model("openai", "gpt-4o")
+            
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
             
             questions_text = response.choices[0].message.content
             # Extract JSON array
