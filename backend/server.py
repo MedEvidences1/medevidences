@@ -1388,6 +1388,8 @@ async def get_received_applications(current_user: dict = Depends(get_current_use
             app['candidate_email'] = candidate['email']
             app['candidate_specialization'] = candidate_profile['specialization']
             app['candidate_experience'] = candidate_profile['experience_years']
+            app['candidate_resume'] = candidate_profile.get('cv_url') or candidate_profile.get('resume_file')
+            app['candidate_health_score'] = candidate_profile.get('health_score')
             app['job_title'] = job['title']
             result.append(app)
     
