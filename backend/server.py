@@ -3822,6 +3822,186 @@ async def reject_job_offer(
     """Reject a job offer"""
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can reject offers")
+
+
+# ============================================
+# JOB CRAWLER ENDPOINTS (GitHub, LinkedIn, Twitter)
+# ============================================
+
+crawler_service = JobCrawlerService()
+
+@api_router.post("/admin/crawl-jobs")
+async def crawl_jobs_from_sources(
+    request: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Crawl jobs from GitHub, LinkedIn, and Twitter (Admin only)"""
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    sources = request.get('sources', ['github', 'linkedin', 'twitter'])
+    keywords = request.get('keywords', ['medical', 'healthcare', 'physician', 'researcher'])
+    location = request.get('location', 'United States')
+    limit = request.get('limit', 50)
+    
+    results = {
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "sources_requested": sources,
+        "results": {}
+    }
+    
+    try:
+        # Scrape GitHub
+        if 'github' in sources:
+            github_result = await crawler_service.scrape_github_jobs(keywords, limit)
+            results['results']['github'] = github_result
+            
+            if github_result['success']:
+                # Save to database
+                for job in github_result['jobs']:
+                    job['id'] = str(uuid.uuid4())
+                    job['category'] = 'Medicine & Medical Research'  # Default
+                    job['employer_id'] = 'crawler_github'
+                    await db.scraped_external_jobs.insert_one(job)
+        
+        # Scrape LinkedIn
+        if 'linkedin' in sources:
+            linkedin_result = await crawler_service.scrape_linkedin_jobs(keywords, location, limit)
+            results['results']['linkedin'] = linkedin_result
+            
+            if linkedin_result['success']:
+                for job in linkedin_result['jobs']:
+                    job['id'] = str(uuid.uuid4())
+                    job['category'] = 'Medicine & Medical Research'
+                    job['employer_id'] = 'crawler_linkedin'
+                    await db.scraped_external_jobs.insert_one(job)
+        
+        # Scrape Twitter
+        if 'twitter' in sources:
+            hashtags = [f"#{kw}jobs" for kw in keywords]
+            twitter_result = await crawler_service.scrape_twitter_jobs(hashtags, limit)
+            results['results']['twitter'] = twitter_result
+            
+            if twitter_result['success']:
+                for job in twitter_result['jobs']:
+                    job['id'] = str(uuid.uuid4())
+                    job['category'] = 'Medicine & Medical Research'
+                    job['employer_id'] = 'crawler_twitter'
+                    await db.scraped_external_jobs.insert_one(job)
+        
+        results['completed_at'] = datetime.now(timezone.utc).isoformat()
+        results['total_jobs_found'] = sum(
+            len(r.get('jobs', [])) for r in results['results'].values()
+        )
+        
+        logging.info(f"Crawler completed: {results['total_jobs_found']} jobs found")
+        
+        return results
+        
+    except Exception as e:
+        logging.error(f"Crawler error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/admin/crawled-jobs")
+async def get_crawled_jobs(
+    current_user: dict = Depends(get_current_user),
+    source: str = None,
+    limit: int = 100
+):
+    """Get crawled jobs from external sources"""
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    query = {}
+    if source:
+        query['source'] = source
+    
+    jobs = await db.scraped_external_jobs.find(query, {"_id": 0}).sort([("scraped_at", -1)]).limit(limit).to_list(limit)
+    
+    return {
+        "count": len(jobs),
+        "source_filter": source,
+        "jobs": jobs
+    }
+
+@api_router.post("/admin/import-crawled-job/{job_id}")
+async def import_crawled_job_to_platform(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Import a crawled job to the main jobs collection"""
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    # Get crawled job
+    crawled = await db.scraped_external_jobs.find_one({"id": job_id}, {"_id": 0})
+    if not crawled:
+        raise HTTPException(status_code=404, detail="Crawled job not found")
+    
+    # Create proper job entry
+    job = {
+        "id": str(uuid.uuid4()),
+        "title": crawled['title'],
+        "category": crawled.get('category', 'Medicine & Medical Research'),
+        "description": crawled['description'],
+        "location": crawled['location'],
+        "job_type": crawled.get('job_type', 'Full-time'),
+        "salary_range": crawled.get('salary', ''),
+        "requirements": [],
+        "responsibilities": [],
+        "benefits": [],
+        "employer_id": 'external_crawler',
+        "status": "active",
+        "posted_at": datetime.now(timezone.utc).isoformat(),
+        "external_source": crawled['source'],
+        "external_url": crawled.get('url', '')
+    }
+    
+    await db.jobs.insert_one(job)
+    
+    # Mark as imported
+    await db.scraped_external_jobs.update_one(
+        {"id": job_id},
+        {"$set": {"imported": True, "job_id": job['id']}}
+    )
+    
+    logging.info(f"Imported crawled job: {job['id']} from {crawled['source']}")
+    
+    return {"message": "Job imported successfully", "job_id": job['id']}
+
+@api_router.post("/admin/scrape-candidate-profile")
+async def scrape_candidate_online_presence(
+    request: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Scrape candidate info from GitHub, portfolio, LinkedIn (Admin/Auto)"""
+    candidate_id = request.get('candidate_id')
+    urls = request.get('urls', {})  # {github: url, portfolio: url, linkedin: url}
+    
+    if current_user.get('email') != 'admin@medevidences.com' and current_user['id'] != candidate_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    results = {}
+    
+    try:
+        # Scrape portfolio if provided
+        if urls.get('portfolio'):
+            portfolio_data = await crawler_service.scrape_portfolio_website(urls['portfolio'])
+            results['portfolio'] = portfolio_data
+        
+        # Note: GitHub and LinkedIn scraping would require specific implementations
+        # For now, we've implemented the infrastructure
+        
+        return {
+            "candidate_id": candidate_id,
+            "scraped_at": datetime.now(timezone.utc).isoformat(),
+            "results": results
+        }
+        
+    except Exception as e:
+        logging.error(f"Profile scraping error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
     
     offer = await db.job_offers.find_one({"id": offer_id}, {"_id": 0})
     if not offer:
