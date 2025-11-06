@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend API Testing for MedEvidences Advanced Features
-Tests all 5 advanced features as specified in test_result.md
+COMPREHENSIVE BACKEND TESTING for MedEvidences.com
+Tests ALL backend functionality including newly implemented Phase 1-3 features
 """
 
 import requests
@@ -10,6 +10,8 @@ import os
 from datetime import datetime
 import tempfile
 import io
+import asyncio
+import time
 
 # Get backend URL from environment
 BACKEND_URL = "https://med-ai-hiring.preview.emergentagent.com/api"
