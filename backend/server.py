@@ -23,6 +23,7 @@ import io
 from video_interview_service import VideoInterviewService
 from job_crawler_service import JobCrawlerService
 from email_service import email_service
+from job_aggregator_service import job_aggregator_service
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
