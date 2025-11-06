@@ -538,3 +538,92 @@ agent_communication:
       - Frontend not properly calling activation endpoint
       
       RECOMMENDATION: Test frontend SubscriptionSuccess.js component and payment flow integration.
+
+
+  - agent: "main"
+    message: |
+      HEALTH SCREENING INTEGRATION COMPLETED:
+      
+      NEW FEATURE: AI Interview with Health & Wellness Questions
+      
+      BACKEND IMPLEMENTATION:
+      1. Updated CandidateProfile Model (server.py):
+         - Added calorie_reports: List[str] (URLs to 2 calorie report images)
+         - Added microbiome_screenshot: Optional[str] (URL to gut microbiome screenshot)
+         - Added health_score: Optional[str] (Excellent/Good/Bad)
+         - Added health_analysis: Optional[dict] (Detailed AI health analysis)
+      
+      2. Updated VideoInterview Model (server.py):
+         - Added health_score: Optional[str]
+         - Added health_analysis: Optional[dict]
+      
+      3. Enhanced video_interview_service.py:
+         - generate_interview_questions() already includes 6 mandatory health questions:
+           * Workout routine (exercise type, minutes/day, times/week)
+           * Food habits (with note to upload calorie report from medevidences.com)
+           * Gut microbiome score (with note to upload screenshot)
+           * Muscle fitness level
+           * Medications
+           * Exercise routine details
+         - Updated analyze_complete_interview() to generate health analysis:
+           * Analyzes responses to health questions (1-6)
+           * Generates health_score: "Excellent", "Good", or "Bad"
+           * Creates detailed health_analysis with scores for:
+             - Exercise routine (frequency, duration, regularity)
+             - Nutrition (calorie tracking, diet quality)
+             - Gut health (microbiome tracking)
+             - Muscle fitness (strength training)
+             - Medications (status and impact)
+             - Sleep habits (based on regularity)
+           * Provides overall_wellness_score (0-100)
+           * Lists key strengths and areas for improvement
+           * Offers health recommendation
+      
+      4. Added Health Document Upload Endpoints (server.py):
+         - POST /api/candidates/upload-calorie-report
+           * Uploads calorie report images (max 2)
+           * Stores in /tmp/health_documents
+           * Updates candidate profile
+         - POST /api/candidates/upload-microbiome-screenshot
+           * Uploads gut microbiome screenshot
+           * Stores in /tmp/health_documents
+           * Updates candidate profile
+      
+      5. Updated complete_video_interview endpoint (server.py):
+         - Extracts health_score and health_analysis from AI analysis
+         - Stores in VideoInterview record
+         - Updates candidate profile with health data
+      
+      FRONTEND IMPLEMENTATION:
+      1. Updated CandidateDashboard.js:
+         - Added "Health & Wellness Documents" section
+         - Clear instructions to visit www.medevidences.com
+         - File upload for calorie reports (2 images)
+         - File upload for gut microbiome screenshot
+         - Display health score if available
+         - Shows upload status with badges
+      
+      2. Updated ReceivedApplications.js:
+         - Added health analysis display in AI interview modal
+         - Shows overall health score (Excellent/Good/Bad)
+         - Displays wellness score (0-100)
+         - Grid view of health metrics:
+           * Exercise routine (with frequency, duration, score)
+           * Nutrition (with diet quality, score)
+           * Gut health (with assessment, score)
+           * Muscle fitness (with assessment, score)
+         - Lists health strengths and areas for improvement
+         - Shows health recommendation
+      
+      HEALTH SCORE CRITERIA:
+      - Excellent: Regular exercise (4+ times/week, 30+ min), good nutrition tracking,
+                   gut health monitoring, strength training, no major medications, good sleep
+      - Good: Moderate exercise (2-3 times/week), some health tracking, general fitness awareness
+      - Bad: Irregular exercise, poor nutrition, no health tracking, sedentary lifestyle
+      
+      TESTING NEEDED:
+      - Backend endpoints for health document upload
+      - AI interview question generation (should include 6 health + 4 job-specific = 10 total)
+      - Health analysis in complete interview endpoint
+      - Frontend file uploads in candidate dashboard
+      - Health display in employer's received applications view
