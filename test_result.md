@@ -810,15 +810,18 @@ backend:
 
   - task: "Featured Companies Stats API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added GET /api/stats/featured-companies endpoint. Returns dynamic job counts for AI labs, startups, and global companies. Has fallback data."
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: GET /api/stats/featured-companies endpoint working correctly. Returns proper company data for AI labs, startups, and global organizations. Landing page successfully fetches and displays dynamic company information with job counts."
 
   - task: "Dashboard Analytics APIs"
     implemented: true
@@ -831,6 +834,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Added GET /api/employer/dashboard-stats and GET /api/candidate/dashboard-stats. Provides comprehensive metrics for both user types."
+      - working: "NA"
+        agent: "testing"
+        comment: "NOT TESTED: Cannot test dashboard analytics APIs due to authentication issues preventing access to candidate and employer dashboards. APIs require authentication which is currently failing."
 
 frontend:
   - task: "Dynamic Landing Page Company Sections"
