@@ -889,6 +889,161 @@ Good Clinical Practice (GCP) Certification
         else:
             print(f"✗ Checkout session creation failed: {response.status_code} - {response.text}")
     
+    def test_job_listing_and_details_endpoints(self):
+        """Test Job Listing and Job Details Endpoints - FOCUSED TEST"""
+        print("\n=== Testing Job Listing and Job Details Endpoints ===")
+        
+        candidate_headers = {"Authorization": f"Bearer {self.candidate_token}"}
+        employer_headers = {"Authorization": f"Bearer {self.employer_token}"}
+        
+        # Test 1: GET /api/jobs - List all jobs
+        print("Testing GET /api/jobs (job listing endpoint)...")
+        
+        response = self.session.get(f"{self.base_url}/jobs")
+        
+        if response.status_code == 200:
+            print("✓ Job listing endpoint works")
+            result = response.json()
+            job_count = len(result) if isinstance(result, list) else 0
+            print(f"  Total jobs returned: {job_count}")
+            
+            if job_count > 0:
+                print("✓ Jobs list contains data")
+                
+                # Check first job structure
+                first_job = result[0]
+                required_fields = ['id', 'title', 'description', 'company_name', 'location', 'job_type', 'category']
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in first_job:
+                        missing_fields.append(field)
+                
+                if not missing_fields:
+                    print("✓ Job objects contain all required fields")
+                else:
+                    print(f"✗ Missing fields in job objects: {missing_fields}")
+                
+                # Check for Mercor masking
+                mercor_jobs = [job for job in result if job.get('source') == 'imported' or job.get('import_source')]
+                if mercor_jobs:
+                    masked_correctly = all(job.get('company_name') == 'M' for job in mercor_jobs)
+                    if masked_correctly:
+                        print("✓ Mercor company names properly masked as 'M'")
+                    else:
+                        print("✗ Some imported jobs not properly masked")
+                        for job in mercor_jobs[:3]:  # Show first 3 examples
+                            print(f"    Job {job.get('id')}: company_name = '{job.get('company_name')}'")
+                else:
+                    print("⚠ No imported jobs found to test Mercor masking")
+                
+                # Store job IDs for detailed testing
+                test_job_ids = [job['id'] for job in result[:5]]  # Test first 5 jobs
+                
+            else:
+                print("✗ No jobs returned from listing endpoint")
+                return
+                
+        else:
+            print(f"✗ Job listing failed: {response.status_code} - {response.text}")
+            return
+        
+        # Test 2: GET /api/jobs/{job_id} - Job details for multiple jobs
+        print("\nTesting GET /api/jobs/{job_id} (job details endpoint)...")
+        
+        successful_details = 0
+        failed_details = 0
+        
+        for i, job_id in enumerate(test_job_ids):
+            print(f"  Testing job details for job {i+1}: {job_id}")
+            
+            response = self.session.get(f"{self.base_url}/jobs/{job_id}")
+            
+            if response.status_code == 200:
+                successful_details += 1
+                result = response.json()
+                
+                # Verify all required fields are present
+                required_fields = ['id', 'title', 'description', 'company_name', 'location', 'job_type', 'category', 'requirements', 'skills_required']
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in result:
+                        missing_fields.append(field)
+                
+                if not missing_fields:
+                    print(f"    ✓ Job {job_id}: All required fields present")
+                else:
+                    print(f"    ✗ Job {job_id}: Missing fields: {missing_fields}")
+                
+                # Check for posted_at field (important for date calculations)
+                if 'posted_at' in result:
+                    print(f"    ✓ Job {job_id}: posted_at field exists: {result['posted_at']}")
+                else:
+                    print(f"    ✗ Job {job_id}: posted_at field missing")
+                
+                # Check company name masking for imported jobs
+                if result.get('source') == 'imported' or result.get('import_source'):
+                    if result.get('company_name') == 'M':
+                        print(f"    ✓ Job {job_id}: Imported job properly masked")
+                    else:
+                        print(f"    ✗ Job {job_id}: Imported job not masked (company: {result.get('company_name')})")
+                
+                # Show sample job details
+                if i == 0:  # Show details for first job
+                    print(f"    Sample job details:")
+                    print(f"      Title: {result.get('title', 'N/A')}")
+                    print(f"      Company: {result.get('company_name', 'N/A')}")
+                    print(f"      Location: {result.get('location', 'N/A')}")
+                    print(f"      Type: {result.get('job_type', 'N/A')}")
+                    print(f"      Category: {result.get('category', 'N/A')}")
+                    print(f"      Posted: {result.get('posted_at', 'N/A')}")
+                    
+            else:
+                failed_details += 1
+                print(f"    ✗ Job {job_id}: Details failed: {response.status_code} - {response.text}")
+        
+        # Summary of job details testing
+        print(f"\nJob Details Testing Summary:")
+        print(f"  ✓ Successful: {successful_details}/{len(test_job_ids)}")
+        print(f"  ✗ Failed: {failed_details}/{len(test_job_ids)}")
+        
+        if successful_details == len(test_job_ids):
+            print("✓ All job details endpoints working correctly")
+        elif successful_details > 0:
+            print("⚠ Some job details endpoints working, some failing")
+        else:
+            print("✗ All job details endpoints failing")
+        
+        # Test 3: Test job from different collections (if available)
+        print("\nTesting jobs from different collections...")
+        
+        # Try to find jobs from different sources
+        regular_jobs = [job for job in result if not job.get('source') and not job.get('import_source')]
+        imported_jobs = [job for job in result if job.get('source') == 'imported' or job.get('import_source')]
+        
+        print(f"  Regular jobs found: {len(regular_jobs)}")
+        print(f"  Imported jobs found: {len(imported_jobs)}")
+        
+        # Test one from each category if available
+        if regular_jobs:
+            job_id = regular_jobs[0]['id']
+            response = self.session.get(f"{self.base_url}/jobs/{job_id}")
+            if response.status_code == 200:
+                print(f"  ✓ Regular job details working: {job_id}")
+            else:
+                print(f"  ✗ Regular job details failed: {job_id}")
+        
+        if imported_jobs:
+            job_id = imported_jobs[0]['id']
+            response = self.session.get(f"{self.base_url}/jobs/{job_id}")
+            if response.status_code == 200:
+                result = response.json()
+                print(f"  ✓ Imported job details working: {job_id}")
+                print(f"    Company name: {result.get('company_name')} (should be 'M')")
+            else:
+                print(f"  ✗ Imported job details failed: {job_id}")
+
     def test_job_application_management(self):
         """Test Job & Application Management"""
         print("\n=== Testing Job & Application Management ===")
@@ -900,19 +1055,7 @@ Good Clinical Practice (GCP) Certification
         if self.job_id:
             print(f"✓ Job creation works (Job ID: {self.job_id})")
         
-        # Test 2: List jobs
-        print("Testing GET /api/jobs...")
-        
-        response = self.session.get(f"{self.base_url}/jobs")
-        
-        if response.status_code == 200:
-            print("✓ Job listing works")
-            result = response.json()
-            print(f"  Total jobs: {len(result) if isinstance(result, list) else 'N/A'}")
-        else:
-            print(f"✗ Job listing failed: {response.status_code} - {response.text}")
-        
-        # Test 3: Check if can apply to job
+        # Test 2: Check if can apply to job
         if self.job_id:
             print(f"Testing GET /api/jobs/{self.job_id}/can-apply...")
             
@@ -929,7 +1072,7 @@ Good Clinical Practice (GCP) Certification
             else:
                 print(f"✗ Job application eligibility check failed: {response.status_code} - {response.text}")
         
-        # Test 4: Get received applications (employer view)
+        # Test 3: Get received applications (employer view)
         print("Testing GET /api/applications/received...")
         
         response = self.session.get(f"{self.base_url}/applications/received", headers=employer_headers)
