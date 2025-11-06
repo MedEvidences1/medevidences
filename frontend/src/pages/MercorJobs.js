@@ -83,12 +83,13 @@ export default function MercorJobs() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6">
-          <button
-            onClick={() => navigate('/employer-dashboard')}
-            className="text-blue-600 hover:text-blue-800 flex items-center"
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin')}
+            className="flex items-center"
           >
-            ← Back to Dashboard
-          </button>
+            ← Back to Admin Dashboard
+          </Button>
         </div>
 
         <Card className="mb-6">
