@@ -29,6 +29,15 @@ export default function VideoInterviewRecorder() {
 
   useEffect(() => {
     fetchJobs();
+    
+    // Check if user came from Job Details page with a pre-selected job
+    const preSelectedJobId = localStorage.getItem('selectedJobForInterview');
+    if (preSelectedJobId) {
+      setSelectedJob(preSelectedJobId);
+      toast.info('Job pre-selected. Click "Start Interview" when ready.');
+      // Clear the stored job ID
+      localStorage.removeItem('selectedJobForInterview');
+    }
   }, []);
 
   useEffect(() => {
