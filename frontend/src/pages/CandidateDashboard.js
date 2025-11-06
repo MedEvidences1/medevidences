@@ -486,6 +486,125 @@ function CandidateDashboard({ user, onLogout }) {
             )}
           </CardContent>
         </Card>
+
+        {/* Health Documents Section */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Health & Wellness Documents</CardTitle>
+            <CardDescription>
+              Upload your health reports from{' '}
+              <a 
+                href="https://www.medevidences.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                www.medevidences.com
+              </a>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Calorie Reports */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-base font-semibold">Calorie Reports (2 Days)</Label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Get your calorie tracking reports from www.medevidences.com
+                  </p>
+                </div>
+                {profile?.calorie_reports && profile.calorie_reports.length === 2 && (
+                  <Badge className="bg-green-100 text-green-800">
+                    ✓ Uploaded
+                  </Badge>
+                )}
+              </div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                      await axios.post(`${API}/candidates/upload-calorie-report`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                      });
+                      toast.success('Calorie report uploaded successfully');
+                      fetchProfile();
+                    } catch (error) {
+                      toast.error('Failed to upload calorie report');
+                    }
+                  }
+                }}
+              />
+              {profile?.calorie_reports && profile.calorie_reports.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  {profile.calorie_reports.length} report(s) uploaded
+                </p>
+              )}
+            </div>
+
+            {/* Gut Microbiome Screenshot */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-base font-semibold">Gut Microbiome Score Screenshot</Label>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload your gut microbiome score from www.medevidences.com
+                  </p>
+                </div>
+                {profile?.microbiome_screenshot && (
+                  <Badge className="bg-green-100 text-green-800">
+                    ✓ Uploaded
+                  </Badge>
+                )}
+              </div>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                      await axios.post(`${API}/candidates/upload-microbiome-screenshot`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                      });
+                      toast.success('Microbiome screenshot uploaded successfully');
+                      fetchProfile();
+                    } catch (error) {
+                      toast.error('Failed to upload microbiome screenshot');
+                    }
+                  }
+                }}
+              />
+            </div>
+
+            {/* Health Score Display */}
+            {profile?.health_score && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-sm text-gray-700 mb-2">Your Health Score</h4>
+                <div className="flex items-center space-x-2">
+                  <Badge 
+                    className={
+                      profile.health_score === 'Excellent' ? 'bg-green-600' :
+                      profile.health_score === 'Good' ? 'bg-blue-600' :
+                      'bg-orange-600'
+                    }
+                  >
+                    {profile.health_score}
+                  </Badge>
+                  <p className="text-sm text-gray-600">
+                    Based on your AI interview health assessment
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
