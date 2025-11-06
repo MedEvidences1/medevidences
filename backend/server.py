@@ -133,6 +133,11 @@ class CandidateProfile(BaseModel):
     subscription_plan: Optional[str] = None  # basic, premium
     subscription_start: Optional[datetime] = None
     subscription_end: Optional[datetime] = None
+    # Health-related fields
+    calorie_reports: List[str] = []  # URLs to calorie report images (2 days)
+    microbiome_screenshot: Optional[str] = None  # URL to gut microbiome screenshot
+    health_score: Optional[str] = None  # Excellent, Good, Bad
+    health_analysis: Optional[dict] = None  # Detailed AI health analysis
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class CandidateProfileCreate(BaseModel):
