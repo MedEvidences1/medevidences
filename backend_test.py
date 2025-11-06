@@ -942,9 +942,11 @@ Good Clinical Practice (GCP) Certification
             print(f"✗ Received applications failed: {response.status_code} - {response.text}")
 
     def run_all_tests(self):
-        """Run comprehensive test suite"""
-        print("🧪 Starting MedEvidences Advanced Features API Testing")
-        print("=" * 60)
+        """Run comprehensive test suite for ALL MedEvidences backend features"""
+        print("🧪 COMPREHENSIVE BACKEND TESTING for MedEvidences.com")
+        print("=" * 70)
+        print("Testing ALL backend functionality including Phase 1-3 features")
+        print("=" * 70)
         
         # Setup
         if not self.setup_test_users():
@@ -953,17 +955,36 @@ Good Clinical Practice (GCP) Certification
             
         self.create_test_data()
         
-        # Run all feature tests
+        # PRIORITY 1 - NEW FEATURES (Phase 1-3)
+        print("\n🚀 PRIORITY 1 - NEW FEATURES (Phase 1-3)")
+        print("-" * 50)
+        self.test_email_service_integration()           # Phase 1
+        self.test_job_aggregator_service()              # Phase 2  
+        self.test_ai_matching_service()                 # Phase 2
+        self.test_recommendation_service()              # Phase 2
+        self.test_analytics_endpoints()                 # Phase 3
+        
+        # PRIORITY 2 - EXISTING CORE FEATURES
+        print("\n🏥 PRIORITY 2 - EXISTING CORE FEATURES")
+        print("-" * 50)
+        self.test_health_screening_integration()        # Health documents
+        self.test_video_interview_system()              # 12 questions (6 health + 6 job)
+        self.test_job_application_management()          # Jobs & applications
+        self.test_subscription_system()                 # Stripe integration
+        
+        # LEGACY FEATURES (from original test)
+        print("\n📋 LEGACY FEATURES")
+        print("-" * 50)
         self.test_resume_screening()
         self.test_ai_matching() 
         self.test_feedback_collection()
         self.test_payroll_tracking()
         self.test_mercor_scraping()
-        self.test_health_screening_integration()  # NEW: Health screening tests
         self.test_error_cases()
         
-        print("\n" + "=" * 60)
-        print("🏁 Testing Complete")
+        print("\n" + "=" * 70)
+        print("🏁 COMPREHENSIVE TESTING COMPLETE")
+        print("=" * 70)
 
 if __name__ == "__main__":
     tester = MedEvidencesAPITester()
