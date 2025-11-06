@@ -1251,3 +1251,39 @@ test_plan:
       ❌ Health analysis in complete interview endpoint - BLOCKED (API key issue)
       ⏳ Frontend file uploads in candidate dashboard - NOT TESTED (backend only)
       ⏳ Health display in employer's received applications view - NOT TESTED (backend only)
+
+  - agent: "testing"
+    message: |
+      JOB LISTING AND JOB DETAILS ENDPOINTS TESTING COMPLETED ✅
+      
+      TASK: Test job listing and job details endpoints after fix
+      
+      TESTING RESULTS:
+      ✅ GET /api/jobs endpoint - WORKING PERFECTLY
+        - Returns 124 jobs total (22 regular + 102 imported)
+        - All required fields present: id, title, description, company_name, location, job_type, category
+        - Mercor masking working correctly: all 102 imported jobs show company_name as 'M'
+        - Posted_at field exists for date calculations
+      
+      ✅ GET /api/jobs/{job_id} endpoint - WORKING PERFECTLY  
+        - Fixed to search all three collections (jobs, imported_jobs, scraped_jobs)
+        - Returns complete job objects with all required fields
+        - Company names properly populated from employer profiles for regular jobs
+        - Imported jobs maintain proper 'M' masking
+        - Posted_at field exists for all jobs
+        - Tested 10 jobs successfully - 100% success rate
+      
+      ✅ Mercor Masking Verification - WORKING PERFECTLY
+        - All imported jobs properly masked as 'M' in both listing and details
+        - Regular jobs show actual company names from employer profiles
+        - Consistent masking across both endpoints
+      
+      CRITICAL FINDINGS:
+      1. The get_job_by_id endpoint fix is working correctly
+      2. Job search now works across all collections as designed
+      3. Company name population logic matches between listing and details endpoints
+      4. All required fields are present for frontend date calculations
+      5. No "job not found" errors encountered during testing
+      
+      RECOMMENDATION: 
+      The job listing and job details endpoints are now fully functional. The main agent's fix successfully resolved the reported issues. Ready for production use.
