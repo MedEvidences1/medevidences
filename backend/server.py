@@ -3832,10 +3832,6 @@ async def import_jobs_by_company(
         logging.error(f"Error importing jobs for {company_name}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.post("/ai/enhanced-match/{job_id}")
-async def get_enhanced_match_score(
-
-
 @api_router.get("/employer/recommended-candidates/{job_id}")
 async def get_recommended_candidates(
     job_id: str,
