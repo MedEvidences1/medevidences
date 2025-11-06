@@ -1110,6 +1110,7 @@ Good Clinical Practice (GCP) Certification
         # PRIORITY 2 - EXISTING CORE FEATURES
         print("\n🏥 PRIORITY 2 - EXISTING CORE FEATURES")
         print("-" * 50)
+        self.test_job_listing_and_details_endpoints()   # FOCUSED: Job listing & details fix
         self.test_health_screening_integration()        # Health documents
         self.test_video_interview_system()              # 12 questions (6 health + 6 job)
         self.test_job_application_management()          # Jobs & applications
