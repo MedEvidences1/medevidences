@@ -3758,7 +3758,13 @@ async def import_jobs_by_company(
         return {
             "success": True,
             "company": company_name,
-
+            "imported": imported_count,
+            "total_found": len(jobs)
+        }
+        
+    except Exception as e:
+        logging.error(f"Error importing jobs for {company_name}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/ai/enhanced-match/{job_id}")
 async def get_enhanced_match_score(
