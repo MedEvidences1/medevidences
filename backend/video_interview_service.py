@@ -1,5 +1,5 @@
 # Video Interview Service with OpenAI Whisper
-from emergentintegrations.llm.openai import OpenAISpeechToText
+from openai import AsyncOpenAI
 import os
 from dotenv import load_dotenv
 import logging
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class VideoInterviewService:
     def __init__(self):
-        self.stt = OpenAISpeechToText(api_key=os.getenv("EMERGENT_LLM_KEY"))
+        self.client = AsyncOpenAI(api_key=os.getenv("EMERGENT_LLM_KEY"))
     
     async def transcribe_audio(self, audio_file, language="en"):
         """Transcribe audio file using OpenAI Whisper"""
