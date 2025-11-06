@@ -2228,7 +2228,7 @@ async def get_subscription_pricing():
 async def send_subscription_email(user_email: str, user_name: str, plan: str, expires_at: str):
     """Send subscription confirmation email"""
     try:
-        return await email_service.send_subscription_email(user_email, user_name, plan, expires_at)
+        return email_service.send_subscription_confirmation(user_email, plan, expires_at)
     except Exception as e:
         logging.error(f"Error sending subscription email: {str(e)}")
         return False
