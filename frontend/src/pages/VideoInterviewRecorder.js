@@ -220,9 +220,9 @@ export default function VideoInterviewRecorder() {
                   <h3 className="font-bold mb-2">📋 How it works:</h3>
                   <ol className="list-decimal list-inside space-y-1 text-sm">
                     <li>Select a job you want to interview for</li>
-                    <li>AI will generate 5 custom interview questions</li>
-                    <li>Record your video answer for each question</li>
-                    <li>AI analyzes your answers and gives you a vetting score</li>
+                    <li>AI will generate 12 interview questions (6 health + 6 job-specific)</li>
+                    <li>Record your video answer for each question (one at a time)</li>
+                    <li>Videos are stored and can be reviewed by employers</li>
                   </ol>
                 </div>
 
