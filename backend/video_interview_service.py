@@ -160,16 +160,16 @@ Provide comprehensive analysis in JSON:
 
 Be thorough and professional."""
             
-            response = await self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are a senior hiring manager and expert interviewer."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3
-            )
+            chat = LlmChat(
+                api_key=self.api_key,
+                session_id=str(uuid.uuid4()),
+                system_message="You are a senior hiring manager and expert interviewer."
+            ).with_model("openai", "gpt-4o")
             
-            analysis_text = response.choices[0].message.content
+            user_message = UserMessage(text=prompt)
+            response = await chat.send_message(user_message)
+            
+            analysis_text = response
             start = analysis_text.find('{')
             end = analysis_text.rfind('}') + 1
             if start != -1 and end > start:
