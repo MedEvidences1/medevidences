@@ -269,11 +269,17 @@ function LandingPage({ user, onLogout }) {
               <h4 className="text-2xl font-bold text-gray-900">AI Research Labs</h4>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { name: 'OpenAI Research', jobs: 12, focus: 'AI Safety & Alignment' },
-                { name: 'DeepMind Health', jobs: 8, focus: 'Medical AI Applications' },
-                { name: 'Google Brain', jobs: 15, focus: 'Healthcare AI' }
-              ].map((lab, idx) => (
+              {(companyStats?.ai_labs || [
+                { name: 'OpenAI Research', job_count: 12 },
+                { name: 'DeepMind Health', job_count: 8 },
+                { name: 'Google Brain', job_count: 15 }
+              ]).slice(0, 3).map((lab, idx) => {
+                const focusAreas = {
+                  'OpenAI Research': 'AI Safety & Alignment',
+                  'DeepMind Health': 'Medical AI Applications',
+                  'Google Brain': 'Healthcare AI'
+                };
+                return (
                 <Card key={idx} className="hover:shadow-xl transition-all border-2 border-purple-200">
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
