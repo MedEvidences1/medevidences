@@ -379,28 +379,29 @@ function LandingPage({ user, onLogout }) {
                   'Roche': 'Diagnostics & Research'
                 };
                 return (
-                <Card key={idx} className="hover:shadow-xl transition-all border-2 border-blue-200">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-base">{company.name}</CardTitle>
-                      <Badge className="bg-blue-600">{company.jobs}</Badge>
-                    </div>
-                    <CardDescription className="text-xs text-gray-600">
-                      {company.type}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="w-full border-blue-300 hover:bg-blue-50 text-xs"
-                      onClick={() => navigate(`/jobs?company=${company.name}`)}
-                    >
-                      View Jobs
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  <Card key={idx} className="hover:shadow-xl transition-all border-2 border-blue-200">
+                    <CardHeader>
+                      <div className="flex items-center justify-between mb-2">
+                        <CardTitle className="text-base">{company.name}</CardTitle>
+                        <Badge className="bg-blue-600">{company.job_count}</Badge>
+                      </div>
+                      <CardDescription className="text-xs text-gray-600">
+                        {companyTypes[company.name] || 'Global Organization'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full border-blue-300 hover:bg-blue-50 text-xs"
+                        onClick={() => navigate(`/jobs?company=${company.name}`)}
+                      >
+                        View Jobs
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </div>
