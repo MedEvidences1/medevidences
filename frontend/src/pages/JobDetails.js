@@ -172,10 +172,24 @@ function JobDetails({ user, onLogout }) {
                 <CardDescription className="text-lg" data-testid="company-name">{job.company_name}</CardDescription>
               </div>
               {user && user.role === 'candidate' && (
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="lg" data-testid="apply-button">Apply Now</Button>
-                  </DialogTrigger>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    size="lg" 
+                    variant="outline"
+                    onClick={() => {
+                      // Save job ID to localStorage for video interview
+                      localStorage.setItem('selectedJobForInterview', jobId);
+                      navigate('/video-interview');
+                    }}
+                    className="bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200"
+                    data-testid="start-interview-button"
+                  >
+                    🎥 Start AI Interview
+                  </Button>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="lg" data-testid="apply-button">Apply Now</Button>
+                    </DialogTrigger>
                   <DialogContent data-testid="apply-dialog">
                     <DialogHeader>
                       <DialogTitle data-testid="dialog-title">Apply for {job.title}</DialogTitle>
