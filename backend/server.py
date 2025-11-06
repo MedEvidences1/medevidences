@@ -3843,14 +3843,6 @@ async def get_industry_specific_questions(
         "questions": questions
     }
 
-            "imported": imported_count,
-            "total_found": len(jobs)
-        }
-        
-    except Exception as e:
-        logging.error(f"Error importing jobs for {company_name}: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 video_service = VideoInterviewService()
 
 @api_router.post("/video-interview/start")
