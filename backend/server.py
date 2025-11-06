@@ -3638,11 +3638,19 @@ async def scrape_mercor_jobs(
             if not existing:
                 await db.scraped_jobs.insert_one(scraped_dict)
             
+            # Replace Mercor or any company name with "M"
+            company_name = item.get('companyName', 'M')
+            if 'mercor' in company_name.lower():
+                company_name = 'M'
+            else:
+                # For other companies, just use first letter
+                company_name = company_name[0].upper() if company_name else 'M'
+            
             jobs_data.append({
                 "id": scraped_job.id,
                 "external_id": item.get('listingId'),
                 "title": item.get('title'),
-                "company": item.get('companyName'),
+                "company": company_name,
                 "location": item.get('location'),
                 "commitment": item.get('commitment'),
                 "salary_range": scraped_job.salary_range,
@@ -3651,7 +3659,7 @@ async def scrape_mercor_jobs(
                 "recent_candidates": item.get('recentCandidatesCount'),
                 "created_at": item.get('createdAt'),
                 "status": item.get('status'),
-                "url": f"https://work.mercor.com/explore?listingId={item.get('listingId')}"
+                "url": f"/job/{scraped_job.id}"  # Internal MedEvidences URL
             })
         
         logging.info(f"Successfully fetched {len(jobs_data)} jobs from Mercor")
