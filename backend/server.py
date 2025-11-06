@@ -1169,7 +1169,8 @@ async def create_job(
 async def get_jobs(
     category: Optional[str] = None,
     job_type: Optional[str] = None,
-    location: Optional[str] = None
+    location: Optional[str] = None,
+    include_imported: bool = True
 ):
     query = {"status": "active"}
     if category:
@@ -1189,6 +1190,36 @@ async def get_jobs(
             job['company_name'] = employer_profile['company_name']
             job['company_location'] = employer_profile.get('location', '')
         result.append(job)
+    
+    # Include imported jobs if requested
+    if include_imported:
+        # Get imported jobs from aggregators
+        imported_query = {}
+        if category:
+            imported_query['category'] = category
+        if location:
+            imported_query['location'] = {"$regex": location, "$options": "i"}
+        
+        imported_jobs = await db.imported_jobs.find(imported_query, {"_id": 0}).limit(50).to_list(50)
+        
+        for job in imported_jobs:
+            # Format imported job to match regular job structure
+            formatted_job = {
+                'id': job.get('id'),
+                'title': job.get('title'),
+                'description': job.get('description'),
+                'category': job.get('category', 'Medical Research'),
+                'location': job.get('location', 'Remote'),
+                'job_type': job.get('job_type', 'Full-time'),
+                'salary_range': job.get('salary_range'),
+                'company_name': job.get('company_name', 'M'),  # Already masked
+                'company_location': job.get('location', 'Remote'),
+                'status': 'active',
+                'source': 'imported',
+                'apply_url': job.get('apply_url', ''),
+                'skills_required': []
+            }
+            result.append(formatted_job)
     
     return result
 
