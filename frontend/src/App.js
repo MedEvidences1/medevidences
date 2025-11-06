@@ -219,6 +219,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/subscription" element={user && user.role === 'candidate' ? <SubscriptionPlans /> : <Navigate to="/login" />} />
+        <Route path="/video-interview" element={user && user.role === 'candidate' ? <VideoInterviewRecorder /> : <Navigate to="/login" />} />
+        <Route path="/job-offers" element={user && user.role === 'candidate' ? <JobOffers /> : <Navigate to="/login" />} />
         <Route path="/mercor-jobs" element={user && user.email === 'admin@medevidences.com' ? <MercorJobs /> : <Navigate to="/login" />} />
         <Route path="/admin" element={user && user.email === 'admin@medevidences.com' ? <AdminPanel user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} />
       </Routes>
