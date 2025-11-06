@@ -1344,9 +1344,13 @@ async def create_application(
     # Send email notification to employer
     employer = await db.users.find_one({"id": job['employer_id']}, {"_id": 0})
     if employer:
-        subject = f"New Application: {job['title']}"
-        content = f"Hello {employer['full_name']},\n\n{current_user['full_name']} has applied to your job posting: {job['title']}.\n\nView the application in your MedEvidences dashboard.\n\nBest regards,\nMedEvidences Team"
-        await send_email_notification(employer['email'], subject, content, 'application_received')
+        email_service.send_application_notification_to_employer(
+            employer_email=employer['email'],
+            candidate_name=current_user['full_name'],
+            job_title=job['title'],
+            candidate_email=current_user['email'],
+            cover_letter=application_data.cover_letter
+        )
     
     return application
 
