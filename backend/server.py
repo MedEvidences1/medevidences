@@ -3823,6 +3823,78 @@ async def get_application_interview_details(
         )
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@api_router.get("/video-interview/candidate/{candidate_id}/for-employer")
+async def get_candidate_interviews_for_employer(
+    candidate_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get candidate's video interviews (for employer viewing)"""
+    if current_user['role'] not in [UserRole.EMPLOYER, 'admin']:
+        raise HTTPException(status_code=403, detail="Only employers can view candidate interviews")
+    
+    # Get all completed interviews for this candidate
+    interviews = await db.video_interviews.find(
+        {
+            "candidate_id": candidate_id,
+            "status": "completed"
+        },
+        {"_id": 0}
+    ).sort([("completed_at", -1)]).to_list(100)
+    
+    # Enrich with job details
+    for interview in interviews:
+        if interview.get('job_id'):
+            job = await db.jobs.find_one({"id": interview['job_id']}, {"_id": 0})
+            if job:
+                interview['job_details'] = {
+                    "title": job['title'],
+                    "category": job['category']
+                }
+    
+    return interviews
+
+@api_router.get("/applications/{application_id}/interview-details")
+async def get_application_interview_details(
+    application_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get interview details for an application (employer view)"""
+    if current_user['role'] not in [UserRole.EMPLOYER, 'admin']:
+        raise HTTPException(status_code=403, detail="Only employers can view this")
+    
+    # Get application
+    application = await db.applications.find_one({"id": application_id}, {"_id": 0})
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Verify employer owns this job
+    if application['employer_id'] != current_user['id'] and current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Not your application")
+    
+    # Get candidate's interviews
+    interviews = await db.video_interviews.find(
+        {
+            "candidate_id": application['candidate_id'],
+            "job_id": application['job_id'],
+            "status": "completed"
+        },
+        {"_id": 0}
+    ).sort([("completed_at", -1)]).to_list(10)
+    
+    # Get candidate profile with AI scores
+    candidate_profile = await db.candidate_profiles.find_one(
+        {"user_id": application['candidate_id']},
+        {"_id": 0, "ai_vetting_score": 1, "ai_recommendation": 1, "interview_score": 1}
+    )
+    
+    return {
+        "application_id": application_id,
+        "candidate_id": application['candidate_id'],
+        "interviews": interviews,
+        "candidate_ai_scores": candidate_profile if candidate_profile else {}
+    }
+
 @api_router.get("/video-interview/candidate")
 async def get_candidate_interviews(current_user: dict = Depends(get_current_user)):
     """Get all video interviews for current candidate"""
