@@ -246,6 +246,44 @@ class ApplicationCreate(BaseModel):
     job_id: str
     cover_letter: Optional[str] = None
 
+
+class VideoInterview(BaseModel):
+    """Video interview with recording and transcription"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    job_id: Optional[str] = None
+    video_url: Optional[str] = None  # Stored video file path
+    audio_url: Optional[str] = None  # Extracted audio
+    transcript: Optional[str] = None  # Whisper transcription
+    questions_asked: List[str] = []
+    duration_seconds: Optional[int] = None
+    status: str = "pending"  # pending, processing, completed, failed
+    ai_analysis: Optional[dict] = None  # AI vetting results
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: Optional[datetime] = None
+
+class JobOffer(BaseModel):
+    """Job offers sent to candidates"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    candidate_id: str
+    employer_id: str
+    job_id: str
+    job_title: str
+    company_name: str
+    salary_offered: str
+    employment_type: str  # Full-time, Part-time, Contract
+    start_date: Optional[str] = None
+    benefits: List[str] = []
+    offer_letter_url: Optional[str] = None
+    status: str = "pending"  # pending, accepted, rejected, expired
+    expires_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    accepted_at: Optional[datetime] = None
+    notes: Optional[str] = None
+
 class AIInterview(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
