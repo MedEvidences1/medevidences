@@ -279,6 +279,56 @@ backend:
         agent: "testing"
         comment: "TESTED SUCCESSFULLY: GET /api/subscription/pricing endpoint returns correct pricing information for Basic ($29/month) and Premium ($49/month) plans with feature lists and free tier features. Well-structured response for frontend consumption."
 
+  
+  - task: "Health Document Upload API"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added POST /api/candidates/upload-calorie-report and POST /api/candidates/upload-microbiome-screenshot endpoints. Validates image files, stores in /tmp/health_documents, updates candidate profile with file paths."
+  
+  - task: "AI Interview Health Questions"
+    implemented: true
+    working: "NA"
+    file: "backend/video_interview_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Updated generate_interview_questions() to include 6 mandatory health questions asking about workout routine, food habits, gut microbiome, muscle fitness, medications, and exercise details. Questions instruct candidates to upload reports from www.medevidences.com."
+  
+  - task: "AI Health Analysis"
+    implemented: true
+    working: "NA"
+    file: "backend/video_interview_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced analyze_complete_interview() to analyze health responses and generate health_score (Excellent/Good/Bad) and detailed health_analysis including exercise, nutrition, gut health, muscle fitness, medications, sleep habits scores. Provides overall wellness score (0-100), key strengths, areas for improvement, and health recommendation."
+  
+  - task: "Health Data Models"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added health fields to CandidateProfile (calorie_reports, microbiome_screenshot, health_score, health_analysis) and VideoInterview models (health_score, health_analysis)."
+
+
 frontend:
   - task: "Resume Upload UI"
     implemented: true
