@@ -1236,9 +1236,46 @@ async def get_jobs(
 
 @api_router.get("/jobs/{job_id}", response_model=dict)
 async def get_job_by_id(job_id: str):
+    """Get a specific job by ID from any collection"""
+    # First, try to find in the main jobs collection
     job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
+    
+    # If not found, try imported_jobs collection
+    if not job:
+        job = await db.imported_jobs.find_one({"id": job_id}, {"_id": 0})
+        if job:
+            # Format imported job to match regular job structure
+            job['source'] = 'imported'
+            # Ensure required fields exist
+            if 'requirements' not in job:
+                job['requirements'] = job.get('description', '').split('\n')[:5]
+            if 'skills_required' not in job:
+                job['skills_required'] = []
+            if 'company_type' not in job:
+                job['company_type'] = 'Technology Company'
+    
+    # If still not found, try scraped_jobs collection
+    if not job:
+        job = await db.scraped_jobs.find_one({"id": job_id}, {"_id": 0})
+        if job:
+            # Format scraped job to match regular job structure
+            job['source'] = 'scraped'
+            if 'requirements' not in job:
+                job['requirements'] = job.get('description', '').split('\n')[:5]
+            if 'skills_required' not in job:
+                job['skills_required'] = []
+            if 'company_type' not in job:
+                job['company_type'] = 'Technology Company'
+    
+    # If job still not found, raise 404
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Ensure company name is masked if it's an external job
+    if job.get('import_source') and job.get('company_name', '').lower() in ['mercor', 'mercor.com']:
+        job['company_name'] = 'M'
+    
+    return job
 
 
 @api_router.get("/admin/jobs-with-sources")
