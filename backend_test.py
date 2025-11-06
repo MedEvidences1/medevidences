@@ -14,7 +14,7 @@ import asyncio
 import time
 
 # Get backend URL from environment
-BACKEND_URL = "https://med-ai-hiring.preview.emergentagent.com/api"
+BACKEND_URL = "https://medevidence-jobs.preview.emergentagent.com/api"
 
 class MedEvidencesAPITester:
     def __init__(self):

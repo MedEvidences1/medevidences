@@ -11,7 +11,7 @@ from datetime import datetime, timezone, timedelta
 import time
 
 # Get backend URL from environment
-BACKEND_URL = "https://med-ai-hiring.preview.emergentagent.com/api"
+BACKEND_URL = "https://medevidence-jobs.preview.emergentagent.com/api"
 
 class SubscriptionFlowTester:
     def __init__(self):
