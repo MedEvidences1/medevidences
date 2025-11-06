@@ -3797,20 +3797,35 @@ async def complete_video_interview(
         video_paths = request.get('video_paths', [])  # Array of {question_index, path}
         
         questions_and_answers = []
+        transcription_failed = False
+        
         for video_data in video_paths:
             video_path = video_data['path']
             question_index = video_data['question_index']
             
-            # Transcribe this answer
-            with open(video_path, 'rb') as audio_file:
-                result = await video_service.transcribe_audio(audio_file)
+            # Try to transcribe this answer
+            try:
+                with open(video_path, 'rb') as audio_file:
+                    result = await video_service.transcribe_audio(audio_file)
+                
+                if result['success']:
+                    answer_text = result['text']
+                else:
+                    # Transcription failed - use placeholder
+                    answer_text = f"[Video answer recorded - transcription unavailable: {result.get('error', 'Unknown error')}]"
+                    transcription_failed = True
+                    logging.warning(f"Transcription failed for Q{question_index}, using placeholder")
+                    
+            except Exception as e:
+                # Transcription error - use placeholder
+                answer_text = f"[Video answer recorded - transcription error: {str(e)}]"
+                transcription_failed = True
+                logging.error(f"Transcription exception for Q{question_index}: {str(e)}")
             
-            if result['success']:
-                answer_text = result['text']
-                questions_and_answers.append({
-                    "question": interview['questions'][question_index],
-                    "answer": answer_text
-                })
+            questions_and_answers.append({
+                "question": interview['questions'][question_index],
+                "answer": answer_text
+            })
         
         # Get job details
         job = await db.jobs.find_one({"id": interview['job_id']}, {"_id": 0})
