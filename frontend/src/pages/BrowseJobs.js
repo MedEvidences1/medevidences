@@ -51,6 +51,7 @@ function BrowseJobs({ user, onLogout }) {
     try {
       const response = await axios.get(`${API}/jobs`);
       setJobs(response.data);
+      setTotalCount(response.data.length);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
