@@ -220,6 +220,7 @@ function JobDetails({ user, onLogout }) {
                     </div>
                   </DialogContent>
                 </Dialog>
+                </div>
               )}
             </div>
 
