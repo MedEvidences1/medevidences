@@ -27,24 +27,68 @@ export default function VideoInterviewRecorder() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Request camera permission
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch(err => {
-        console.error('Camera error:', err);
-        toast.error('Could not access camera/microphone');
-      });
+    fetchJobs();
+  }, []);
+
+  useEffect(() => {
+    if (step === 'interview' && videoRef.current) {
+      // Request camera when interview starts
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch(err => {
+          console.error('Camera error:', err);
+          toast.error('Could not access camera/microphone');
+        });
+    }
 
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         videoRef.current.srcObject.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [step]);
+
+  const fetchJobs = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/jobs`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setJobs(response.data);
+    } catch (error) {
+      console.error('Error fetching jobs:', error);
+      toast.error('Failed to load jobs');
+    }
+  };
+
+  const startInterview = async () => {
+    if (!selectedJob) {
+      toast.error('Please select a job first');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API}/video-interview/start`,
+        { job_id: selectedJob },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      setInterviewId(response.data.interview_id);
+      setQuestions(response.data.questions);
+      setCurrentQuestionIndex(0);
+      setStep('interview');
+      toast.success('Interview started! Answer each question.');
+    } catch (error) {
+      console.error('Start interview error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to start interview');
+    }
+  };
 
   const startRecording = async () => {
     try {
