@@ -3553,56 +3553,109 @@ async def convert_scraped_job(
 
 video_service = VideoInterviewService()
 
-@api_router.post("/video-interview/upload")
-async def upload_video_interview(
+@api_router.post("/video-interview/start")
+async def start_video_interview(
+    request: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Start a new AI video interview - generate questions"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can start interviews")
+    
+    job_id = request.get('job_id')
+    if not job_id:
+        raise HTTPException(status_code=400, detail="Job ID required")
+    
+    try:
+        # Get job details
+        job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        # Generate interview questions
+        questions_result = await video_service.generate_interview_questions(
+            job['description'],
+            job['title'],
+            num_questions=5
+        )
+        
+        if not questions_result['success']:
+            raise HTTPException(status_code=500, detail=f"Question generation failed: {questions_result.get('error')}")
+        
+        # Create interview session
+        interview = {
+            "id": str(uuid.uuid4()),
+            "candidate_id": current_user['id'],
+            "job_id": job_id,
+            "job_title": job['title'],
+            "questions": questions_result['questions'],
+            "answers": [],
+            "status": "in_progress",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.video_interviews.insert_one(interview)
+        
+        logging.info(f"Interview started: {interview['id']} for job {job_id}")
+        
+        return {
+            "interview_id": interview['id'],
+            "questions": questions_result['questions'],
+            "job_title": job['title']
+        }
+        
+    except Exception as e:
+        logging.error(f"Start interview error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/video-interview/upload-answer")
+async def upload_answer_video(
     request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload video interview file"""
+    """Upload video answer for a specific question"""
     if current_user['role'] != UserRole.CANDIDATE:
-        raise HTTPException(status_code=403, detail="Only candidates can upload video interviews")
+        raise HTTPException(status_code=403, detail="Only candidates can upload answers")
     
     try:
         form = await request.form()
         video_file = form.get('video')
-        job_id = form.get('job_id')
+        interview_id = form.get('interview_id')
+        question_index = int(form.get('question_index', 0))
         
-        if not video_file:
-            raise HTTPException(status_code=400, detail="No video file provided")
+        if not video_file or not interview_id:
+            raise HTTPException(status_code=400, detail="Missing required fields")
+        
+        # Get interview
+        interview = await db.video_interviews.find_one({"id": interview_id}, {"_id": 0})
+        if not interview:
+            raise HTTPException(status_code=404, detail="Interview not found")
+        
+        if interview['candidate_id'] != current_user['id']:
+            raise HTTPException(status_code=403, detail="Not your interview")
         
         # Save video file
         upload_dir = Path("/tmp/video_interviews")
         upload_dir.mkdir(exist_ok=True)
         
         file_extension = video_file.filename.split('.')[-1]
-        video_filename = f"{current_user['id']}_{uuid.uuid4()}.{file_extension}"
+        video_filename = f"{interview_id}_q{question_index}.{file_extension}"
         video_path = upload_dir / video_filename
         
         with open(video_path, 'wb') as f:
             content = await video_file.read()
             f.write(content)
         
-        # Create video interview record
-        interview = {
-            "id": str(uuid.uuid4()),
-            "candidate_id": current_user['id'],
-            "job_id": job_id,
-            "video_url": str(video_path),
-            "status": "uploaded",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        
-        await db.video_interviews.insert_one(interview)
-        
-        logging.info(f"Video interview uploaded: {interview['id']}")
+        logging.info(f"Answer video uploaded: {video_filename}")
         
         return {
-            "message": "Video uploaded successfully",
-            "interview_id": interview['id'],
-            "status": "uploaded"
+            "message": "Answer uploaded successfully",
+            "video_path": str(video_path),
+            "question_index": question_index
         }
+        
     except Exception as e:
-        logging.error(f"Video upload error: {str(e)}")
+        logging.error(f"Answer upload error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/video-interview/transcribe/{interview_id}")
