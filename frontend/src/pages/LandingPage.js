@@ -237,6 +237,139 @@ function LandingPage({ user, onLogout }) {
         </div>
       </section>
 
+      {/* AI Labs, Startups & Global Companies Hiring */}
+      <section className="py-16 px-4 bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h3 className="text-4xl font-bold mb-4" data-testid="companies-hiring-title">
+              Top Organizations Hiring Now
+            </h3>
+            <p className="text-gray-600 text-lg">
+              Join leading AI labs, innovative startups, and globally recognized companies
+            </p>
+          </div>
+
+          {/* AI Labs Section */}
+          <div className="mb-12">
+            <div className="flex items-center mb-6">
+              <div className="bg-purple-100 p-3 rounded-lg mr-4">
+                <TrendingUp className="w-8 h-8 text-purple-600" />
+              </div>
+              <h4 className="text-2xl font-bold text-gray-900">AI Research Labs</h4>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { name: 'OpenAI Research', jobs: 12, focus: 'AI Safety & Alignment' },
+                { name: 'DeepMind Health', jobs: 8, focus: 'Medical AI Applications' },
+                { name: 'Google Brain', jobs: 15, focus: 'Healthcare AI' }
+              ].map((lab, idx) => (
+                <Card key={idx} className="hover:shadow-xl transition-all border-2 border-purple-200">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-lg">{lab.name}</CardTitle>
+                      <Badge className="bg-purple-600">{lab.jobs} jobs</Badge>
+                    </div>
+                    <CardDescription className="text-sm text-gray-600">
+                      {lab.focus}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-purple-300 hover:bg-purple-50"
+                      onClick={() => navigate(`/jobs?company=${lab.name}`)}
+                    >
+                      View Positions
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Startups Section */}
+          <div className="mb-12">
+            <div className="flex items-center mb-6">
+              <div className="bg-green-100 p-3 rounded-lg mr-4">
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
+              <h4 className="text-2xl font-bold text-gray-900">Innovative Health-Tech Startups</h4>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { name: 'Tempus Labs', jobs: 6, funding: 'Series G - $1.3B', focus: 'Precision Medicine' },
+                { name: 'Freenome', jobs: 9, funding: 'Series D - $270M', focus: 'Cancer Detection AI' },
+                { name: 'Recursion Pharma', jobs: 11, funding: 'Public', focus: 'Drug Discovery AI' }
+              ].map((startup, idx) => (
+                <Card key={idx} className="hover:shadow-xl transition-all border-2 border-green-200">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-lg">{startup.name}</CardTitle>
+                      <Badge className="bg-green-600">{startup.jobs} jobs</Badge>
+                    </div>
+                    <CardDescription className="text-xs text-green-700 font-semibold mb-1">
+                      {startup.funding}
+                    </CardDescription>
+                    <CardDescription className="text-sm text-gray-600">
+                      {startup.focus}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-green-300 hover:bg-green-50"
+                      onClick={() => navigate(`/jobs?company=${startup.name}`)}
+                    >
+                      Explore Opportunities
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Global Companies Section */}
+          <div>
+            <div className="flex items-center mb-6">
+              <div className="bg-blue-100 p-3 rounded-lg mr-4">
+                <Building2 className="w-8 h-8 text-blue-600" />
+              </div>
+              <h4 className="text-2xl font-bold text-gray-900">Globally Recognized Organizations</h4>
+            </div>
+            <div className="grid md:grid-cols-4 gap-6">
+              {[
+                { name: 'Johns Hopkins Medicine', jobs: 24, type: 'Healthcare Institution' },
+                { name: 'Mayo Clinic', jobs: 18, type: 'Medical Research' },
+                { name: 'Pfizer', jobs: 32, type: 'Pharmaceutical' },
+                { name: 'Roche', jobs: 21, type: 'Diagnostics & Research' }
+              ].map((company, idx) => (
+                <Card key={idx} className="hover:shadow-xl transition-all border-2 border-blue-200">
+                  <CardHeader>
+                    <div className="flex items-center justify-between mb-2">
+                      <CardTitle className="text-base">{company.name}</CardTitle>
+                      <Badge className="bg-blue-600">{company.jobs}</Badge>
+                    </div>
+                    <CardDescription className="text-xs text-gray-600">
+                      {company.type}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="w-full border-blue-300 hover:bg-blue-50 text-xs"
+                      onClick={() => navigate(`/jobs?company=${company.name}`)}
+                    >
+                      View Jobs
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Categories Section */}
       <section className="py-16 px-4">
         <div className="max-w-7xl mx-auto">
