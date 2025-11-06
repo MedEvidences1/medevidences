@@ -202,14 +202,13 @@ export default function MercorJobs() {
                         >
                           {job.imported ? 'Imported' : 'Import Job'}
                         </Button>
-                        <a
-                          href={job.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline text-center"
+                        <Button
+                          onClick={() => navigate(job.url)}
+                          variant="outline"
+                          size="sm"
                         >
-                          View Original
-                        </a>
+                          View Details
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
