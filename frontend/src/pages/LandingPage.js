@@ -365,12 +365,20 @@ function LandingPage({ user, onLogout }) {
               <h4 className="text-2xl font-bold text-gray-900">Globally Recognized Organizations</h4>
             </div>
             <div className="grid md:grid-cols-4 gap-6">
-              {[
-                { name: 'Johns Hopkins Medicine', jobs: 24, type: 'Healthcare Institution' },
-                { name: 'Mayo Clinic', jobs: 18, type: 'Medical Research' },
-                { name: 'Pfizer', jobs: 32, type: 'Pharmaceutical' },
-                { name: 'Roche', jobs: 21, type: 'Diagnostics & Research' }
-              ].map((company, idx) => (
+              {(companyStats?.global || [
+                { name: 'Johns Hopkins Medicine', job_count: 24 },
+                { name: 'Mayo Clinic', job_count: 18 },
+                { name: 'Pfizer', job_count: 32 },
+                { name: 'Roche', job_count: 21 }
+              ]).slice(0, 4).map((company, idx) => {
+                const companyTypes = {
+                  'Johns Hopkins Medicine': 'Healthcare Institution',
+                  'Johns Hopkins': 'Healthcare Institution',
+                  'Mayo Clinic': 'Medical Research',
+                  'Pfizer': 'Pharmaceutical',
+                  'Roche': 'Diagnostics & Research'
+                };
+                return (
                 <Card key={idx} className="hover:shadow-xl transition-all border-2 border-blue-200">
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
