@@ -297,6 +297,120 @@ function ReceivedApplications({ user, onLogout }) {
                             <p className="text-lg">{interview.ai_analysis.recommendation}</p>
                             <p className="text-sm text-gray-600 mt-2">{interview.ai_analysis.reasoning}</p>
                           </div>
+
+                          {/* Health & Wellness Analysis */}
+                          {interview.health_score && interview.health_analysis && (
+                            <div className="mt-6">
+                              <div className="bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-200 rounded-lg p-6">
+                                <h3 className="text-2xl font-bold text-green-800 mb-4">🏥 Health & Wellness Assessment</h3>
+                                
+                                <div className="flex items-center space-x-4 mb-6">
+                                  <div>
+                                    <p className="text-sm text-gray-600">Overall Health Score</p>
+                                    <Badge 
+                                      className={`text-xl px-4 py-2 ${
+                                        interview.health_score === 'Excellent' ? 'bg-green-600' :
+                                        interview.health_score === 'Good' ? 'bg-blue-600' :
+                                        'bg-orange-600'
+                                      }`}
+                                    >
+                                      {interview.health_score}
+                                    </Badge>
+                                  </div>
+                                  {interview.health_analysis.overall_wellness_score && (
+                                    <div>
+                                      <p className="text-sm text-gray-600">Wellness Score</p>
+                                      <p className="text-3xl font-bold text-green-700">
+                                        {interview.health_analysis.overall_wellness_score}/100
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                  {interview.health_analysis.exercise_routine && (
+                                    <Card>
+                                      <CardContent className="pt-4">
+                                        <p className="font-semibold text-sm text-gray-700 mb-1">💪 Exercise Routine</p>
+                                        <p className="text-xs text-gray-600">{interview.health_analysis.exercise_routine.assessment}</p>
+                                        <div className="mt-2 flex items-center space-x-2">
+                                          <Badge variant="outline">{interview.health_analysis.exercise_routine.frequency}</Badge>
+                                          <Badge variant="outline">{interview.health_analysis.exercise_routine.duration}</Badge>
+                                          <span className="text-sm font-bold">Score: {interview.health_analysis.exercise_routine.score}</span>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  )}
+
+                                  {interview.health_analysis.nutrition && (
+                                    <Card>
+                                      <CardContent className="pt-4">
+                                        <p className="font-semibold text-sm text-gray-700 mb-1">🥗 Nutrition</p>
+                                        <p className="text-xs text-gray-600">{interview.health_analysis.nutrition.assessment}</p>
+                                        <div className="mt-2 flex items-center space-x-2">
+                                          <Badge variant="outline">{interview.health_analysis.nutrition.diet_quality}</Badge>
+                                          <span className="text-sm font-bold">Score: {interview.health_analysis.nutrition.score}</span>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  )}
+
+                                  {interview.health_analysis.gut_health && (
+                                    <Card>
+                                      <CardContent className="pt-4">
+                                        <p className="font-semibold text-sm text-gray-700 mb-1">🦠 Gut Health</p>
+                                        <p className="text-xs text-gray-600">{interview.health_analysis.gut_health.assessment}</p>
+                                        <div className="mt-2">
+                                          <span className="text-sm font-bold">Score: {interview.health_analysis.gut_health.score}</span>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  )}
+
+                                  {interview.health_analysis.muscle_fitness && (
+                                    <Card>
+                                      <CardContent className="pt-4">
+                                        <p className="font-semibold text-sm text-gray-700 mb-1">🏋️ Muscle Fitness</p>
+                                        <p className="text-xs text-gray-600">{interview.health_analysis.muscle_fitness.assessment}</p>
+                                        <div className="mt-2">
+                                          <span className="text-sm font-bold">Score: {interview.health_analysis.muscle_fitness.score}</span>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  )}
+                                </div>
+
+                                {interview.health_analysis.key_strengths && interview.health_analysis.key_strengths.length > 0 && (
+                                  <div className="mb-4">
+                                    <p className="font-semibold text-sm text-gray-700 mb-2">✅ Health Strengths</p>
+                                    <ul className="list-disc list-inside space-y-1">
+                                      {interview.health_analysis.key_strengths.map((strength, i) => (
+                                        <li key={i} className="text-sm text-green-700">{strength}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {interview.health_analysis.areas_for_improvement && interview.health_analysis.areas_for_improvement.length > 0 && (
+                                  <div>
+                                    <p className="font-semibold text-sm text-gray-700 mb-2">⚠️ Areas for Improvement</p>
+                                    <ul className="list-disc list-inside space-y-1">
+                                      {interview.health_analysis.areas_for_improvement.map((area, i) => (
+                                        <li key={i} className="text-sm text-orange-600">{area}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {interview.health_analysis.health_recommendation && (
+                                  <div className="mt-4 bg-white rounded-lg p-4">
+                                    <p className="font-bold text-sm">Health Recommendation:</p>
+                                    <p className="text-sm text-gray-700">{interview.health_analysis.health_recommendation}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
