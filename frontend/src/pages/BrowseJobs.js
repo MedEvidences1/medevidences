@@ -230,7 +230,7 @@ function BrowseJobs({ user, onLogout }) {
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <Clock className="w-4 h-4 mr-1" />
-                      {job.posted_at ? new Date(job.posted_at).toLocaleDateString() : 'Recently'}
+                      {formatDaysAgo(job.posted_at)}
                     </div>
                   </div>
                   <p className="text-gray-700 line-clamp-2" data-testid={`job-description-${job.id}`}>{job.description}</p>
