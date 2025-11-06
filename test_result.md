@@ -468,8 +468,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Post-Payment Redirect to Job Application"
-    - "Cancel Subscription UI"
+    - "Health Document Upload API"
+    - "AI Interview Health Questions"
+    - "AI Health Analysis"
+    - "Health Documents Upload UI"
+    - "Health Analysis Display for Employers"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
