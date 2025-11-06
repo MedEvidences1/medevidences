@@ -501,30 +501,33 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                         className="w-full bg-purple-600 hover:bg-purple-700"
                         onClick={async () => {
                           if (!confirm('This will make all imported jobs visible to applicants. Continue?')) return;
+                          
+                          const token = localStorage.getItem('token');
+                          if (!token) {
+                            toast.error('Please login first');
+                            return;
+                          }
+                          
                           try {
-                            const token = localStorage.getItem('token');
-                            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/activate-imported-jobs`, {
+                            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/activate-imported-jobs?t=${Date.now()}`, {
                               method: 'POST',
-                              headers: { 'Authorization': `Bearer ${token}` }
+                              headers: { 
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                              }
                             });
                             
-                            // Check status before parsing JSON
-                            if (!response.ok) {
+                            if (response.ok) {
+                              const data = await response.json();
+                              toast.success(`✅ Success! ${data.message}\n\n📊 Activated: ${data.activated} jobs\n⏭️ Skipped: ${data.skipped} duplicates\n📦 Total: ${data.total_processed} jobs`);
+                              setTimeout(() => window.location.reload(), 2000);
+                            } else {
                               const error = await response.json();
                               toast.error('Error: ' + (error.detail || 'Activation failed'));
-                              return;
                             }
-                            
-                            const data = await response.json();
-                            toast.success(`✅ Success! ${data.message}\n\n📊 Activated: ${data.activated} jobs\n⏭️ Skipped: ${data.skipped} duplicates\n📦 Total: ${data.total_processed} jobs`);
-                            
-                            // Refresh dashboard
-                            setTimeout(() => {
-                              window.location.reload();
-                            }, 2000);
                           } catch (error) {
                             console.error('Activation error:', error);
-                            toast.error('Error: ' + error.message);
+                            toast.error('Network error: ' + error.message);
                           }
                         }}
                       >
