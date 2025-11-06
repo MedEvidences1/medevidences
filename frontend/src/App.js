@@ -164,6 +164,22 @@ function App() {
           element={!user ? <Register onLogin={handleLogin} /> : <Navigate to={user.email === 'admin@medevidences.com' ? '/admin' : (user.role === 'candidate' ? '/dashboard/candidate' : '/dashboard/employer')} />}
         />
         <Route
+          path="/dashboard"
+          element={
+            user ? (
+              user.role === 'candidate' ? (
+                <Navigate to="/dashboard/candidate" replace />
+              ) : user.role === 'employer' ? (
+                <Navigate to="/dashboard/employer" replace />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
           path="/dashboard/candidate"
           element={user && user.role === 'candidate' ? <CandidateDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
