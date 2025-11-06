@@ -320,26 +320,33 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                 className="bg-purple-600 hover:bg-purple-700"
                 onClick={async () => {
                   if (!confirm('This will make all imported jobs visible to applicants. Continue?')) return;
+                  
+                  const token = localStorage.getItem('token');
+                  if (!token) {
+                    alert('Please login first');
+                    return;
+                  }
+                  
                   try {
-                    const token = localStorage.getItem('token');
-                    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/activate-imported-jobs`, {
+                    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/activate-imported-jobs?t=${Date.now()}`, {
                       method: 'POST',
-                      headers: { 'Authorization': `Bearer ${token}` }
+                      headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                      }
                     });
                     
-                    // Check status BEFORE parsing JSON
-                    if (!response.ok) {
+                    if (response.ok) {
+                      const data = await response.json();
+                      alert(`✅ Success! ${data.message}\n\n📊 Activated: ${data.activated} jobs\n⏭️ Skipped: ${data.skipped} duplicates\n📦 Total: ${data.total_processed} jobs`);
+                      setTimeout(() => window.location.reload(), 1000);
+                    } else {
                       const error = await response.json();
                       alert('Error: ' + (error.detail || 'Activation failed'));
-                      return;
                     }
-                    
-                    const data = await response.json();
-                    alert(`✅ Success! ${data.message}\n\n📊 Activated: ${data.activated} jobs\n⏭️ Skipped: ${data.skipped} duplicates\n📦 Total: ${data.total_processed} jobs`);
-                    window.location.reload();
                   } catch (error) {
                     console.error('Activation error:', error);
-                    alert('Error: ' + error.message);
+                    alert('Network error: ' + error.message);
                   }
                 }}
               >
