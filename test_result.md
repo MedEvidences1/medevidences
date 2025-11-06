@@ -1096,6 +1096,43 @@ test_plan:
 
   - agent: "main"
     message: |
+      JOB DETAILS PAGE FIX - INVESTIGATION COMPLETE:
+      
+      USER REPORTED ISSUES:
+      1. "Job not found" error appears and disappears when clicking "Job details"
+      2. Need "X days ago" format for posting dates
+      3. Verify job count display and Mercor masking
+      
+      ROOT CAUSE IDENTIFIED:
+      1. Backend endpoint /api/jobs/{job_id} (line 1237-1241 in server.py):
+         - MISSING: Does not return the job object (missing return statement)
+         - INCOMPLETE: Only searches in db.jobs collection
+         - PROBLEM: Imported jobs from db.imported_jobs and db.scraped_jobs are not found
+      
+      2. Date Format in BrowseJobs.js (line 216):
+         - Currently using: toLocaleDateString() 
+         - Needs: "X days ago" format (e.g., "2 days ago")
+      
+      3. JobDetails.js:
+         - Missing date display entirely
+         - Needs to show "Posted X days ago"
+      
+      IMPLEMENTATION PLAN:
+      1. Fix get_job_by_id endpoint to:
+         - Search in all three collections (jobs, imported_jobs, scraped_jobs)
+         - Return the found job object
+         - Ensure proper error handling
+      
+      2. Create formatDaysAgo() helper function in frontend
+      
+      3. Update BrowseJobs.js to use "X days ago" format
+      
+      4. Update JobDetails.js to display posting date
+      
+      5. Test with backend testing agent
+  
+  - agent: "main"
+    message: |
       HEALTH SCREENING INTEGRATION COMPLETED:
       
       NEW FEATURE: AI Interview with Health & Wellness Questions
