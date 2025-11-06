@@ -150,6 +150,16 @@ function CandidateDashboard({ user, onLogout }) {
                   My Applications
                 </Button>
               </Link>
+              <Link to="/video-interview">
+                <Button variant="ghost" className="bg-blue-50 hover:bg-blue-100">
+                  🎥 Video Interview
+                </Button>
+              </Link>
+              <Link to="/job-offers">
+                <Button variant="ghost" className="bg-purple-50 hover:bg-purple-100">
+                  💼 My Offers
+                </Button>
+              </Link>
               <Link to="/resume-upload">
                 <Button variant="ghost" className="bg-green-50 hover:bg-green-100">
                   <FileText className="w-4 h-4 mr-2" />
@@ -166,6 +176,23 @@ function CandidateDashboard({ user, onLogout }) {
                   ⭐ Subscription
                 </Button>
               </Link>
+              <Button
+                variant="ghost"
+                className="bg-orange-50 hover:bg-orange-100"
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await axios.get(`${API}/stripe/customer-portal`, {
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    window.open(response.data.portal_url, '_blank');
+                  } catch (error) {
+                    toast.error(error.response?.data?.detail || 'Failed to open portal');
+                  }
+                }}
+              >
+                💳 Manage Billing
+              </Button>
               <Button variant="outline" onClick={onLogout} data-testid="logout-button" className="border-red-300 text-red-600 hover:bg-red-50">
                 Logout
               </Button>
