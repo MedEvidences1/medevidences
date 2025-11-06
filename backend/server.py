@@ -3656,12 +3656,13 @@ async def scrape_mercor_jobs(
                 "location": item.get('location'),
                 "commitment": item.get('commitment'),
                 "salary_range": scraped_job.salary_range,
-                "description": item.get('description', '')[:500],  # First 500 chars
+                "description": item.get('description', ''),  # Full description
                 "referral_amount": item.get('referralAmount'),
                 "recent_candidates": item.get('recentCandidatesCount'),
                 "created_at": item.get('createdAt'),
                 "status": item.get('status'),
-                "url": f"/job/{scraped_job.id}"  # Internal MedEvidences URL
+                "url": f"/jobs/{scraped_job.id}",  # Internal MedEvidences URL (with 's')
+                "imported": False  # Track if converted to main job
             })
         
         logging.info(f"Successfully fetched {len(jobs_data)} jobs from Mercor")
