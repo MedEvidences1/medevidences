@@ -38,6 +38,8 @@ function CandidateDashboard({ user, onLogout }) {
     education: '',
     bio: '',
     location: '',
+    country: '',
+    linkedin_url: '',
     publications: '',
     certifications: '',
     availability: 'Full-time',
