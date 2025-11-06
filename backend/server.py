@@ -1593,6 +1593,42 @@ async def create_application(
                 detail="Your subscription has expired. Please renew to continue applying to jobs."
             )
     
+    # MANDATORY VALIDATION: Check Resume Upload
+    if not candidate_profile.get('resume_url'):
+        raise HTTPException(
+            status_code=400,
+            detail="Resume required. Please upload your resume in the Dashboard before applying."
+        )
+    
+    # MANDATORY VALIDATION: Check Health Documents
+    calorie_reports = candidate_profile.get('calorie_reports', [])
+    microbiome_screenshot = candidate_profile.get('microbiome_screenshot')
+    
+    if not calorie_reports or len(calorie_reports) < 1:
+        raise HTTPException(
+            status_code=400,
+            detail="Health documents required. Please upload your calorie reports from MedEvidences.com before applying."
+        )
+    
+    if not microbiome_screenshot:
+        raise HTTPException(
+            status_code=400,
+            detail="Gut microbiome score required. Please upload your gut microbiome screenshot from MedEvidences.com before applying."
+        )
+    
+    # MANDATORY VALIDATION: Check AI Video Interview Completion
+    video_interview = await db.video_interviews.find_one({
+        "candidate_id": current_user['id'],
+        "job_id": application_data.job_id,
+        "status": "completed"
+    }, {"_id": 0})
+    
+    if not video_interview:
+        raise HTTPException(
+            status_code=400,
+            detail="AI Video Interview required. Please complete your AI video interview for this job before applying."
+        )
+    
     # Check if job exists
     job = await db.jobs.find_one({"id": application_data.job_id}, {"_id": 0})
     if not job:
