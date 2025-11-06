@@ -1354,3 +1354,56 @@ test_plan:
       
       RECOMMENDATION: 
       The job listing and job details endpoints are now fully functional. The main agent's fix successfully resolved the reported issues. Ready for production use.
+
+  - agent: "testing"
+    message: |
+      APPLICATION REQUIREMENTS VALIDATION TESTING COMPLETED ✅
+      
+      TASK: Test comprehensive validation for resume, health documents, and AI video interview completion
+      
+      TESTING RESULTS:
+      ✅ SUBSCRIPTION VALIDATION - WORKING PERFECTLY
+        - Applications properly blocked with 402 Payment Required for free users
+        - Clear error message: "Subscription required to apply to jobs. Please upgrade to a paid plan to apply."
+        - Subscription validation is checked FIRST (correct priority order)
+      
+      ✅ HEALTH DOCUMENTS UPLOAD - WORKING PERFECTLY
+        - POST /api/candidates/upload-calorie-report: Successfully uploads calorie reports from MedEvidences.com
+        - POST /api/candidates/upload-microbiome-screenshot: Successfully uploads gut microbiome screenshots
+        - Files properly stored and candidate profile updated with file paths
+        - Validation logic implemented to require both calorie reports and microbiome screenshot
+      
+      ✅ VIDEO INTERVIEW SYSTEM - WORKING PERFECTLY
+        - POST /api/video-interview/start: Generates exactly 12 questions (6 health + 6 job-specific)
+        - Health questions cover: workout routine, nutrition/calorie reports, gut microbiome, muscle fitness, medications, exercise details
+        - Proper MedEvidences.com references included for document uploads
+        - AI interview completion validation implemented (requires status='completed')
+      
+      ✅ VALIDATION ORDER CONFIRMED:
+        1. 🔒 Subscription Status (checked first - 402 Payment Required)
+        2. 📄 Resume Upload (resume_url required - 400 Bad Request)
+        3. 🏥 Health Documents (calorie_reports & microbiome_screenshot required - 400 Bad Request)
+        4. 🎥 AI Video Interview (status='completed' required - 400 Bad Request)
+      
+      ✅ ERROR MESSAGES - CLEAR AND SPECIFIC:
+        - "Resume required. Please upload your resume in the Dashboard before applying."
+        - "Health documents required. Please upload your calorie reports from MedEvidences.com before applying."
+        - "Gut microbiome score required. Please upload your gut microbiome screenshot from MedEvidences.com before applying."
+        - "AI Video Interview required. Please complete your AI video interview for this job before applying."
+      
+      CRITICAL FINDINGS:
+      1. All validation layers are properly implemented and enforced
+      2. Validation priority order prevents applications without meeting ALL requirements
+      3. Health document uploads working correctly with proper file handling
+      4. Video interview system generates proper health-focused questions
+      5. Error messages provide clear guidance to users on what needs to be completed
+      6. Applications are completely blocked until all requirements are met
+      
+      RECOMMENDATION: 
+      The application validation system is working perfectly as designed. Users cannot submit applications without:
+      - Active subscription
+      - Resume uploaded
+      - Health documents from MedEvidences.com (calorie reports + microbiome screenshot)
+      - Completed AI video interview for the specific job
+      
+      This addresses the user's original concern about applications being submitted without proper requirements.
