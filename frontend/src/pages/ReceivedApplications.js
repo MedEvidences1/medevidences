@@ -145,7 +145,7 @@ function ReceivedApplications({ user, onLogout }) {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 pt-4 border-t">
+                    <div className="flex items-center gap-2 pt-4 border-t flex-wrap">
                       <span className="text-sm text-gray-600 mr-2">Update Status:</span>
                       <Select value={app.status} onValueChange={(value) => handleStatusUpdate(app.id, value)}>
                         <SelectTrigger className="w-40" data-testid={`status-select-${app.id}`}>
@@ -159,6 +159,14 @@ function ReceivedApplications({ user, onLogout }) {
                           <SelectItem value="accepted">Accepted</SelectItem>
                         </SelectContent>
                       </Select>
+                      <Button 
+                        onClick={() => fetchInterviewDetails(app.id)} 
+                        variant="outline" 
+                        size="sm"
+                        className="bg-purple-50 hover:bg-purple-100 border-purple-200"
+                      >
+                        🎥 View AI Interview
+                      </Button>
                       <Link to={`/candidates/${app.candidate_id}`} className="ml-auto">
                         <Button variant="outline" size="sm" data-testid={`view-profile-${app.id}`}>View Profile</Button>
                       </Link>
