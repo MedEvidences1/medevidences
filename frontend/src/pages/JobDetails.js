@@ -73,24 +73,43 @@ function JobDetails({ user, onLogout }) {
       await axios.post(`${API}/applications`, {
         job_id: jobId,
         cover_letter: coverLetter
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
       });
-      toast.success('Application submitted successfully!');
+      toast.success('Application submitted successfully! The employer will review your profile, resume, health documents, and AI interview.');
       setDialogOpen(false);
       setCoverLetter('');
     } catch (error) {
       console.error('Application error:', error);
       
+      const errorMessage = error.response?.data?.detail || 'Failed to submit application';
+      
       // Check if it's a subscription error (402 Payment Required)
       if (error.response?.status === 402) {
-        toast.error('Subscription required to apply to jobs');
+        toast.error(errorMessage);
         // Save the job ID so we can return after subscription
         sessionStorage.setItem('pendingJobApplication', jobId);
         // Redirect to subscription page
         setTimeout(() => {
           navigate('/subscription');
         }, 2000);
+      } else if (error.response?.status === 400) {
+        // Validation errors - show detailed message
+        toast.error(errorMessage, { duration: 6000 });
+        
+        // If it's about missing requirements, redirect to dashboard after a delay
+        if (errorMessage.includes('Resume required') || 
+            errorMessage.includes('Health documents required') || 
+            errorMessage.includes('AI Video Interview required')) {
+          setTimeout(() => {
+            toast.info('Redirecting to your dashboard to complete requirements...');
+            navigate('/dashboard/candidate');
+          }, 3000);
+        }
       } else {
-        toast.error(error.response?.data?.detail || 'Failed to submit application');
+        toast.error(errorMessage);
       }
     } finally {
       setApplying(false);
