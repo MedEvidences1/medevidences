@@ -43,6 +43,20 @@ function ReceivedApplications({ user, onLogout }) {
     }
   };
 
+  const fetchInterviewDetails = async (applicationId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/applications/${applicationId}/interview-details`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setInterviewDetails(response.data);
+      setShowInterviewModal(true);
+    } catch (error) {
+      console.error('Error fetching interview:', error);
+      toast.error('No interview found for this candidate');
+    }
+  };
+
   const handleStatusUpdate = async (applicationId, newStatus) => {
     try {
       await axios.put(`${API}/applications/${applicationId}/status?status=${newStatus}`);
