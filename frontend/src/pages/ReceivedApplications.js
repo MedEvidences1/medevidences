@@ -24,6 +24,8 @@ function ReceivedApplications({ user, onLogout }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
+  const [interviewDetails, setInterviewDetails] = useState(null);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
 
   useEffect(() => {
     fetchApplications();
