@@ -144,14 +144,21 @@ Provide analysis in JSON:
             return {"success": False, "error": str(e)}
     
     async def analyze_complete_interview(self, questions_and_answers, job_title, job_description):
-        """Analyze complete interview with all Q&A"""
+        """Analyze complete interview with all Q&A including health assessment"""
         try:
             qa_text = "\n\n".join([
                 f"Q{i+1}: {qa['question']}\nA{i+1}: {qa['answer']}"
                 for i, qa in enumerate(questions_and_answers)
             ])
             
-            prompt = f"""Analyze this complete interview for a {job_title} position.
+            # Separate health questions (1-6) and job-specific questions (7-10)
+            health_qa = questions_and_answers[:6] if len(questions_and_answers) >= 6 else []
+            health_text = "\n\n".join([
+                f"Q{i+1}: {qa['question']}\nA{i+1}: {qa['answer']}"
+                for i, qa in enumerate(health_qa)
+            ]) if health_qa else "No health responses"
+            
+            prompt = f"""Analyze this complete interview for a {job_title} position at MedEvidences.com.
 
 Job Description:
 {job_description}
@@ -159,7 +166,9 @@ Job Description:
 Interview Transcript:
 {qa_text}
 
-Provide comprehensive analysis in JSON:
+Provide comprehensive analysis in JSON with TWO sections:
+
+1. OVERALL INTERVIEW ANALYSIS:
 {{
   "overall_score": <0-100>,
   "communication_score": <0-100>,
@@ -175,12 +184,60 @@ Provide comprehensive analysis in JSON:
   "hire_decision": "Strong Yes|Yes|Maybe|No|Strong No"
 }}
 
-Be thorough and professional."""
+2. HEALTH & WELLNESS ANALYSIS (Based on Questions 1-6):
+{{
+  "health_score": "Excellent|Good|Bad",
+  "health_analysis": {{
+    "exercise_routine": {{
+      "assessment": "<detailed assessment>",
+      "score": <0-100>,
+      "frequency": "<times per week>",
+      "duration": "<minutes per session>",
+      "regularity": "Excellent|Good|Poor"
+    }},
+    "nutrition": {{
+      "assessment": "<detailed assessment>",
+      "calorie_tracking": "Yes|No|Not Mentioned",
+      "diet_quality": "Excellent|Good|Poor",
+      "score": <0-100>
+    }},
+    "gut_health": {{
+      "microbiome_tracked": "Yes|No|Not Mentioned",
+      "assessment": "<detailed assessment>",
+      "score": <0-100>
+    }},
+    "muscle_fitness": {{
+      "assessment": "<detailed assessment>",
+      "strength_training": "Yes|No|Not Mentioned",
+      "score": <0-100>
+    }},
+    "medications": {{
+      "status": "Yes|No|Not Mentioned",
+      "details": "<details if any>",
+      "impact_assessment": "<assessment>"
+    }},
+    "sleep_habits": {{
+      "assessment": "<based on regularity mentioned>",
+      "score": <0-100>
+    }},
+    "overall_wellness_score": <0-100>,
+    "key_strengths": ["strength1", "strength2"],
+    "areas_for_improvement": ["area1", "area2"],
+    "health_recommendation": "<detailed recommendation>"
+  }}
+}}
+
+Health Score Criteria:
+- "Excellent": Regular exercise (4+ times/week, 30+ min), good nutrition tracking, gut health monitoring, strength training, no major medications, good sleep habits
+- "Good": Moderate exercise (2-3 times/week), some health tracking, general fitness awareness
+- "Bad": Irregular exercise, poor nutrition, no health tracking, sedentary lifestyle
+
+Be thorough, professional, and specific in your assessments."""
             
             chat = LlmChat(
                 api_key=self.api_key,
                 session_id=str(uuid.uuid4()),
-                system_message="You are a senior hiring manager and expert interviewer."
+                system_message="You are a senior hiring manager, expert interviewer, and wellness consultant for medical professionals."
             ).with_model("openai", "gpt-4o")
             
             user_message = UserMessage(text=prompt)
