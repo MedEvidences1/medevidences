@@ -3834,6 +3834,147 @@ async def import_jobs_by_company(
 
 @api_router.post("/ai/enhanced-match/{job_id}")
 async def get_enhanced_match_score(
+
+
+@api_router.get("/employer/recommended-candidates/{job_id}")
+async def get_recommended_candidates(
+    job_id: str,
+    top_n: int = 10,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get top recommended candidates for a specific job"""
+    
+    if current_user['role'] != UserRole.EMPLOYER:
+        raise HTTPException(status_code=403, detail="Only employers can access recommendations")
+    
+    # Get job
+    job = await db.jobs.find_one({"id": job_id, "employer_id": current_user['id']}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found or not owned by you")
+    
+    # Get all candidate profiles
+    all_candidates = await db.candidate_profiles.find({}, {"_id": 0}).to_list(length=None)
+    
+    if not all_candidates:
+        return {
+            "job_id": job_id,
+            "job_title": job['title'],
+            "recommended_candidates": [],
+            "message": "No candidates available yet"
+        }
+    
+    # Get recommendations
+    recommendations = await recommendation_service.get_top_candidates_for_job(
+        job,
+        all_candidates,
+        top_n
+    )
+    
+    # Enrich with user details
+    enriched_recommendations = []
+    for candidate in recommendations:
+        user = await db.users.find_one({"id": candidate['user_id']}, {"_id": 0})
+        if user:
+            enriched_recommendations.append({
+                "candidate_id": candidate['user_id'],
+                "full_name": user['full_name'],
+                "email": user['email'],
+                "specialization": candidate.get('specialization'),
+                "experience_years": candidate.get('experience_years'),
+                "skills": candidate.get('skills', [])[:10],
+                "ai_vetting_score": candidate.get('ai_vetting_score'),
+                "health_score": candidate.get('health_score'),
+                "match_score": candidate.get('match_score'),
+                "ranking_reason": candidate.get('ranking_reason'),
+                "interview_completed": candidate.get('interview_completed', False),
+                "location": candidate.get('location', 'Not specified')
+            })
+    
+    return {
+        "job_id": job_id,
+        "job_title": job['title'],
+        "total_candidates_analyzed": len(all_candidates),
+        "recommended_count": len(enriched_recommendations),
+        "recommended_candidates": enriched_recommendations
+    }
+
+@api_router.get("/employer/dashboard-stats")
+async def get_employer_dashboard_stats(current_user: dict = Depends(get_current_user)):
+    """Get employer dashboard statistics"""
+    
+    if current_user['role'] != UserRole.EMPLOYER:
+        raise HTTPException(status_code=403, detail="Only employers can access this")
+    
+    # Count jobs
+    total_jobs = await db.jobs.count_documents({"employer_id": current_user['id']})
+    active_jobs = await db.jobs.count_documents({"employer_id": current_user['id'], "status": "open"})
+    
+    # Count applications
+    total_applications = await db.applications.count_documents({"employer_id": current_user['id']})
+    new_applications = await db.applications.count_documents({
+        "employer_id": current_user['id'],
+        "status": "pending"
+    })
+    shortlisted = await db.applications.count_documents({
+        "employer_id": current_user['id'],
+        "status": "shortlisted"
+    })
+    
+    # Get recent applications
+    recent_apps = await db.applications.find(
+        {"employer_id": current_user['id']},
+        {"_id": 0}
+    ).sort("applied_at", -1).limit(5).to_list(5)
+    
+    return {
+        "total_jobs": total_jobs,
+        "active_jobs": active_jobs,
+        "total_applications": total_applications,
+        "new_applications": new_applications,
+        "shortlisted_candidates": shortlisted,
+        "recent_applications": recent_apps
+    }
+
+@api_router.get("/candidate/dashboard-stats")
+async def get_candidate_dashboard_stats(current_user: dict = Depends(get_current_user)):
+    """Get candidate dashboard statistics"""
+    
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can access this")
+    
+    # Count applications
+    total_applications = await db.applications.count_documents({"candidate_id": current_user['id']})
+    pending = await db.applications.count_documents({"candidate_id": current_user['id'], "status": "pending"})
+    reviewed = await db.applications.count_documents({"candidate_id": current_user['id'], "status": "reviewed"})
+    shortlisted = await db.applications.count_documents({"candidate_id": current_user['id'], "status": "shortlisted"})
+    rejected = await db.applications.count_documents({"candidate_id": current_user['id'], "status": "rejected"})
+    
+    # Get profile completeness
+    profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    
+    completeness = 0
+    if profile:
+        required_fields = ['bio', 'skills', 'education', 'specialization', 'cv_url', 'experience_years']
+        completed_fields = sum(1 for field in required_fields if profile.get(field))
+        completeness = int((completed_fields / len(required_fields)) * 100)
+    
+    # Interview status
+    interview_completed = profile.get('interview_completed', False) if profile else False
+    ai_score = profile.get('ai_vetting_score', 0) if profile else 0
+    
+    return {
+        "total_applications": total_applications,
+        "pending": pending,
+        "reviewed": reviewed,
+        "shortlisted": shortlisted,
+        "rejected": rejected,
+        "profile_completeness": completeness,
+        "interview_completed": interview_completed,
+        "ai_vetting_score": ai_score,
+        "health_score": profile.get('health_score') if profile else None,
+        "subscription_status": profile.get('subscription_status', 'free') if profile else 'free'
+    }
+
     job_id: str,
     current_user: dict = Depends(get_current_user)
 ):
