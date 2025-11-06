@@ -867,6 +867,21 @@ backend:
       - working: "NA"
         agent: "testing"
         comment: "NOT TESTED: Cannot test dashboard analytics APIs due to authentication issues preventing access to candidate and employer dashboards. APIs require authentication which is currently failing."
+  
+  - task: "Job Details Endpoint Fix"
+    implemented: false
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports: Job details page shows 'job not found' error that appears and disappears. Cannot view job details."
+      - working: "NA"
+        agent: "main"
+        comment: "Investigation complete. Root cause: get_job_by_id endpoint missing return statement and only searches db.jobs collection. Needs to search all three collections (jobs, imported_jobs, scraped_jobs) and return the job object. Ready to implement fix."
 
 frontend:
   - task: "Dynamic Landing Page Company Sections"
