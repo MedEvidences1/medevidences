@@ -254,9 +254,11 @@ function CandidateDashboard({ user, onLogout }) {
               <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
                 <div className="mt-1">🎯</div>
                 <div className="flex-1">
-                  <p className="font-semibold text-gray-900">Step 4: Apply to Jobs</p>
+                  <p className="font-semibold text-gray-900">Step 4: Submit Application</p>
                   <p className="text-sm text-gray-600">Once all requirements are complete, click "Apply Now" on job details pages</p>
-                  <p className="text-sm text-gray-500 mt-1 italic">Your application will go directly to the employer who posted that job</p>
+                  <p className="text-sm text-blue-600 mt-1 font-medium">→ MedEvidences Admin Reviews Your Application</p>
+                  <p className="text-sm text-gray-500 mt-1 italic">→ Admin forwards vetted candidates to the right employers</p>
+                  <p className="text-sm text-gray-500 italic">→ This ensures quality matching and professional representation</p>
                 </div>
               </div>
             </div>
