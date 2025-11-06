@@ -13,6 +13,23 @@ import { Briefcase, MapPin, Clock, DollarSign, Building, Globe } from 'lucide-re
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Helper function to format dates as "X days ago"
+const formatDaysAgo = (dateString) => {
+  if (!dateString) return 'Recently posted';
+  
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Posted today';
+  if (diffDays === 1) return 'Posted 1 day ago';
+  if (diffDays < 30) return `Posted ${diffDays} days ago`;
+  if (diffDays < 60) return 'Posted 1 month ago';
+  if (diffDays < 365) return `Posted ${Math.floor(diffDays / 30)} months ago`;
+  return `Posted ${Math.floor(diffDays / 365)} year${Math.floor(diffDays / 365) > 1 ? 's' : ''} ago`;
+};
+
 function JobDetails({ user, onLogout }) {
   const { jobId } = useParams();
   const navigate = useNavigate();
