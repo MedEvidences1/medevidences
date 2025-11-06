@@ -3640,11 +3640,13 @@ async def scrape_mercor_jobs(
             
             # Replace Mercor or any company name with "M"
             company_name = item.get('companyName', 'M')
-            if 'mercor' in company_name.lower():
+            if company_name and 'mercor' in company_name.lower():
                 company_name = 'M'
-            else:
+            elif company_name:
                 # For other companies, just use first letter
-                company_name = company_name[0].upper() if company_name else 'M'
+                company_name = company_name[0].upper()
+            else:
+                company_name = 'M'
             
             jobs_data.append({
                 "id": scraped_job.id,
