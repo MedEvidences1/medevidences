@@ -222,7 +222,7 @@ export default function MercorJobs() {
           <Card>
             <CardContent className="py-12 text-center text-gray-500">
               <p className="text-lg mb-2">No jobs fetched yet</p>
-              <p className="text-sm">Click "Fetch Jobs" to import listings from Mercor</p>
+              <p className="text-sm">Click "Fetch Jobs" to import external job listings</p>
             </CardContent>
           </Card>
         )}
