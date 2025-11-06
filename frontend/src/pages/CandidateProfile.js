@@ -164,6 +164,58 @@ function CandidateProfile({ user, onLogout }) {
               </div>
             )}
 
+            {/* Resume/CV */}
+            {(candidate.cv_url || candidate.resume_file) && (
+              <div className="pt-6 border-t">
+                <div className="flex items-center mb-3">
+                  <FileText className="w-5 h-5 mr-2 text-gray-400" />
+                  <h3 className="text-xl font-semibold">Resume / CV</h3>
+                </div>
+                <a 
+                  href={candidate.cv_url || candidate.resume_file} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Download Resume
+                </a>
+              </div>
+            )}
+
+            {/* Health Score */}
+            {candidate.health_score && (
+              <div className="pt-6 border-t">
+                <h3 className="text-xl font-semibold mb-3">🏥 Health Assessment</h3>
+                <div className="bg-gradient-to-r from-green-50 to-teal-50 border-2 border-green-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Health Score</p>
+                      <Badge 
+                        className={`text-lg px-4 py-2 ${
+                          candidate.health_score === 'Excellent' ? 'bg-green-600' :
+                          candidate.health_score === 'Good' ? 'bg-blue-600' :
+                          'bg-orange-600'
+                        }`}
+                      >
+                        {candidate.health_score}
+                      </Badge>
+                    </div>
+                    {candidate.calorie_reports && candidate.calorie_reports.length > 0 && (
+                      <div>
+                        <p className="text-sm text-gray-600">✓ Calorie reports uploaded ({candidate.calorie_reports.length})</p>
+                      </div>
+                    )}
+                    {candidate.microbiome_screenshot && (
+                      <div>
+                        <p className="text-sm text-gray-600">✓ Gut microbiome score uploaded</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Additional Info */}
             <div className="pt-6 border-t">
               <div className="grid md:grid-cols-2 gap-4">
