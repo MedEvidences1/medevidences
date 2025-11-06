@@ -280,27 +280,28 @@ function LandingPage({ user, onLogout }) {
                   'Google Brain': 'Healthcare AI'
                 };
                 return (
-                <Card key={idx} className="hover:shadow-xl transition-all border-2 border-purple-200">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-lg">{lab.name}</CardTitle>
-                      <Badge className="bg-purple-600">{lab.jobs} jobs</Badge>
-                    </div>
-                    <CardDescription className="text-sm text-gray-600">
-                      {lab.focus}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-purple-300 hover:bg-purple-50"
-                      onClick={() => navigate(`/jobs?company=${lab.name}`)}
-                    >
-                      View Positions
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  <Card key={idx} className="hover:shadow-xl transition-all border-2 border-purple-200">
+                    <CardHeader>
+                      <div className="flex items-center justify-between mb-2">
+                        <CardTitle className="text-lg">{lab.name}</CardTitle>
+                        <Badge className="bg-purple-600">{lab.job_count} jobs</Badge>
+                      </div>
+                      <CardDescription className="text-sm text-gray-600">
+                        {focusAreas[lab.name] || 'AI Research & Development'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-purple-300 hover:bg-purple-50"
+                        onClick={() => navigate(`/jobs?company=${lab.name}`)}
+                      >
+                        View Positions
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
