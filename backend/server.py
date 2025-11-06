@@ -3658,19 +3658,23 @@ async def upload_answer_video(
         logging.error(f"Answer upload error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.post("/video-interview/transcribe/{interview_id}")
-async def transcribe_video_interview(
+@api_router.post("/video-interview/complete/{interview_id}")
+async def complete_video_interview(
     interview_id: str,
+    request: dict,
     current_user: dict = Depends(get_current_user)
 ):
-    """Transcribe video interview using OpenAI Whisper"""
+    """Complete interview and analyze all answers"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
     interview = await db.video_interviews.find_one({"id": interview_id}, {"_id": 0})
     
     if not interview:
         raise HTTPException(status_code=404, detail="Interview not found")
     
-    if interview['candidate_id'] != current_user['id'] and current_user.get('email') != 'admin@medevidences.com':
-        raise HTTPException(status_code=403, detail="Not authorized")
+    if interview['candidate_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not your interview")
     
     try:
         # Update status
@@ -3679,70 +3683,71 @@ async def transcribe_video_interview(
             {"$set": {"status": "processing"}}
         )
         
-        # Extract audio and transcribe (simplified - assumes video has audio)
-        video_path = interview['video_url']
+        # Get video paths and transcribe each
+        video_paths = request.get('video_paths', [])  # Array of {question_index, path}
         
-        # For now, if video is mp4/webm, treat as audio file
-        # In production, use ffmpeg to extract audio
-        with open(video_path, 'rb') as audio_file:
-            result = await video_service.transcribe_audio(audio_file)
+        questions_and_answers = []
         
-        if result['success']:
-            transcript = result['text']
+        for video_data in video_paths:
+            video_path = video_data['path']
+            question_index = video_data['question_index']
             
-            # Get candidate profile for specialization
-            candidate = await db.candidate_profiles.find_one(
+            # Transcribe this answer
+            with open(video_path, 'rb') as audio_file:
+                result = await video_service.transcribe_audio(audio_file)
+            
+            if result['success']:
+                answer_text = result['text']
+                questions_and_answers.append({
+                    "question": interview['questions'][question_index],
+                    "answer": answer_text
+                })
+        
+        # Get job details
+        job = await db.jobs.find_one({"id": interview['job_id']}, {"_id": 0})
+        
+        # Analyze complete interview
+        analysis_result = await video_service.analyze_complete_interview(
+            questions_and_answers,
+            interview['job_title'],
+            job['description'] if job else ""
+        )
+        
+        if analysis_result['success']:
+            analysis = analysis_result['analysis']
+            
+            # Update interview
+            await db.video_interviews.update_one(
+                {"id": interview_id},
+                {"$set": {
+                    "answers": questions_and_answers,
+                    "ai_analysis": analysis,
+                    "status": "completed",
+                    "completed_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Update candidate profile
+            await db.candidate_profiles.update_one(
                 {"user_id": current_user['id']},
-                {"_id": 0}
-            )
-            specialization = candidate.get('specialization', 'Healthcare') if candidate else 'Healthcare'
-            
-            # Analyze with GPT-4o
-            from openai import AsyncOpenAI
-            openai_client = AsyncOpenAI(api_key=os.getenv('EMERGENT_LLM_KEY'))
-            
-            analysis_result = await video_service.analyze_interview_transcript(
-                transcript, specialization, openai_client
+                {"$set": {
+                    "interview_completed": True,
+                    "interview_score": analysis.get('overall_score', 0),
+                    "ai_vetting_score": analysis.get('overall_score', 0),
+                    "ai_recommendation": analysis.get('recommendation', 'Pending Review')
+                }}
             )
             
-            if analysis_result['success']:
-                analysis = analysis_result['analysis']
-                
-                # Update interview with transcript and analysis
-                await db.video_interviews.update_one(
-                    {"id": interview_id},
-                    {"$set": {
-                        "transcript": transcript,
-                        "ai_analysis": analysis,
-                        "status": "completed",
-                        "completed_at": datetime.now(timezone.utc).isoformat(),
-                        "duration_seconds": result.get('duration')
-                    }}
-                )
-                
-                # Update candidate profile with AI vetting score
-                await db.candidate_profiles.update_one(
-                    {"user_id": current_user['id']},
-                    {"$set": {
-                        "interview_completed": True,
-                        "interview_score": analysis.get('overall_score', 0),
-                        "ai_vetting_score": analysis.get('overall_score', 0),
-                        "ai_recommendation": analysis.get('recommendation', 'Pending Review')
-                    }}
-                )
-                
-                return {
-                    "message": "Interview analyzed successfully",
-                    "transcript": transcript,
-                    "analysis": analysis
-                }
-            else:
-                raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result.get('error')}")
+            return {
+                "message": "Interview completed and analyzed",
+                "analysis": analysis,
+                "questions_and_answers": questions_and_answers
+            }
         else:
-            raise HTTPException(status_code=500, detail=f"Transcription failed: {result.get('error')}")
+            raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result.get('error')}")
             
     except Exception as e:
-        logging.error(f"Transcription error: {str(e)}", exc_info=True)
+        logging.error(f"Complete interview error: {str(e)}", exc_info=True)
         await db.video_interviews.update_one(
             {"id": interview_id},
             {"$set": {"status": "failed"}}
