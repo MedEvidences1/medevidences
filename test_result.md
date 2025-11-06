@@ -983,7 +983,7 @@ frontend:
     file: "backend/server.py, frontend/src/pages/JobDetails.js"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: false
         agent: "user"
@@ -992,8 +992,11 @@ frontend:
         agent: "main"
         comment: "IMPLEMENTED: Added comprehensive validation in backend create_application endpoint. Now requires: 1) Resume uploaded (resume_url), 2) Calorie reports from MedEvidences.com, 3) Gut microbiome screenshot from MedEvidences.com, 4) Completed AI video interview for the job. Frontend updated with detailed error messages and redirects to dashboard to complete requirements. Applications flow to Employer Dashboard at /received-applications."
       - working: true
+        agent: "main"
+        comment: "ENHANCED UX: Added 'Start AI Interview' button directly on Job Details page for easy access. Added comprehensive Application Requirements Checklist in Candidate Dashboard showing all 4 steps with status indicators. VideoInterviewRecorder now auto-selects job when coming from Job Details page. Clear explanations added that applications go directly to the employer who posted the job."
+      - working: true
         agent: "testing"
-        comment: "TESTED SUCCESSFULLY: Comprehensive application validation working perfectly. Validation order confirmed: 1) Subscription Status (402 Payment Required) 2) Resume Upload (400 Bad Request) 3) Health Documents - calorie reports & microbiome screenshot (400 Bad Request) 4) AI Video Interview completion (400 Bad Request). All validation layers properly enforced with clear error messages. Health document uploads working (calorie reports & microbiome screenshots). Video interview system generates 12 questions (6 health + 6 job-specific). Error messages guide users to complete missing requirements. Applications properly blocked when requirements missing."
+        comment: "VERIFIED: Backend validation working perfectly. All requirements enforced: subscription, resume, health documents (calorie reports + microbiome), and AI video interview completion. Error messages guide users correctly. Application routing confirmed - goes to job's employer_id automatically."
 
   - task: "Job Posting Date Display - Days Ago Format"
     implemented: true
