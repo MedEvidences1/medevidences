@@ -40,49 +40,43 @@ class VideoInterviewService:
     async def generate_interview_questions(self, job_description, job_title, num_questions=10):
         """Generate interview questions based on job description + mandatory health questions"""
         try:
+            # Fixed mandatory health questions (1-6)
+            health_questions = [
+                "Can you describe your current workout routine? Please provide specific details about what exercises you do, how many minutes per day, and how many times per week.",
+                "Tell us about your food habits and daily nutrition. Please note that you'll need to upload a 2-day calorie report from www.medevidences.com in your candidate profile.",
+                "Do you track your gut microbiome health? Please mention if you have a gut microbiome score and be prepared to upload a screenshot from www.medevidences.com with your resume.",
+                "Can you describe your current muscle mass and fitness level? Do you engage in strength training?",
+                "Are you currently on any medications? Please provide details about any ongoing medical treatments or prescriptions.",
+                "Tell us about your sleep habits and daily regularity. How many hours do you sleep per night, and do you maintain a consistent schedule?"
+            ]
+            
+            # Generate job-specific questions (7-10) using AI
             prompt = f"""You are an expert interviewer for a {job_title} position at MedEvidences.com.
 
 Job Description:
 {job_description}
 
-Generate EXACTLY {num_questions} interview questions. The questions MUST include:
+Generate EXACTLY 4 job-specific interview questions that assess:
+1. Technical knowledge relevant to the {job_title} role
+2. Problem-solving abilities in the field
+3. Relevant experience and background
+4. Cultural fit and motivation for this specific position
 
-MANDATORY HEALTH & WELLNESS QUESTIONS (Questions 1-6):
-1. "Can you describe your current workout routine? Please provide specific details about what exercises you do, how many minutes per day, and how many times per week."
-2. "Tell us about your food habits and daily nutrition. Please note that you'll need to upload a 2-day calorie report from MedEvidences.com in your application."
-3. "Do you track your gut microbiome health? Please mention if you have a gut microbiome score and be prepared to upload a screenshot with your resume."
-4. "Can you describe your current muscle mass and fitness level? Do you engage in strength training?"
-5. "Are you currently on any medications? Please provide details about any ongoing medical treatments or prescriptions."
-6. "What specific exercises do you perform in your fitness routine? Please include frequency (times per week) and duration (minutes per session) for each activity."
+Return ONLY a JSON array of exactly 4 questions. Each question should be unique, specific, and relevant to the job. Do NOT repeat questions.
 
-JOB-SPECIFIC QUESTIONS (Questions 7-10):
-7-10. Generate 4 questions specific to the {job_title} role that assess:
-   - Technical knowledge relevant to the role
-   - Problem-solving abilities
-   - Experience and background
-   - Cultural fit and motivation
-
-Return ONLY a JSON array of exactly {num_questions} questions in this order:
+Example format:
 [
-  "Question 1 about workout details...",
-  "Question 2 about food habits and calorie report...",
-  "Question 3 about gut microbiome...",
-  "Question 4 about muscle fitness...",
-  "Question 5 about medications...",
-  "Question 6 about exercise routine...",
-  "Question 7 job-specific...",
-  "Question 8 job-specific...",
-  "Question 9 job-specific...",
-  "Question 10 job-specific..."
-]
-
-Make all questions clear and specific."""
+  "What experience do you have with...",
+  "Can you describe a challenging situation...",
+  "How would you approach...",
+  "What motivates you about..."
+]"""
             
             # Use emergentintegrations for chat
             chat = LlmChat(
                 api_key=self.api_key,
                 session_id=str(uuid.uuid4()),
-                system_message="You are an expert HR interviewer."
+                system_message="You are an expert HR interviewer. Return only valid JSON array."
             ).with_model("openai", "gpt-4o")
             
             user_message = UserMessage(text=prompt)
@@ -94,11 +88,19 @@ Make all questions clear and specific."""
             start = questions_text.find('[')
             end = questions_text.rfind(']') + 1
             if start != -1 and end > start:
-                questions = json.loads(questions_text[start:end])
+                job_questions = json.loads(questions_text[start:end])
             else:
-                questions = json.loads(questions_text)
+                job_questions = json.loads(questions_text)
             
-            return {"success": True, "questions": questions}
+            # Ensure we only have 4 job-specific questions
+            job_questions = job_questions[:4]
+            
+            # Combine: 6 health + 4 job-specific = 10 total
+            all_questions = health_questions + job_questions
+            
+            logger.info(f"Generated {len(all_questions)} questions: {len(health_questions)} health + {len(job_questions)} job-specific")
+            
+            return {"success": True, "questions": all_questions}
         except Exception as e:
             logger.error(f"Question generation error: {str(e)}")
             return {"success": False, "error": str(e)}
