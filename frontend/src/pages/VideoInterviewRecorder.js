@@ -207,8 +207,51 @@ export default function VideoInterviewRecorder() {
             <CardTitle>🎥 AI Video Interview</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {!results ? (
+            {step === 'select-job' && (
               <>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-bold mb-2">📋 How it works:</h3>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Select a job you want to interview for</li>
+                    <li>AI will generate 5 custom interview questions</li>
+                    <li>Record your video answer for each question</li>
+                    <li>AI analyzes your answers and gives you a vetting score</li>
+                  </ol>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block font-medium">Select Job to Interview For:</label>
+                  <Select value={selectedJob || ''} onValueChange={setSelectedJob}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a job..." />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {jobs.map(job => (
+                        <SelectItem key={job.id} value={job.id}>
+                          {job.title} - {job.category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button 
+                  onClick={startInterview} 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={!selectedJob}
+                >
+                  🚀 Start AI Interview
+                </Button>
+              </>
+            )}
+
+            {step === 'interview' && !results && (
+              <>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <p className="font-bold">Question {currentQuestionIndex + 1} of {questions.length}</p>
+                  <p className="text-lg mt-2">{questions[currentQuestionIndex]}</p>
+                </div>
+
                 <div className="bg-black rounded-lg overflow-hidden">
                   <video
                     ref={videoRef}
@@ -221,7 +264,7 @@ export default function VideoInterviewRecorder() {
                 <div className="flex gap-4 justify-center">
                   {!recording && !recordedBlob && (
                     <Button onClick={startRecording} className="bg-red-600 hover:bg-red-700">
-                      🔴 Start Recording
+                      🔴 Record Answer
                     </Button>
                   )}
                   {recording && (
@@ -229,22 +272,44 @@ export default function VideoInterviewRecorder() {
                       ⏹️ Stop Recording
                     </Button>
                   )}
-                  {recordedBlob && !uploading && (
-                    <Button onClick={uploadVideo} className="bg-blue-600 hover:bg-blue-700">
-                      📤 Upload & Analyze
-                    </Button>
+                  {recordedBlob && !uploading && !processing && (
+                    <>
+                      <Button onClick={() => setRecordedBlob(null)} variant="outline">
+                        🔄 Re-record
+                      </Button>
+                      <Button onClick={uploadAnswer} className="bg-blue-600 hover:bg-blue-700">
+                        {currentQuestionIndex < questions.length - 1 ? '➡️ Next Question' : '✅ Submit Interview'}
+                      </Button>
+                    </>
                   )}
                   {uploading && <Button disabled>Uploading...</Button>}
-                  {processing && <Button disabled>🤖 AI Processing...</Button>}
+                  {processing && <Button disabled>🤖 AI Analyzing...</Button>}
                 </div>
 
                 {recordedBlob && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-green-800">✅ Video recorded! Click "Upload & Analyze" to get AI vetting.</p>
+                    <p className="text-green-800">✅ Answer recorded! Click next to continue.</p>
                   </div>
                 )}
+
+                <div className="flex gap-2">
+                  {answers.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-2 flex-1 rounded ${index === currentQuestionIndex ? 'bg-blue-500' : index < currentQuestionIndex ? 'bg-green-500' : 'bg-gray-300'}`}
+                    />
+                  ))}
+                  {Array.from({ length: questions.length - answers.length }).map((_, index) => (
+                    <div
+                      key={`empty-${index}`}
+                      className={`h-2 flex-1 rounded ${answers.length + index === currentQuestionIndex ? 'bg-blue-500' : 'bg-gray-300'}`}
+                    />
+                  ))}
+                </div>
               </>
-            ) : (
+            )}
+
+            {step === 'results' && results && (
               <div className="space-y-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-bold text-lg mb-2">✅ Interview Analysis Complete!</h3>
