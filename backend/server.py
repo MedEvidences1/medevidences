@@ -3658,6 +3658,113 @@ async def convert_scraped_job(
 # VIDEO INTERVIEW ENDPOINTS
 # ============================================
 
+
+
+@api_router.post("/jobs/import-from-aggregators")
+async def import_jobs_from_aggregators(
+    keywords: str = "medical research",
+    current_user: dict = Depends(get_current_user)
+):
+    """Import jobs from job aggregator APIs (jobdata, JSearch)"""
+    
+    if current_user['role'] != UserRole.EMPLOYER and current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Only employers and admins can import jobs")
+    
+    try:
+        # Import from aggregators
+        results = await job_aggregator_service.import_jobs_from_all_sources(keywords)
+        
+        # Store imported jobs in database
+        total_imported = 0
+        for source, data in results.items():
+            if data['success']:
+                for job_data in data['jobs']:
+                    # Check if job already exists
+                    existing = await db.imported_jobs.find_one({
+                        "external_id": job_data['external_id'],
+                        "source": job_data['source']
+                    }, {"_id": 0})
+                    
+                    if not existing:
+                        # Add metadata
+                        job_data['imported_at'] = datetime.now(timezone.utc).isoformat()
+                        job_data['imported_by'] = current_user['id']
+                        job_data['id'] = str(uuid.uuid4())
+                        
+                        await db.imported_jobs.insert_one(job_data)
+                        total_imported += 1
+        
+        return {
+            "success": True,
+            "message": f"Imported {total_imported} new jobs",
+            "details": {
+                source: {
+                    "count": data['count'],
+                    "success": data['success']
+                }
+                for source, data in results.items()
+            }
+        }
+        
+    except Exception as e:
+        logging.error(f"Error importing jobs: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+@api_router.get("/jobs/imported")
+async def get_all_imported_jobs(
+    skip: int = 0,
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all imported jobs from aggregators"""
+    
+    jobs = await db.imported_jobs.find({}, {"_id": 0}).skip(skip).limit(limit).to_list(length=limit)
+    total_count = await db.imported_jobs.count_documents({})
+    
+    return {
+        "jobs": jobs,
+        "count": len(jobs),
+        "total": total_count,
+        "skip": skip,
+        "limit": limit
+    }
+
+@api_router.post("/jobs/import-by-company/{company_name}")
+async def import_jobs_by_company(
+    company_name: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Import jobs from a specific company"""
+    
+    try:
+        jobs = await job_aggregator_service.search_by_company(company_name)
+        
+        # Store in database
+        imported_count = 0
+        for job_data in jobs:
+            existing = await db.imported_jobs.find_one({
+                "external_id": job_data['external_id'],
+                "source": job_data['source']
+            }, {"_id": 0})
+            
+            if not existing:
+                job_data['imported_at'] = datetime.now(timezone.utc).isoformat()
+                job_data['imported_by'] = current_user['id']
+                job_data['id'] = str(uuid.uuid4())
+                await db.imported_jobs.insert_one(job_data)
+                imported_count += 1
+        
+        return {
+            "success": True,
+            "company": company_name,
+            "imported": imported_count,
+            "total_found": len(jobs)
+        }
+        
+    except Exception as e:
+        logging.error(f"Error importing jobs for {company_name}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 video_service = VideoInterviewService()
 
 @api_router.post("/video-interview/start")
