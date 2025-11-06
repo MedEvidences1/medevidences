@@ -103,7 +103,21 @@
 #====================================================================================================
 
 user_problem_statement: |
-  Implement 5 advanced features for MedEvidences.com:
+  Latest Feature: Health Screening Integration for AI Interviews
+  
+  Integrate specific health-related questions into the AI interview process:
+  1. Work out details - Ask about exercise routine
+  2. Food habits - Request calorie report upload (2 days) from www.medevidences.com
+  3. Gut microbiome score - Request screenshot upload from www.medevidences.com
+  4. "Have you got muscle?" - Assess muscle fitness
+  5. Medications - Check if on any medications
+  6. Exercise routine - Ask which exercises, how many minutes/day, times/week
+  
+  AI should analyze these health responses and provide scores/insights:
+  - Health score: Excellent, Good, or Bad
+  - Based on: gut microbiome, calories, exercise, muscles, sleep habits, regularity
+  
+  Previous Features Implemented:
   1. Auto Resume Screening - Parse PDFs, extract skills/experience using AI
   2. Intelligent AI Candidate Matching - Score candidates against jobs using LLM
   3. Dynamic Data Collection - Track feedback and improve predictions
