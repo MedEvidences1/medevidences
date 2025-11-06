@@ -2228,18 +2228,7 @@ async def get_subscription_pricing():
 async def send_subscription_email(user_email: str, user_name: str, plan: str, expires_at: str):
     """Send subscription confirmation email"""
     try:
-        # Check if SendGrid is configured
-        sendgrid_key = os.environ.get('SENDGRID_API_KEY', '')
-        if not sendgrid_key or sendgrid_key == 'your-sendgrid-api-key-here':
-            logging.warning(f"SendGrid not configured - would send email to {user_email}")
-            # Mock email for now
-            logging.info(f"MOCK EMAIL: Subscription activated for {user_name} ({user_email}) - Plan: {plan}, Expires: {expires_at}")
-            return True
-            
-        # Real SendGrid implementation would go here
-        # For now, just log
-        logging.info(f"Would send subscription email to {user_email} for {plan} plan")
-        return True
+        return await email_service.send_subscription_email(user_email, user_name, plan, expires_at)
     except Exception as e:
         logging.error(f"Error sending subscription email: {str(e)}")
         return False
