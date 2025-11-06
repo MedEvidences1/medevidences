@@ -3758,6 +3758,85 @@ async def import_jobs_by_company(
         return {
             "success": True,
             "company": company_name,
+
+
+@api_router.post("/ai/enhanced-match/{job_id}")
+async def get_enhanced_match_score(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get enhanced AI match score for candidate and job"""
+    
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can get match scores")
+    
+    # Get job
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get candidate profile
+    candidate_profile = await db.candidate_profiles.find_one(
+        {"user_id": current_user['id']}, 
+        {"_id": 0}
+    )
+    if not candidate_profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    # Get interview analysis if available
+    interview = await db.video_interviews.find_one(
+        {"candidate_id": current_user['id'], "job_id": job_id},
+        {"_id": 0}
+    )
+    interview_analysis = interview.get('ai_analysis') if interview else None
+    
+    # Calculate enhanced match score
+    result = await ai_matching_service.calculate_enhanced_match_score(
+        candidate_profile,
+        job,
+        interview_analysis
+    )
+    
+    if not result['success']:
+        raise HTTPException(status_code=500, detail="Failed to calculate match score")
+    
+    # Generate personalized feedback
+    feedback = await ai_matching_service.generate_personalized_feedback(
+        candidate_profile,
+        result['analysis']
+    )
+    
+    return {
+        "match_analysis": result['analysis'],
+        "personalized_feedback": feedback,
+        "job_title": job['title'],
+        "job_category": job['category']
+    }
+
+@api_router.get("/ai/industry-questions/{job_id}")
+async def get_industry_specific_questions(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get industry-specific interview questions for a job"""
+    
+    job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    questions = await ai_matching_service.generate_industry_specific_questions(
+        job['title'],
+        job['category'],
+        job['description'],
+        num_questions=6
+    )
+    
+    return {
+        "job_title": job['title'],
+        "category": job['category'],
+        "questions": questions
+    }
+
             "imported": imported_count,
             "total_found": len(jobs)
         }
