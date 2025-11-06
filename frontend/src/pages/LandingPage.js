@@ -328,30 +328,31 @@ function LandingPage({ user, onLogout }) {
                 };
                 const info = startupData[startup.name] || { funding: 'Well-Funded', focus: 'Health-Tech Innovation' };
                 return (
-                <Card key={idx} className="hover:shadow-xl transition-all border-2 border-green-200">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-2">
-                      <CardTitle className="text-lg">{startup.name}</CardTitle>
-                      <Badge className="bg-green-600">{startup.jobs} jobs</Badge>
-                    </div>
-                    <CardDescription className="text-xs text-green-700 font-semibold mb-1">
-                      {startup.funding}
-                    </CardDescription>
-                    <CardDescription className="text-sm text-gray-600">
-                      {startup.focus}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-green-300 hover:bg-green-50"
-                      onClick={() => navigate(`/jobs?company=${startup.name}`)}
-                    >
-                      Explore Opportunities
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                  <Card key={idx} className="hover:shadow-xl transition-all border-2 border-green-200">
+                    <CardHeader>
+                      <div className="flex items-center justify-between mb-2">
+                        <CardTitle className="text-lg">{startup.name}</CardTitle>
+                        <Badge className="bg-green-600">{startup.job_count} jobs</Badge>
+                      </div>
+                      <CardDescription className="text-xs text-green-700 font-semibold mb-1">
+                        {info.funding}
+                      </CardDescription>
+                      <CardDescription className="text-sm text-gray-600">
+                        {info.focus}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="outline" 
+                        className="w-full border-green-300 hover:bg-green-50"
+                        onClick={() => navigate(`/jobs?company=${startup.name}`)}
+                      >
+                        Explore Opportunities
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
