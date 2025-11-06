@@ -3,16 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001/api';
 
 export default function VideoInterviewRecorder() {
+  const [step, setStep] = useState('select-job'); // select-job, interview, results
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [interviewId, setInterviewId] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [recording, setRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState(null);
+  const [answers, setAnswers] = useState([]); // Array of {question_index, video_path}
   const [uploading, setUploading] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [interviewId, setInterviewId] = useState(null);
   const [results, setResults] = useState(null);
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
