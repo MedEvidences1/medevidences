@@ -26,10 +26,12 @@ function LandingPage({ user, onLogout }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [featuredJobs, setFeaturedJobs] = useState([]);
+  const [companyStats, setCompanyStats] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchFeaturedJobs();
+    fetchCompanyStats();
   }, []);
 
   const fetchFeaturedJobs = async () => {
@@ -38,6 +40,15 @@ function LandingPage({ user, onLogout }) {
       setFeaturedJobs(response.data.slice(0, 6)); // Show top 6 jobs
     } catch (error) {
       console.error('Error fetching jobs:', error);
+    }
+  };
+
+  const fetchCompanyStats = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/stats/featured-companies`);
+      setCompanyStats(response.data);
+    } catch (error) {
+      console.error('Error fetching company stats:', error);
     }
   };
 
