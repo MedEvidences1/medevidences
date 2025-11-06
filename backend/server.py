@@ -3915,7 +3915,7 @@ async def activate_imported_jobs(
             skipped_count += 1
             continue
         
-        # Create regular job from scraped job
+        # Create regular job from scraped job with all required fields
         new_job = Job(
             employer_id=current_user['id'],
             title=scraped_job.get('title', 'Position Available'),
@@ -3923,11 +3923,26 @@ async def activate_imported_jobs(
             category=scraped_job.get('category', 'Medical Research'),
             location=scraped_job.get('location', 'Remote'),
             job_type=scraped_job.get('commitment', 'Full-time'),
-            experience_required='',
+            experience_required='Not specified',
             skills_required=[],
-            salary_range=scraped_job.get('salary_range', ''),
-            benefits=[],
+            requirements=['Experience in relevant field'],
+            salary_range=scraped_job.get('salary_range', 'Competitive'),
             company_name=scraped_job.get('company', 'M'),
+            # New required fields with defaults
+            role_overview=scraped_job.get('description', 'Position available')[:200],
+            specific_tasks=['To be discussed during interview'],
+            education_requirements='Bachelor\'s degree or equivalent',
+            knowledge_areas=['Professional expertise'],
+            communication_skills='Excellent communication required',
+            responsiveness_required=True,
+            independent_work=True,
+            ai_understanding=False,
+            english_proficiency='High proficiency required',
+            work_type='Remote',
+            schedule_commitment=scraped_job.get('commitment', 'Full-time'),
+            compensation_details=scraped_job.get('salary_range', 'Competitive salary'),
+            terms_conditions='Standard employment terms apply',
+            project_summary=scraped_job.get('description', 'Exciting opportunity')[:150],
             status='active'
         )
         
