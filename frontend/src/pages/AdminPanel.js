@@ -317,6 +317,21 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                 🌐 Import from APIs
               </Button>
               <Button 
+                className="bg-red-600 hover:bg-red-700"
+                onClick={async () => {
+                  if (!confirm('This will remove all "Mercor" references from job content. Continue?')) return;
+                  try {
+                    const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/admin/sanitize-job-content`);
+                    alert(`✅ Success! ${response.data.message}\n\nSanitized: ${response.data.sanitized} jobs\nTotal checked: ${response.data.total_checked}`);
+                    window.location.reload();
+                  } catch (error) {
+                    alert('Error: ' + (error.response?.data?.detail || error.message));
+                  }
+                }}
+              >
+                🧹 Remove Mercor Names
+              </Button>
+              <Button 
                 className="bg-purple-600 hover:bg-purple-700"
                 onClick={async () => {
                   if (!confirm('This will make all imported jobs visible to applicants. Continue?')) return;
