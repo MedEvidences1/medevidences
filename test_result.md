@@ -869,12 +869,12 @@ backend:
         comment: "NOT TESTED: Cannot test dashboard analytics APIs due to authentication issues preventing access to candidate and employer dashboards. APIs require authentication which is currently failing."
   
   - task: "Job Details Endpoint Fix"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -882,6 +882,9 @@ backend:
       - working: "NA"
         agent: "main"
         comment: "Investigation complete. Root cause: get_job_by_id endpoint missing return statement and only searches db.jobs collection. Needs to search all three collections (jobs, imported_jobs, scraped_jobs) and return the job object. Ready to implement fix."
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: Fixed get_job_by_id endpoint now works perfectly. Searches all three collections (jobs, imported_jobs, scraped_jobs) and returns complete job objects with all required fields. Job listing endpoint returns 124 jobs. Job details endpoint tested on 10 jobs - all successful. Company names properly populated from employer profiles for regular jobs. Mercor masking working correctly - all 102 imported jobs show company_name as 'M'. Posted_at field exists for date calculations. Both endpoints working as expected."
 
 frontend:
   - task: "Dynamic Landing Page Company Sections"
