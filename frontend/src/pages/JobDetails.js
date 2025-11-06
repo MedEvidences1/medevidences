@@ -211,6 +211,12 @@ function JobDetails({ user, onLogout }) {
                 </div>
               )}
             </div>
+            
+            {/* Posting Date */}
+            <div className="flex items-center text-sm text-gray-500 mb-4">
+              <Clock className="w-4 h-4 mr-2" />
+              <span data-testid="posted-date">{formatDaysAgo(job.posted_at)}</span>
+            </div>
           </CardHeader>
 
           <CardContent className="space-y-8">
