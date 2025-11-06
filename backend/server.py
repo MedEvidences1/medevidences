@@ -267,6 +267,8 @@ class VideoInterview(BaseModel):
     duration_seconds: Optional[int] = None
     status: str = "pending"  # pending, processing, completed, failed
     ai_analysis: Optional[dict] = None  # AI vetting results
+    health_score: Optional[str] = None  # Excellent, Good, Bad
+    health_analysis: Optional[dict] = None  # Detailed health analysis
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     completed_at: Optional[datetime] = None
 
