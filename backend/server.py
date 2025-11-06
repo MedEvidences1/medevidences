@@ -3876,41 +3876,6 @@ async def activate_imported_jobs(
         # Create regular job from imported job with all required fields
         new_job = Job(
             employer_id=current_user['id'],
-
-
-@api_router.post("/admin/mask-company-names")
-async def mask_all_company_names(current_user: dict = Depends(get_current_user)):
-    """Mask all company names in imported jobs to protect sources"""
-    
-    if current_user.get('email') != 'admin@medevidences.com':
-        raise HTTPException(status_code=403, detail="Admin only")
-    
-    # Update all jobs that have import_source to mask company name
-    masked_count = 0
-    
-    jobs_to_mask = await db.jobs.find({"import_source": {"$exists": True}}, {"_id": 0}).to_list(None)
-    
-    for job in jobs_to_mask:
-        company_name = job.get('company_name', 'M')
-        
-        # Mask if it contains Mercor or looks like a full company name
-        if company_name and (
-            'mercor' in company_name.lower() or 
-            len(company_name) > 2  # Any company name longer than 2 chars
-        ):
-            new_name = 'M'
-            
-            await db.jobs.update_one(
-                {"id": job['id']},
-                {"$set": {"company_name": new_name}}
-            )
-            masked_count += 1
-    
-    return {
-        "message": f"Masked {masked_count} company names",
-        "masked": masked_count
-    }
-
             title=imported_job.get('title', 'Position Available'),
             description=imported_job.get('description', 'No description provided'),
             category=imported_job.get('category', 'Medical Research'),
