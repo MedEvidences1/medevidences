@@ -3825,31 +3825,47 @@ async def complete_video_interview(
         if analysis_result['success']:
             analysis = analysis_result['analysis']
             
+            # Extract health analysis and score
+            health_score = analysis.get('health_score', None)
+            health_analysis = analysis.get('health_analysis', None)
+            
             # Update interview
             await db.video_interviews.update_one(
                 {"id": interview_id},
                 {"$set": {
                     "answers": questions_and_answers,
                     "ai_analysis": analysis,
+                    "health_score": health_score,
+                    "health_analysis": health_analysis,
                     "status": "completed",
                     "completed_at": datetime.now(timezone.utc).isoformat()
                 }}
             )
             
-            # Update candidate profile
+            # Update candidate profile with both job interview and health data
+            profile_update = {
+                "interview_completed": True,
+                "interview_score": analysis.get('overall_score', 0),
+                "ai_vetting_score": analysis.get('overall_score', 0),
+                "ai_recommendation": analysis.get('recommendation', 'Pending Review')
+            }
+            
+            # Add health data to profile
+            if health_score:
+                profile_update['health_score'] = health_score
+            if health_analysis:
+                profile_update['health_analysis'] = health_analysis
+            
             await db.candidate_profiles.update_one(
                 {"user_id": current_user['id']},
-                {"$set": {
-                    "interview_completed": True,
-                    "interview_score": analysis.get('overall_score', 0),
-                    "ai_vetting_score": analysis.get('overall_score', 0),
-                    "ai_recommendation": analysis.get('recommendation', 'Pending Review')
-                }}
+                {"$set": profile_update}
             )
             
             return {
                 "message": "Interview completed and analyzed",
                 "analysis": analysis,
+                "health_score": health_score,
+                "health_analysis": health_analysis,
                 "questions_and_answers": questions_and_answers
             }
         else:
