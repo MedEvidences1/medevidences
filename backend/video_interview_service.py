@@ -1,9 +1,11 @@
 # Video Interview Service with OpenAI Whisper
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 from openai import AsyncOpenAI
 import os
 from dotenv import load_dotenv
 import logging
 import json
+import uuid
 
 load_dotenv()
 
@@ -11,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 class VideoInterviewService:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=os.getenv("EMERGENT_LLM_KEY"))
+        self.api_key = os.getenv("EMERGENT_LLM_KEY")
+        self.whisper_client = AsyncOpenAI(api_key=self.api_key)
     
     async def transcribe_audio(self, audio_file, language="en"):
         """Transcribe audio file using OpenAI Whisper"""
