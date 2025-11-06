@@ -296,39 +296,48 @@ backend:
   
   - task: "Health Document Upload API"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added POST /api/candidates/upload-calorie-report and POST /api/candidates/upload-microbiome-screenshot endpoints. Validates image files, stores in /tmp/health_documents, updates candidate profile with file paths."
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: Both health document upload endpoints working perfectly. POST /api/candidates/upload-calorie-report accepts image files, stores max 2 reports, updates candidate profile. POST /api/candidates/upload-microbiome-screenshot accepts image files and stores in profile. Proper file validation, unique naming, and profile integration confirmed."
   
   - task: "AI Interview Health Questions"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/video_interview_service.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Updated generate_interview_questions() to include 6 mandatory health questions asking about workout routine, food habits, gut microbiome, muscle fitness, medications, and exercise details. Questions instruct candidates to upload reports from www.medevidences.com."
+      - working: true
+        agent: "testing"
+        comment: "TESTED SUCCESSFULLY: AI interview question generation works perfectly. Generates exactly 10 questions with proper distribution: 6 mandatory health questions (workout, nutrition, microbiome, muscle fitness, medications, exercise routine) + 4 job-specific questions. Health questions include proper MedEvidences.com references for document uploads. Question quality and health focus confirmed."
   
   - task: "AI Health Analysis"
     implemented: true
-    working: "NA"
+    working: false
     file: "backend/video_interview_service.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Enhanced analyze_complete_interview() to analyze health responses and generate health_score (Excellent/Good/Bad) and detailed health_analysis including exercise, nutrition, gut health, muscle fitness, medications, sleep habits scores. Provides overall wellness score (0-100), key strengths, areas for improvement, and health recommendation."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE: Interview completion fails due to Whisper transcription API key error. The video_interview_service.py uses EMERGENT_LLM_KEY for OpenAI Whisper API, but this key is not valid for OpenAI services. Error: 'Incorrect API key provided: sk-emerg...'. Health analysis logic is implemented but cannot be tested until transcription works. Need valid OpenAI API key for Whisper or alternative transcription solution."
   
   - task: "Health Data Models"
     implemented: true
