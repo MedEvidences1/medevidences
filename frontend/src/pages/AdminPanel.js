@@ -495,14 +495,23 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                               method: 'POST',
                               headers: { 'Authorization': `Bearer ${token}` }
                             });
-                            const data = await response.json();
-                            if (response.ok) {
-                              toast.success(`Success! ${data.message}\n\nActivated: ${data.activated} jobs\nSkipped (duplicates): ${data.skipped} jobs`);
-                              fetchDashboardData();
-                            } else {
-                              toast.error('Error: ' + data.detail);
+                            
+                            // Check status before parsing JSON
+                            if (!response.ok) {
+                              const error = await response.json();
+                              toast.error('Error: ' + (error.detail || 'Activation failed'));
+                              return;
                             }
+                            
+                            const data = await response.json();
+                            toast.success(`✅ Success! ${data.message}\n\n📊 Activated: ${data.activated} jobs\n⏭️ Skipped: ${data.skipped} duplicates\n📦 Total: ${data.total_processed} jobs`);
+                            
+                            // Refresh dashboard
+                            setTimeout(() => {
+                              window.location.reload();
+                            }, 2000);
                           } catch (error) {
+                            console.error('Activation error:', error);
                             toast.error('Error: ' + error.message);
                           }
                         }}
