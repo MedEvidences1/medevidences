@@ -78,7 +78,7 @@ function JobDetails({ user, onLogout }) {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      toast.success('Application submitted successfully! The employer will review your profile, resume, health documents, and AI interview.');
+      toast.success('Application submitted successfully! MedEvidences admin will review and forward your profile to the employer.', { duration: 5000 });
       setDialogOpen(false);
       setCoverLetter('');
     } catch (error) {
