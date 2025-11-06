@@ -1646,7 +1646,8 @@ async def create_application(
         job_id=application_data.job_id,
         candidate_id=current_user['id'],
         employer_id=job['employer_id'],
-        cover_letter=application_data.cover_letter
+        cover_letter=application_data.cover_letter,
+        status='pending_admin_review'  # Applications go to admin first
     )
     
     app_dict = application.model_dump()
@@ -1655,16 +1656,8 @@ async def create_application(
     
     await db.applications.insert_one(app_dict)
     
-    # Send email notification to employer
-    employer = await db.users.find_one({"id": job['employer_id']}, {"_id": 0})
-    if employer:
-        email_service.send_application_notification_to_employer(
-            employer_email=employer['email'],
-            candidate_name=current_user['full_name'],
-            job_title=job['title'],
-            candidate_email=current_user['email'],
-            cover_letter=application_data.cover_letter
-        )
+    # DO NOT send to employer yet - admin will review and forward manually
+    # Admin will use "Send to Employer" feature with referral code tracking
     
     return application
 
