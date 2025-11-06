@@ -1135,6 +1135,49 @@ test_plan:
 
   - agent: "main"
     message: |
+      APPLICATION VALIDATION REQUIREMENTS IMPLEMENTED:
+      
+      USER REPORTED ISSUE:
+      - Application submitted without resume
+      - Application submitted without AI video interview
+      - Application submitted without health documents
+      - User unsure where application went
+      
+      ROOT CAUSE:
+      - No validation in backend /api/applications endpoint
+      - Frontend allowed direct submission without checks
+      
+      IMPLEMENTED FIX:
+      1. Added mandatory validation in backend (server.py lines 1597-1630):
+         - Resume upload required (resume_url must exist)
+         - Calorie reports required (from MedEvidences.com)
+         - Gut microbiome screenshot required (from MedEvidences.com)
+         - AI video interview completion required (status must be 'completed')
+      
+      2. Enhanced frontend error handling (JobDetails.js):
+         - Shows specific error messages for each missing requirement
+         - Redirects to candidate dashboard to complete requirements
+         - Clear success message explaining what employer will review
+      
+      PROPER APPLICATION FLOW:
+      Step 1: Upload Resume (Dashboard → Resume Upload section)
+      Step 2: Upload Health Documents (Dashboard → Health & Wellness Documents section):
+              - Visit MedEvidences.com
+              - Upload calorie reports (minimum 1 image)
+              - Upload gut microbiome score screenshot
+      Step 3: Complete AI Video Interview (Dashboard → Browse Jobs → Select Job → Start Interview)
+              - 12 questions total (6 health + 6 job-specific)
+              - Health analysis performed
+      Step 4: Apply to Job (Job Details → Apply Now button)
+              - All validations pass
+              - Application submitted
+      Step 5: Application visible in Employer Dashboard:
+              - Employer Dashboard → "Applications" button
+              - Route: /received-applications
+              - Employer can view: resume, health analysis, AI interview responses, cover letter
+  
+  - agent: "main"
+    message: |
       JOB DETAILS PAGE FIX - INVESTIGATION COMPLETE:
       
       USER REPORTED ISSUES:
