@@ -944,6 +944,109 @@ async def update_candidate_profile(
     
     return updated_profile
 
+@api_router.post("/candidates/upload-calorie-report")
+async def upload_calorie_report(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload calorie report image from www.medevidences.com"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can upload calorie reports")
+    
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="Only image files are allowed")
+        
+        # Create upload directory
+        upload_dir = Path("/tmp/health_documents")
+        upload_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Save file with unique name
+        file_extension = file.filename.split('.')[-1]
+        unique_filename = f"calorie_{current_user['id']}_{uuid.uuid4()}.{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        content = await file.read()
+        with open(file_path, 'wb') as f:
+            f.write(content)
+        
+        # Update candidate profile - add to calorie_reports array
+        profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+        if not profile:
+            raise HTTPException(status_code=404, detail="Profile not found")
+        
+        calorie_reports = profile.get('calorie_reports', [])
+        calorie_reports.append(str(file_path))
+        
+        # Limit to 2 reports
+        if len(calorie_reports) > 2:
+            calorie_reports = calorie_reports[-2:]
+        
+        await db.candidate_profiles.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {"calorie_reports": calorie_reports}}
+        )
+        
+        logging.info(f"Calorie report uploaded for user {current_user['id']}")
+        
+        return {
+            "message": "Calorie report uploaded successfully",
+            "file_path": str(file_path),
+            "total_reports": len(calorie_reports)
+        }
+        
+    except Exception as e:
+        logging.error(f"Calorie report upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/candidates/upload-microbiome-screenshot")
+async def upload_microbiome_screenshot(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload gut microbiome screenshot from www.medevidences.com"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can upload microbiome screenshots")
+    
+    try:
+        # Validate file type
+        if not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="Only image files are allowed")
+        
+        # Create upload directory
+        upload_dir = Path("/tmp/health_documents")
+        upload_dir.mkdir(exist_ok=True, parents=True)
+        
+        # Save file with unique name
+        file_extension = file.filename.split('.')[-1]
+        unique_filename = f"microbiome_{current_user['id']}_{uuid.uuid4()}.{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        content = await file.read()
+        with open(file_path, 'wb') as f:
+            f.write(content)
+        
+        # Update candidate profile
+        await db.candidate_profiles.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {"microbiome_screenshot": str(file_path)}}
+        )
+        
+        logging.info(f"Microbiome screenshot uploaded for user {current_user['id']}")
+        
+        return {
+            "message": "Microbiome screenshot uploaded successfully",
+            "file_path": str(file_path)
+        }
+        
+    except Exception as e:
+        logging.error(f"Microbiome screenshot upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/candidates", response_model=List[dict])
 async def get_candidates(
     specialization: Optional[str] = None,
