@@ -3870,30 +3870,6 @@ async def activate_imported_jobs(
         "total_processed": len(imported_jobs)
     }
 
-                if not existing:
-                    job_data['imported_at'] = datetime.now(timezone.utc).isoformat()
-                    job_data['imported_by'] = current_user['id']
-                    await db.imported_jobs.insert_one(job_data)
-                    results["jsearch"]["count"] += 1
-            
-            results["jsearch"]["status"] = "success"
-        else:
-            results["jsearch"]["status"] = "no_api_key" if not os.getenv('JSEARCH_RAPIDAPI_KEY') else "error"
-    
-    except Exception as e:
-        logging.error(f"Error importing from aggregators: {str(e)}")
-        results["jobdata"]["status"] = "error"
-        results["jsearch"]["status"] = "error"
-    
-    total_imported = results["jobdata"]["count"] + results["jsearch"]["count"]
-    
-    return {
-        "message": f"Import complete. Added {total_imported} new jobs from aggregators.",
-        "total_imported": total_imported,
-        "results": results,
-        "note": "Mercor jobs can be imported via 'Import External Jobs' page"
-    }
-
 
 @api_router.get("/scrape/imported-jobs")
 async def get_imported_jobs(current_user: dict = Depends(get_current_user)):
