@@ -26,6 +26,8 @@ class MedEvidencesAPITester:
         self.employer_id = None
         self.job_id = None
         self.contract_id = None
+        self.interview_id = None
+        self.imported_job_count = 0
         
     def create_test_pdf(self):
         """Create a test text file simulating a resume for upload testing"""
