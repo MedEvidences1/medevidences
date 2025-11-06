@@ -1249,6 +1249,99 @@ async def get_jobs_with_sources(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin only")
     
     # Get all jobs
+
+
+@api_router.get("/jobs/count")
+async def get_jobs_count(
+    category: Optional[str] = None,
+    job_type: Optional[str] = None,
+    location: Optional[str] = None
+):
+    """Get total count of available jobs"""
+    query = {"status": "active"}
+    if category:
+        query['category'] = category
+    if job_type:
+        query['job_type'] = job_type
+    if location:
+        query['location'] = {"$regex": location, "$options": "i"}
+    
+    total_count = await db.jobs.count_documents(query)
+    imported_count = await db.imported_jobs.count_documents({})
+    
+    return {
+        "total": total_count,
+        "imported_available": imported_count
+    }
+
+@api_router.post("/admin/sanitize-job-content")
+async def sanitize_all_job_content(current_user: dict = Depends(get_current_user)):
+    """Remove all Mercor and source references from job content"""
+    
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    sanitized_count = 0
+    
+    # Get all jobs with import_source
+    jobs = await db.jobs.find({"import_source": {"$exists": True}}, {"_id": 0}).to_list(None)
+    
+    for job in jobs:
+        updates = {}
+        
+        # Sanitize title
+        if job.get('title'):
+            title = job['title']
+            title = title.replace('Mercor', 'M').replace('mercor', 'M')
+            if title != job['title']:
+                updates['title'] = title
+        
+        # Sanitize description
+        if job.get('description'):
+            desc = job['description']
+            desc = desc.replace('Mercor', 'M').replace('mercor', 'M')
+            desc = desc.replace('Mercor seeking', 'M seeking')
+            desc = desc.replace('Mercor is partnering', 'M is partnering')
+            desc = desc.replace('www.mercor.com', 'www.medevidences.com')
+            desc = desc.replace('work.mercor.com', 'www.medevidences.com')
+            if desc != job['description']:
+                updates['description'] = desc
+        
+        # Sanitize company_name
+        if job.get('company_name') and (
+            'mercor' in job['company_name'].lower() or 
+            len(job['company_name']) > 2
+        ):
+            updates['company_name'] = 'M'
+        
+        # Sanitize role_overview
+        if job.get('role_overview'):
+            overview = job['role_overview']
+            overview = overview.replace('Mercor', 'M').replace('mercor', 'M')
+            if overview != job['role_overview']:
+                updates['role_overview'] = overview
+        
+        # Sanitize project_summary
+        if job.get('project_summary'):
+            summary = job['project_summary']
+            summary = summary.replace('Mercor', 'M').replace('mercor', 'M')
+            if summary != job['project_summary']:
+                updates['project_summary'] = summary
+        
+        # Apply updates
+        if updates:
+            await db.jobs.update_one(
+                {"id": job['id']},
+                {"$set": updates}
+            )
+            sanitized_count += 1
+    
+    return {
+        "message": f"Sanitized {sanitized_count} jobs",
+        "sanitized": sanitized_count,
+        "total_checked": len(jobs)
+    }
+
     jobs = await db.jobs.find({}, {"_id": 0}).to_list(None)
     
     # Add source tags
