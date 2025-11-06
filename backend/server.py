@@ -3677,6 +3677,91 @@ async def scrape_mercor_jobs(
         logging.error(f"Error fetching Mercor jobs: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching jobs from Mercor: {str(e)}")
 
+
+@api_router.post("/admin/import-all-jobs")
+async def import_jobs_from_all_sources(
+    keywords: str = "medical research",
+    current_user: dict = Depends(get_current_user)
+):
+    """Import jobs from all available sources (Mercor + Aggregators)"""
+    
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Only admin can import jobs")
+    
+    results = {
+        "mercor": {"count": 0, "status": "not_attempted"},
+        "jobdata": {"count": 0, "status": "not_attempted"},
+        "jsearch": {"count": 0, "status": "not_attempted"}
+    }
+    
+    # Try Mercor via Apify
+    try:
+        if os.getenv('APIFY_API_TOKEN'):
+            # This would call the existing mercor scraping logic
+            results["mercor"]["status"] = "configured"
+            results["mercor"]["message"] = "Use 'Import External Jobs' page for Mercor"
+        else:
+            results["mercor"]["status"] = "no_api_key"
+    except Exception as e:
+        results["mercor"]["status"] = "error"
+        results["mercor"]["error"] = str(e)
+    
+    # Try Job Aggregators
+    try:
+        aggregator_results = await job_aggregator_service.import_jobs_from_all_sources(keywords)
+        
+        # Process jobdata results
+        if aggregator_results['jobdata']['success']:
+            for job_data in aggregator_results['jobdata']['jobs']:
+                # Check if already exists
+                existing = await db.imported_jobs.find_one({
+                    "external_id": job_data['external_id'],
+                    "source": "jobdata"
+                }, {"_id": 0})
+                
+                if not existing:
+                    job_data['imported_at'] = datetime.now(timezone.utc).isoformat()
+                    job_data['imported_by'] = current_user['id']
+                    await db.imported_jobs.insert_one(job_data)
+                    results["jobdata"]["count"] += 1
+            
+            results["jobdata"]["status"] = "success"
+        else:
+            results["jobdata"]["status"] = "no_api_key" if not os.getenv('JOBDATA_API_KEY') else "error"
+        
+        # Process JSearch results
+        if aggregator_results['jsearch']['success']:
+            for job_data in aggregator_results['jsearch']['jobs']:
+                existing = await db.imported_jobs.find_one({
+                    "external_id": job_data['external_id'],
+                    "source": "jsearch"
+                }, {"_id": 0})
+                
+                if not existing:
+                    job_data['imported_at'] = datetime.now(timezone.utc).isoformat()
+                    job_data['imported_by'] = current_user['id']
+                    await db.imported_jobs.insert_one(job_data)
+                    results["jsearch"]["count"] += 1
+            
+            results["jsearch"]["status"] = "success"
+        else:
+            results["jsearch"]["status"] = "no_api_key" if not os.getenv('JSEARCH_RAPIDAPI_KEY') else "error"
+    
+    except Exception as e:
+        logging.error(f"Error importing from aggregators: {str(e)}")
+        results["jobdata"]["status"] = "error"
+        results["jsearch"]["status"] = "error"
+    
+    total_imported = results["jobdata"]["count"] + results["jsearch"]["count"]
+    
+    return {
+        "message": f"Import complete. Added {total_imported} new jobs from aggregators.",
+        "total_imported": total_imported,
+        "results": results,
+        "note": "Mercor jobs can be imported via 'Import External Jobs' page"
+    }
+
+
 @api_router.get("/scrape/imported-jobs")
 async def get_imported_jobs(current_user: dict = Depends(get_current_user)):
     """Get all scraped jobs from external sources"""
