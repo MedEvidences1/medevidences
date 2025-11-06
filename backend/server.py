@@ -3768,6 +3768,86 @@ async def import_jobs_from_all_sources(
                     "source": "jsearch"
                 }, {"_id": 0})
                 
+
+
+@api_router.post("/admin/activate-imported-jobs")
+async def activate_imported_jobs(
+    source: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Convert imported jobs to regular jobs so they appear in main listings"""
+    
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Only admin can activate jobs")
+    
+    # Get admin user as employer for these jobs
+    admin_employer = await db.employer_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not admin_employer:
+        # Create admin employer profile if it doesn't exist
+        admin_employer_data = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user['id'],
+            "company_name": "MedEvidences Partner Network",
+            "company_type": "Staffing & Recruiting",
+            "location": "Global",
+            "website": "https://medevidences.com",
+            "description": "Jobs from trusted partners",
+            "phone": "",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.employer_profiles.insert_one(admin_employer_data)
+        admin_employer = admin_employer_data
+    
+    # Query for imported jobs
+    query = {}
+    if source:
+        query['source'] = source
+    
+    imported_jobs = await db.imported_jobs.find(query, {"_id": 0}).to_list(None)
+    
+    activated_count = 0
+    skipped_count = 0
+    
+    for imported_job in imported_jobs:
+        # Check if already activated
+        existing = await db.jobs.find_one({
+            "title": imported_job.get('title'),
+            "company_name": imported_job.get('company_name', 'M')
+        }, {"_id": 0})
+        
+        if existing:
+            skipped_count += 1
+            continue
+        
+        # Create regular job from imported job
+        new_job = Job(
+            employer_id=current_user['id'],
+            title=imported_job.get('title', 'Position Available'),
+            description=imported_job.get('description', 'No description provided'),
+            category=imported_job.get('category', 'Medical Research'),
+            location=imported_job.get('location', 'Remote'),
+            job_type=imported_job.get('job_type', 'Full-time'),
+            experience_required=imported_job.get('experience_required', ''),
+            skills_required=[],
+            salary_range=imported_job.get('salary_range', ''),
+            benefits=[],
+            company_name=imported_job.get('company_name', 'M'),
+            status='active'
+        )
+        
+        job_dict = new_job.model_dump()
+        job_dict['posted_at'] = job_dict['posted_at'].isoformat()
+        
+        await db.jobs.insert_one(job_dict)
+        activated_count += 1
+    
+    return {
+        "message": f"Activated {activated_count} jobs from imported sources",
+        "activated": activated_count,
+        "skipped": skipped_count,
+        "total_processed": len(imported_jobs)
+    }
+
                 if not existing:
                     job_data['imported_at'] = datetime.now(timezone.utc).isoformat()
                     job_data['imported_by'] = current_user['id']
