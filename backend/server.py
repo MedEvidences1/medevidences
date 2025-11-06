@@ -3682,11 +3682,11 @@ async def start_video_interview(
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
         
-        # Generate interview questions
+        # Generate interview questions (6 health + 4 job-specific = 10 total)
         questions_result = await video_service.generate_interview_questions(
             job['description'],
             job['title'],
-            num_questions=5
+            num_questions=10
         )
         
         if not questions_result['success']:
