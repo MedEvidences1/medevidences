@@ -409,6 +409,7 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
         <Tabs defaultValue="jobs" className="space-y-6">
           <TabsList>
             <TabsTrigger value="jobs">Recent Jobs</TabsTrigger>
+            <TabsTrigger value="sources">Job Sources</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
