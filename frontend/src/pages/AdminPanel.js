@@ -439,6 +439,101 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
             </Card>
           </TabsContent>
 
+          <TabsContent value="sources">
+            <Card>
+              <CardHeader>
+                <CardTitle>Job Sources Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h3 className="font-semibold mb-2">External Job APIs</h3>
+                      <p className="text-sm text-gray-600 mb-3">Import jobs from external sources</p>
+                      <div className="space-y-2">
+                        <Button 
+                          className="w-full bg-orange-500 hover:bg-orange-600"
+                          onClick={() => window.location.href = '/mercor-jobs'}
+                        >
+                          📥 Mercor Jobs Portal
+                        </Button>
+                        <Button 
+                          className="w-full bg-green-600 hover:bg-green-700"
+                          onClick={async () => {
+                            try {
+                              const token = localStorage.getItem('token');
+                              const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/import-all-jobs?keywords=medical`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                              });
+                              const data = await response.json();
+                              if (response.ok) {
+                                toast.success(`Success! ${data.message}\n\nJobdata: ${data.results.jobdata.count} jobs\nJSearch: ${data.results.jsearch.count} jobs`);
+                              } else {
+                                toast.error('Error: ' + data.detail);
+                              }
+                            } catch (error) {
+                              toast.error('Error: ' + error.message);
+                            }
+                          }}
+                        >
+                          🌐 Import from APIs
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h3 className="font-semibold mb-2">Job Activation</h3>
+                      <p className="text-sm text-gray-600 mb-3">Manage imported job visibility</p>
+                      <Button 
+                        className="w-full bg-purple-600 hover:bg-purple-700"
+                        onClick={async () => {
+                          if (!confirm('This will make all imported jobs visible to applicants. Continue?')) return;
+                          try {
+                            const token = localStorage.getItem('token');
+                            const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/activate-imported-jobs`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const data = await response.json();
+                            if (response.ok) {
+                              toast.success(`Success! ${data.message}\n\nActivated: ${data.activated} jobs\nSkipped (duplicates): ${data.skipped} jobs`);
+                              fetchDashboardData();
+                            } else {
+                              toast.error('Error: ' + data.detail);
+                            }
+                          } catch (error) {
+                            toast.error('Error: ' + error.message);
+                          }
+                        }}
+                      >
+                        ✅ Activate Imported Jobs
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-3">Job Source Statistics</h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600">{stats.totalJobs}</div>
+                        <div className="text-sm text-gray-600">Total Jobs</div>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600">{stats.activeJobs}</div>
+                        <div className="text-sm text-gray-600">Active Jobs</div>
+                      </div>
+                      <div className="text-center p-3 bg-orange-50 rounded-lg">
+                        <div className="text-2xl font-bold text-orange-600">{stats.totalJobs - stats.activeJobs}</div>
+                        <div className="text-sm text-gray-600">Pending Activation</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="applications">
             <Card>
               <CardHeader>
