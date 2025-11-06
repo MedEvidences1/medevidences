@@ -1228,6 +1228,27 @@ async def get_job_by_id(job_id: str):
     job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+
+
+@api_router.get("/admin/jobs-with-sources")
+async def get_jobs_with_sources(current_user: dict = Depends(get_current_user)):
+    """Get all jobs with import source information (admin only)"""
+    
+    if current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Admin only")
+    
+    # Get all jobs
+    jobs = await db.jobs.find({}, {"_id": 0}).to_list(None)
+    
+    # Add source tags
+    for job in jobs:
+        if 'import_source' in job:
+            job['source_display'] = f"📥 {job['import_source'].upper()}"
+        else:
+            job['source_display'] = "✍️ POSTED"
+    
+    return jobs
+
     
     employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
     if employer_profile:
