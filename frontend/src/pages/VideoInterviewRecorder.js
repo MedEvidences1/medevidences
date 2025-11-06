@@ -55,13 +55,19 @@ export default function VideoInterviewRecorder() {
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Fetching jobs from:', `${API}/jobs`);
       const response = await axios.get(`${API}/jobs`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log('Jobs fetched:', response.data.length);
       setJobs(response.data);
+      if (response.data.length === 0) {
+        toast.info('No jobs available yet. Please check back later.');
+      }
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      toast.error('Failed to load jobs');
+      console.error('Error response:', error.response?.data);
+      toast.error('Failed to load jobs: ' + (error.response?.data?.detail || error.message));
     }
   };
 
