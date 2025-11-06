@@ -182,6 +182,134 @@ function ReceivedApplications({ user, onLogout }) {
             <p className="text-gray-400 text-sm mt-2">Post jobs to start receiving applications</p>
           </div>
         )}
+
+        {/* AI Interview Modal */}
+        <Dialog open={showInterviewModal} onOpenChange={setShowInterviewModal}>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>🤖 AI Interview Analysis</DialogTitle>
+            </DialogHeader>
+            {interviewDetails && (
+              <div className="space-y-4">
+                {interviewDetails.interviews.length > 0 ? (
+                  interviewDetails.interviews.map((interview, idx) => (
+                    <div key={idx} className="space-y-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 className="font-bold text-lg">Interview for: {interview.job_title}</h3>
+                        <p className="text-sm text-gray-600">Completed: {new Date(interview.completed_at).toLocaleString()}</p>
+                      </div>
+
+                      {interview.ai_analysis && (
+                        <>
+                          <div className="bg-gradient-to-r from-green-50 to-blue-50 border rounded-lg p-4">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="text-sm text-gray-600">Overall AI Vetting Score</p>
+                                <p className="text-4xl font-bold text-blue-600">{interview.ai_analysis.overall_score}/100</p>
+                              </div>
+                              <div>
+                                <Badge className={
+                                  interview.ai_analysis.hire_decision.includes('Strong Yes') ? 'bg-green-600' :
+                                  interview.ai_analysis.hire_decision.includes('Yes') ? 'bg-green-500' :
+                                  interview.ai_analysis.hire_decision.includes('Maybe') ? 'bg-yellow-500' :
+                                  'bg-red-500'
+                                }>
+                                  {interview.ai_analysis.hire_decision}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <Card>
+                              <CardContent className="pt-4">
+                                <p className="text-sm text-gray-600">Communication</p>
+                                <p className="text-2xl font-bold">{interview.ai_analysis.communication_score}</p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-4">
+                                <p className="text-sm text-gray-600">Technical</p>
+                                <p className="text-2xl font-bold">{interview.ai_analysis.technical_knowledge_score}</p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-4">
+                                <p className="text-sm text-gray-600">Problem Solving</p>
+                                <p className="text-2xl font-bold">{interview.ai_analysis.problem_solving_score}</p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-4">
+                                <p className="text-sm text-gray-600">Confidence</p>
+                                <p className="text-2xl font-bold">{interview.ai_analysis.confidence_score}</p>
+                              </CardContent>
+                            </Card>
+                            <Card>
+                              <CardContent className="pt-4">
+                                <p className="text-sm text-gray-600">Job Fit</p>
+                                <p className="text-2xl font-bold">{interview.ai_analysis.job_fit_score}</p>
+                              </CardContent>
+                            </Card>
+                          </div>
+
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>💪 Strengths</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="list-disc list-inside space-y-1">
+                                {interview.ai_analysis.strengths.map((s, i) => (
+                                  <li key={i} className="text-green-700">{s}</li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>📈 Areas for Development</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="list-disc list-inside space-y-1">
+                                {interview.ai_analysis.weaknesses.map((w, i) => (
+                                  <li key={i} className="text-orange-600">{w}</li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>💡 Key Insights</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="list-disc list-inside space-y-1">
+                                {interview.ai_analysis.key_insights.map((insight, i) => (
+                                  <li key={i} className="text-blue-700">{insight}</li>
+                                ))}
+                              </ul>
+                            </CardContent>
+                          </Card>
+
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p className="font-bold">AI Recommendation:</p>
+                            <p className="text-lg">{interview.ai_analysis.recommendation}</p>
+                            <p className="text-sm text-gray-600 mt-2">{interview.ai_analysis.reasoning}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600">This candidate hasn't completed a video interview yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
