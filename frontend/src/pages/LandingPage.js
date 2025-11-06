@@ -314,11 +314,20 @@ function LandingPage({ user, onLogout }) {
               <h4 className="text-2xl font-bold text-gray-900">Innovative Health-Tech Startups</h4>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { name: 'Tempus Labs', jobs: 6, funding: 'Series G - $1.3B', focus: 'Precision Medicine' },
-                { name: 'Freenome', jobs: 9, funding: 'Series D - $270M', focus: 'Cancer Detection AI' },
-                { name: 'Recursion Pharma', jobs: 11, funding: 'Public', focus: 'Drug Discovery AI' }
-              ].map((startup, idx) => (
+              {(companyStats?.startups || [
+                { name: 'Tempus Labs', job_count: 6 },
+                { name: 'Freenome', job_count: 9 },
+                { name: 'Recursion Pharma', job_count: 11 }
+              ]).slice(0, 3).map((startup, idx) => {
+                const startupData = {
+                  'Tempus Labs': { funding: 'Series G - $1.3B', focus: 'Precision Medicine' },
+                  'Freenome': { funding: 'Series D - $270M', focus: 'Cancer Detection AI' },
+                  'Recursion Pharma': { funding: 'Public', focus: 'Drug Discovery AI' },
+                  'Tempus': { funding: 'Series G - $1.3B', focus: 'Precision Medicine' },
+                  'Recursion': { funding: 'Public', focus: 'Drug Discovery AI' }
+                };
+                const info = startupData[startup.name] || { funding: 'Well-Funded', focus: 'Health-Tech Innovation' };
+                return (
                 <Card key={idx} className="hover:shadow-xl transition-all border-2 border-green-200">
                   <CardHeader>
                     <div className="flex items-center justify-between mb-2">
