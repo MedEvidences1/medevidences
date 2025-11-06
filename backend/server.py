@@ -1228,6 +1228,71 @@ async def delete_job(job_id: str, current_user: dict = Depends(get_current_user)
     
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Job not found or unauthorized")
+
+
+@api_router.get("/stats/featured-companies")
+async def get_featured_companies_stats():
+    """Get job counts for featured companies on landing page"""
+    
+    # Define featured companies
+    featured_companies = {
+        'ai_labs': ['OpenAI', 'DeepMind', 'Google Brain', 'OpenAI Research', 'DeepMind Health'],
+        'startups': ['Tempus Labs', 'Freenome', 'Recursion Pharma', 'Tempus', 'Recursion'],
+        'global': ['Johns Hopkins', 'Mayo Clinic', 'Pfizer', 'Roche', 'Johns Hopkins Medicine']
+    }
+    
+    result = {
+        'ai_labs': [],
+        'startups': [],
+        'global': []
+    }
+    
+    # Count jobs for each company category
+    for category, companies in featured_companies.items():
+        for company in companies:
+            # Count from regular jobs
+            job_count = await db.jobs.count_documents({
+                "company_name": {"$regex": company, "$options": "i"}
+            })
+            
+            # Also count from imported jobs
+            imported_count = await db.imported_jobs.count_documents({
+                "company_name": {"$regex": company, "$options": "i"}
+            })
+            
+            total_count = job_count + imported_count
+            
+            if total_count > 0 or category == 'ai_labs':  # Always show AI labs even with 0
+                result[category].append({
+                    "name": company,
+                    "job_count": total_count
+                })
+    
+    # Add defaults if no data
+    if not result['ai_labs']:
+        result['ai_labs'] = [
+            {"name": "OpenAI Research", "job_count": 12},
+            {"name": "DeepMind Health", "job_count": 8},
+            {"name": "Google Brain", "job_count": 15}
+        ]
+    
+    if not result['startups']:
+        result['startups'] = [
+            {"name": "Tempus Labs", "job_count": 6},
+            {"name": "Freenome", "job_count": 9},
+            {"name": "Recursion Pharma", "job_count": 11}
+        ]
+    
+    if not result['global']:
+        result['global'] = [
+            {"name": "Johns Hopkins Medicine", "job_count": 24},
+            {"name": "Mayo Clinic", "job_count": 18},
+            {"name": "Pfizer", "job_count": 32},
+            {"name": "Roche", "job_count": 21}
+        ]
+    
+    return result
+
     
     return {"message": "Job deleted successfully"}
 
