@@ -71,7 +71,8 @@ Make questions specific to the job description provided."""
             user_message = UserMessage(text=prompt)
             response = await chat.send_message(user_message)
             
-            questions_text = response.choices[0].message.content
+            # response is just text from emergentintegrations
+            questions_text = response
             # Extract JSON array
             start = questions_text.find('[')
             end = questions_text.rfind(']') + 1
