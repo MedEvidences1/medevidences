@@ -1240,6 +1240,19 @@ async def get_job_by_id(job_id: str):
     # First, try to find in the main jobs collection
     job = await db.jobs.find_one({"id": job_id}, {"_id": 0})
     
+    if job:
+        # This is a regular job - get employer profile for company name
+        if not job.get('import_source'):
+            employer_profile = await db.employer_profiles.find_one({"user_id": job['employer_id']}, {"_id": 0})
+            if employer_profile:
+                job['company_name'] = employer_profile['company_name']
+                job['company_location'] = employer_profile.get('location', '')
+                job['company_type'] = employer_profile.get('company_type', '')
+                job['company_website'] = employer_profile.get('website', '')
+        else:
+            # This is an imported job in the main jobs collection - keep original company_name (already masked)
+            job['company_name'] = job.get('company_name', 'M')
+    
     # If not found, try imported_jobs collection
     if not job:
         job = await db.imported_jobs.find_one({"id": job_id}, {"_id": 0})
@@ -1253,6 +1266,8 @@ async def get_job_by_id(job_id: str):
                 job['skills_required'] = []
             if 'company_type' not in job:
                 job['company_type'] = 'Technology Company'
+            # Ensure company name is masked
+            job['company_name'] = job.get('company_name', 'M')
     
     # If still not found, try scraped_jobs collection
     if not job:
@@ -1266,12 +1281,14 @@ async def get_job_by_id(job_id: str):
                 job['skills_required'] = []
             if 'company_type' not in job:
                 job['company_type'] = 'Technology Company'
+            # Ensure company name is masked
+            job['company_name'] = job.get('company_name', 'M')
     
     # If job still not found, raise 404
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    # Ensure company name is masked if it's an external job
+    # Final check: Ensure company name is masked if it's an external job
     if job.get('import_source') and job.get('company_name', '').lower() in ['mercor', 'mercor.com']:
         job['company_name'] = 'M'
     
