@@ -977,6 +977,21 @@ frontend:
         agent: "testing"
         comment: "TESTED SUCCESSFULLY: Landing page content is fully responsive on mobile (390x844 viewport). Hero section, company sections, and navigation adapt properly to mobile screen sizes. Content remains readable and functional across different viewport sizes."
   
+  - task: "Application Requirements Validation"
+    implemented: true
+    working: true
+    file: "backend/server.py, frontend/src/pages/JobDetails.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports: Application submitted without resume, without AI video interview, without health documents. User doesn't know where application went."
+      - working: true
+        agent: "main"
+        comment: "IMPLEMENTED: Added comprehensive validation in backend create_application endpoint. Now requires: 1) Resume uploaded (resume_url), 2) Calorie reports from MedEvidences.com, 3) Gut microbiome screenshot from MedEvidences.com, 4) Completed AI video interview for the job. Frontend updated with detailed error messages and redirects to dashboard to complete requirements. Applications flow to Employer Dashboard at /received-applications."
+
   - task: "Job Posting Date Display - Days Ago Format"
     implemented: true
     working: true
