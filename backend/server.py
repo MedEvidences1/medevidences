@@ -3545,6 +3545,334 @@ async def convert_scraped_job(
     }
 
 
+
+# ============================================
+# VIDEO INTERVIEW ENDPOINTS
+# ============================================
+
+video_service = VideoInterviewService()
+
+@api_router.post("/video-interview/upload")
+async def upload_video_interview(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload video interview file"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can upload video interviews")
+    
+    try:
+        form = await request.form()
+        video_file = form.get('video')
+        job_id = form.get('job_id')
+        
+        if not video_file:
+            raise HTTPException(status_code=400, detail="No video file provided")
+        
+        # Save video file
+        upload_dir = Path("/tmp/video_interviews")
+        upload_dir.mkdir(exist_ok=True)
+        
+        file_extension = video_file.filename.split('.')[-1]
+        video_filename = f"{current_user['id']}_{uuid.uuid4()}.{file_extension}"
+        video_path = upload_dir / video_filename
+        
+        with open(video_path, 'wb') as f:
+            content = await video_file.read()
+            f.write(content)
+        
+        # Create video interview record
+        interview = {
+            "id": str(uuid.uuid4()),
+            "candidate_id": current_user['id'],
+            "job_id": job_id,
+            "video_url": str(video_path),
+            "status": "uploaded",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.video_interviews.insert_one(interview)
+        
+        logging.info(f"Video interview uploaded: {interview['id']}")
+        
+        return {
+            "message": "Video uploaded successfully",
+            "interview_id": interview['id'],
+            "status": "uploaded"
+        }
+    except Exception as e:
+        logging.error(f"Video upload error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/video-interview/transcribe/{interview_id}")
+async def transcribe_video_interview(
+    interview_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Transcribe video interview using OpenAI Whisper"""
+    interview = await db.video_interviews.find_one({"id": interview_id}, {"_id": 0})
+    
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+    
+    if interview['candidate_id'] != current_user['id'] and current_user.get('email') != 'admin@medevidences.com':
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    try:
+        # Update status
+        await db.video_interviews.update_one(
+            {"id": interview_id},
+            {"$set": {"status": "processing"}}
+        )
+        
+        # Extract audio and transcribe (simplified - assumes video has audio)
+        video_path = interview['video_url']
+        
+        # For now, if video is mp4/webm, treat as audio file
+        # In production, use ffmpeg to extract audio
+        with open(video_path, 'rb') as audio_file:
+            result = await video_service.transcribe_audio(audio_file)
+        
+        if result['success']:
+            transcript = result['text']
+            
+            # Get candidate profile for specialization
+            candidate = await db.candidate_profiles.find_one(
+                {"user_id": current_user['id']},
+                {"_id": 0}
+            )
+            specialization = candidate.get('specialization', 'Healthcare') if candidate else 'Healthcare'
+            
+            # Analyze with GPT-4o
+            from openai import AsyncOpenAI
+            openai_client = AsyncOpenAI(api_key=os.getenv('EMERGENT_LLM_KEY'))
+            
+            analysis_result = await video_service.analyze_interview_transcript(
+                transcript, specialization, openai_client
+            )
+            
+            if analysis_result['success']:
+                analysis = analysis_result['analysis']
+                
+                # Update interview with transcript and analysis
+                await db.video_interviews.update_one(
+                    {"id": interview_id},
+                    {"$set": {
+                        "transcript": transcript,
+                        "ai_analysis": analysis,
+                        "status": "completed",
+                        "completed_at": datetime.now(timezone.utc).isoformat(),
+                        "duration_seconds": result.get('duration')
+                    }}
+                )
+                
+                # Update candidate profile with AI vetting score
+                await db.candidate_profiles.update_one(
+                    {"user_id": current_user['id']},
+                    {"$set": {
+                        "interview_completed": True,
+                        "interview_score": analysis.get('overall_score', 0),
+                        "ai_vetting_score": analysis.get('overall_score', 0),
+                        "ai_recommendation": analysis.get('recommendation', 'Pending Review')
+                    }}
+                )
+                
+                return {
+                    "message": "Interview analyzed successfully",
+                    "transcript": transcript,
+                    "analysis": analysis
+                }
+            else:
+                raise HTTPException(status_code=500, detail=f"Analysis failed: {analysis_result.get('error')}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Transcription failed: {result.get('error')}")
+            
+    except Exception as e:
+        logging.error(f"Transcription error: {str(e)}", exc_info=True)
+        await db.video_interviews.update_one(
+            {"id": interview_id},
+            {"$set": {"status": "failed"}}
+        )
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/video-interview/candidate")
+async def get_candidate_interviews(current_user: dict = Depends(get_current_user)):
+    """Get all video interviews for current candidate"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can view their interviews")
+    
+    interviews = await db.video_interviews.find(
+        {"candidate_id": current_user['id']},
+        {"_id": 0}
+    ).sort([("created_at", -1)]).to_list(100)
+    
+    return interviews
+
+# ============================================
+# JOB OFFERS ENDPOINTS
+# ============================================
+
+@api_router.get("/job-offers/candidate")
+async def get_candidate_offers(current_user: dict = Depends(get_current_user)):
+    """Get all job offers for candidate"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can view offers")
+    
+    offers = await db.job_offers.find(
+        {"candidate_id": current_user['id']},
+        {"_id": 0}
+    ).sort([("created_at", -1)]).to_list(100)
+    
+    # Enrich with job details
+    for offer in offers:
+        job = await db.jobs.find_one({"id": offer['job_id']}, {"_id": 0})
+        if job:
+            offer['job_details'] = {
+                "title": job['title'],
+                "location": job['location'],
+                "category": job['category']
+            }
+    
+    return offers
+
+@api_router.post("/job-offers")
+async def create_job_offer(
+    offer_data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a job offer (employer or admin only)"""
+    if current_user['role'] not in [UserRole.EMPLOYER, 'admin']:
+        raise HTTPException(status_code=403, detail="Only employers can create offers")
+    
+    # Get job and candidate details
+    job = await db.jobs.find_one({"id": offer_data['job_id']}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    candidate = await db.users.find_one({"id": offer_data['candidate_id']}, {"_id": 0})
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+    
+    employer_profile = await db.employer_profiles.find_one(
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    )
+    
+    offer = {
+        "id": str(uuid.uuid4()),
+        "candidate_id": offer_data['candidate_id'],
+        "employer_id": current_user['id'],
+        "job_id": offer_data['job_id'],
+        "job_title": job['title'],
+        "company_name": employer_profile.get('company_name', 'Unknown') if employer_profile else 'Unknown',
+        "salary_offered": offer_data.get('salary_offered', ''),
+        "employment_type": offer_data.get('employment_type', 'Full-time'),
+        "start_date": offer_data.get('start_date'),
+        "benefits": offer_data.get('benefits', []),
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "notes": offer_data.get('notes')
+    }
+    
+    await db.job_offers.insert_one(offer)
+    
+    logging.info(f"Job offer created: {offer['id']} for candidate {offer_data['candidate_id']}")
+    
+    return {"message": "Offer created successfully", "offer_id": offer['id']}
+
+@api_router.post("/job-offers/{offer_id}/accept")
+async def accept_job_offer(
+    offer_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Accept a job offer"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can accept offers")
+    
+    offer = await db.job_offers.find_one({"id": offer_id}, {"_id": 0})
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    
+    if offer['candidate_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not your offer")
+    
+    if offer['status'] != 'pending':
+        raise HTTPException(status_code=400, detail=f"Offer already {offer['status']}")
+    
+    await db.job_offers.update_one(
+        {"id": offer_id},
+        {"$set": {
+            "status": "accepted",
+            "accepted_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logging.info(f"Offer {offer_id} accepted by {current_user['id']}")
+    
+    return {"message": "Offer accepted successfully"}
+
+@api_router.post("/job-offers/{offer_id}/reject")
+async def reject_job_offer(
+    offer_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reject a job offer"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates can reject offers")
+    
+    offer = await db.job_offers.find_one({"id": offer_id}, {"_id": 0})
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    
+    if offer['candidate_id'] != current_user['id']:
+        raise HTTPException(status_code=403, detail="Not your offer")
+    
+    if offer['status'] != 'pending':
+        raise HTTPException(status_code=400, detail=f"Offer already {offer['status']}")
+    
+    await db.job_offers.update_one(
+        {"id": offer_id},
+        {"$set": {
+            "status": "rejected",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    logging.info(f"Offer {offer_id} rejected by {current_user['id']}")
+    
+    return {"message": "Offer rejected"}
+
+@api_router.get("/stripe/customer-portal")
+async def get_stripe_portal_link(current_user: dict = Depends(get_current_user)):
+    """Get Stripe customer portal link for managing subscription"""
+    if current_user['role'] != UserRole.CANDIDATE:
+        raise HTTPException(status_code=403, detail="Only candidates have subscriptions")
+    
+    try:
+        import stripe
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        # Get candidate profile
+        profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+        
+        if not profile or not profile.get('stripe_customer_id'):
+            raise HTTPException(status_code=400, detail="No Stripe customer found. Please subscribe first.")
+        
+        # Create customer portal session
+        session = stripe.billing_portal.Session.create(
+            customer=profile['stripe_customer_id'],
+            return_url=f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/dashboard"
+        )
+        
+        return {"portal_url": session.url}
+        
+    except Exception as e:
+        logging.error(f"Stripe portal error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
