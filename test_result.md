@@ -369,6 +369,32 @@ frontend:
   - task: "Dashboard Navigation Updates"
     implemented: true
     working: true
+
+  
+  - task: "Health Documents Upload UI"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/CandidateDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Health & Wellness Documents' section with clear instructions to visit www.medevidences.com. Added file upload inputs for calorie reports (2 images) and gut microbiome screenshot. Shows upload status with badges and displays health score if available."
+  
+  - task: "Health Analysis Display for Employers"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/ReceivedApplications.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added health analysis section to AI interview modal. Displays overall health score, wellness score, health metrics grid (exercise, nutrition, gut health, muscle fitness), health strengths/improvements, and health recommendation for employers to review."
+
     file: "frontend/src/pages/CandidateDashboard.js, EmployerDashboard.js"
     stuck_count: 0
     priority: "high"
