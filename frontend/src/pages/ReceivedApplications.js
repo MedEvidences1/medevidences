@@ -159,6 +159,17 @@ function ReceivedApplications({ user, onLogout }) {
                           <SelectItem value="accepted">Accepted</SelectItem>
                         </SelectContent>
                       </Select>
+                      {app.candidate_resume && (
+                        <a href={app.candidate_resume} target="_blank" rel="noopener noreferrer">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="bg-green-50 hover:bg-green-100 border-green-200"
+                          >
+                            📄 View Resume
+                          </Button>
+                        </a>
+                      )}
                       <Button 
                         onClick={() => fetchInterviewDetails(app.id)} 
                         variant="outline" 
@@ -167,8 +178,19 @@ function ReceivedApplications({ user, onLogout }) {
                       >
                         🎥 View AI Interview
                       </Button>
+                      {app.candidate_health_score && (
+                        <Badge 
+                          className={`${
+                            app.candidate_health_score === 'Excellent' ? 'bg-green-600' :
+                            app.candidate_health_score === 'Good' ? 'bg-blue-600' :
+                            'bg-orange-600'
+                          }`}
+                        >
+                          🏥 {app.candidate_health_score}
+                        </Badge>
+                      )}
                       <Link to={`/candidates/${app.candidate_id}`} className="ml-auto">
-                        <Button variant="outline" size="sm" data-testid={`view-profile-${app.id}`}>View Profile</Button>
+                        <Button variant="outline" size="sm" data-testid={`view-profile-${app.id}`}>View Full Profile</Button>
                       </Link>
                     </div>
                   </div>
