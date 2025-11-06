@@ -3687,10 +3687,6 @@ async def complete_video_interview(
         video_paths = request.get('video_paths', [])  # Array of {question_index, path}
         
         questions_and_answers = []
-        
-
-
-@api_router.get("/video-interview/candidate/{candidate_id}/for-employer")
 async def get_candidate_interviews_for_employer(
     candidate_id: str,
     current_user: dict = Depends(get_current_user)
