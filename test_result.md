@@ -978,12 +978,12 @@ frontend:
         comment: "TESTED SUCCESSFULLY: Landing page content is fully responsive on mobile (390x844 viewport). Hero section, company sections, and navigation adapt properly to mobile screen sizes. Content remains readable and functional across different viewport sizes."
   
   - task: "Job Posting Date Display - Days Ago Format"
-    implemented: false
-    working: false
+    implemented: true
+    working: true
     file: "frontend/src/pages/BrowseJobs.js, frontend/src/pages/JobDetails.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -991,6 +991,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Investigation complete. BrowseJobs.js uses toLocaleDateString() format. JobDetails.js missing date display entirely. Need to implement formatDaysAgo() helper function and update both pages. Ready to implement."
+      - working: true
+        agent: "main"
+        comment: "IMPLEMENTED: Created formatDaysAgo() helper function in both BrowseJobs.js and JobDetails.js. Function calculates time difference and formats as 'Today', '1 day ago', 'X days ago', 'X months ago', etc. Updated BrowseJobs.js line 216 to use formatDaysAgo(). Added new posting date section in JobDetails.js to display 'Posted X days ago'. Tested with screenshots - showing '7 days ago' on job listings and 'Posted 7 days ago' / 'Posted today' on details pages."
 
 test_plan:
   current_focus:
