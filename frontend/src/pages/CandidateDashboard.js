@@ -209,6 +209,60 @@ function CandidateDashboard({ user, onLogout }) {
           <p className="text-gray-600 mt-2" data-testid="welcome-message">Welcome back, {user.full_name}!</p>
         </div>
 
+        {/* Application Requirements Checklist */}
+        <Card className="mb-6 border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-xl flex items-center gap-2">
+              📋 Application Requirements Checklist
+            </CardTitle>
+            <CardDescription>
+              Complete all steps below before applying to jobs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <div className="mt-1">
+                  {profile?.resume_url ? '✅' : '⏳'}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">Step 1: Upload Resume</p>
+                  <p className="text-sm text-gray-600">Upload your resume in the Profile section below</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <div className="mt-1">
+                  {profile?.calorie_reports?.length > 0 && profile?.microbiome_screenshot ? '✅' : '⏳'}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">Step 2: Upload Health Documents</p>
+                  <p className="text-sm text-gray-600">Visit <a href="https://www.medevidences.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">MedEvidences.com</a> to get your calorie reports and gut microbiome score</p>
+                  <p className="text-sm text-gray-600 mt-1">Then upload them in the "Health & Wellness Documents" section below</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <div className="mt-1">⏳</div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">Step 3: Complete AI Video Interview (Per Job)</p>
+                  <p className="text-sm text-gray-600">Go to any job details page and click "🎥 Start AI Interview"</p>
+                  <p className="text-sm text-gray-600 mt-1">Complete 12 questions (6 health + 6 job-specific)</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                <div className="mt-1">🎯</div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">Step 4: Apply to Jobs</p>
+                  <p className="text-sm text-gray-600">Once all requirements are complete, click "Apply Now" on job details pages</p>
+                  <p className="text-sm text-gray-500 mt-1 italic">Your application will go directly to the employer who posted that job</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* AI Interview Banner */}
         {!profile?.interview_completed && (
           <Card className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
