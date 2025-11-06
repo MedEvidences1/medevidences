@@ -37,7 +37,7 @@ class VideoInterviewService:
             logger.error(f"Transcription error: {str(e)}")
             return {"success": False, "error": str(e)}
     
-    async def generate_interview_questions(self, job_description, job_title, num_questions=10):
+    async def generate_interview_questions(self, job_description, job_title, num_questions=12):
         """Generate interview questions based on job description + mandatory health questions"""
         try:
             # Fixed mandatory health questions (1-6)
@@ -50,26 +50,32 @@ class VideoInterviewService:
                 "Tell us about your sleep habits and daily regularity. How many hours do you sleep per night, and do you maintain a consistent schedule?"
             ]
             
-            # Generate job-specific questions (7-10) using AI
-            prompt = f"""You are an expert interviewer for a {job_title} position at MedEvidences.com.
+            # Generate job-specific questions (7-12) using AI - 6 questions
+            prompt = f"""You are an expert interviewer for a {job_title} position.
 
 Job Description:
 {job_description}
 
-Generate EXACTLY 4 job-specific interview questions that assess:
-1. Technical knowledge relevant to the {job_title} role
+Generate EXACTLY 6 job-specific interview questions that assess:
+1. Technical knowledge and skills relevant to the {job_title} role
 2. Problem-solving abilities in the field
-3. Relevant experience and background
-4. Cultural fit and motivation for this specific position
+3. Relevant experience and past achievements
+4. How you approach challenges in this field
+5. Your motivation and career goals in this domain
+6. Cultural fit and work style preferences
 
-Return ONLY a JSON array of exactly 4 questions. Each question should be unique, specific, and relevant to the job. Do NOT repeat questions.
+Important: Do NOT mention any specific company name. Keep questions generic and applicable to any employer.
+
+Return ONLY a JSON array of exactly 6 questions. Each question should be unique, specific, and relevant to the job. Do NOT repeat questions.
 
 Example format:
 [
   "What experience do you have with...",
-  "Can you describe a challenging situation...",
-  "How would you approach...",
-  "What motivates you about..."
+  "Can you describe a challenging situation where you...",
+  "How would you approach a problem involving...",
+  "Tell us about a successful project you completed that involved...",
+  "What are your key strengths in this field and how have you demonstrated them?",
+  "How do you stay updated with the latest developments in..."
 ]"""
             
             # Use emergentintegrations for chat
@@ -92,10 +98,10 @@ Example format:
             else:
                 job_questions = json.loads(questions_text)
             
-            # Ensure we only have 4 job-specific questions
-            job_questions = job_questions[:4]
+            # Ensure we only have 6 job-specific questions
+            job_questions = job_questions[:6]
             
-            # Combine: 6 health + 4 job-specific = 10 total
+            # Combine: 6 health + 6 job-specific = 12 total
             all_questions = health_questions + job_questions
             
             logger.info(f"Generated {len(all_questions)} questions: {len(health_questions)} health + {len(job_questions)} job-specific")
