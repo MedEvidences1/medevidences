@@ -3862,7 +3862,7 @@ async def activate_imported_jobs(
             skipped_count += 1
             continue
         
-        # Create regular job from imported job
+        # Create regular job from imported job with all required fields
         new_job = Job(
             employer_id=current_user['id'],
             title=imported_job.get('title', 'Position Available'),
@@ -3870,11 +3870,26 @@ async def activate_imported_jobs(
             category=imported_job.get('category', 'Medical Research'),
             location=imported_job.get('location', 'Remote'),
             job_type=imported_job.get('job_type', 'Full-time'),
-            experience_required=imported_job.get('experience_required', ''),
-            skills_required=[],
-            salary_range=imported_job.get('salary_range', ''),
-            benefits=[],
+            experience_required=imported_job.get('experience_required', 'Not specified'),
+            skills_required=imported_job.get('skills_required', []),
+            requirements=imported_job.get('requirements', ['Experience in relevant field']),
+            salary_range=imported_job.get('salary_range', 'Competitive'),
             company_name=imported_job.get('company_name', 'M'),
+            # New required fields with defaults
+            role_overview=imported_job.get('description', 'Position available')[:200],
+            specific_tasks=['To be discussed during interview'],
+            education_requirements=imported_job.get('education_requirements', 'Bachelor\'s degree or equivalent'),
+            knowledge_areas=imported_job.get('knowledge_areas', ['Professional expertise']),
+            communication_skills='Excellent communication required',
+            responsiveness_required=True,
+            independent_work=True,
+            ai_understanding=False,
+            english_proficiency='High proficiency required',
+            work_type=imported_job.get('work_type', 'Remote'),
+            schedule_commitment=imported_job.get('schedule_commitment', 'Full-time'),
+            compensation_details=imported_job.get('salary_range', 'Competitive salary'),
+            terms_conditions='Standard employment terms apply',
+            project_summary=imported_job.get('description', 'Exciting opportunity')[:150],
             status='active'
         )
         
