@@ -291,9 +291,31 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
             <div className="flex items-center space-x-4">
               <Link to="/mercor-jobs">
                 <Button className="bg-orange-500 hover:bg-orange-600">
-                  📥 Import Jobs
+                  📥 Import External Jobs
                 </Button>
               </Link>
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={async () => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/import-all-jobs?keywords=medical`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                      alert(`Success! ${data.message}\n\nJobdata: ${data.results.jobdata.count} jobs\nJSearch: ${data.results.jsearch.count} jobs`);
+                    } else {
+                      alert('Error: ' + data.detail);
+                    }
+                  } catch (error) {
+                    alert('Error: ' + error.message);
+                  }
+                }}
+              >
+                🌐 Import from APIs
+              </Button>
               <span className="text-sm text-gray-600">{user.email}</span>
               <Button variant="outline" onClick={onLogout}>Logout</Button>
             </div>
