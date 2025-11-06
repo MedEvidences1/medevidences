@@ -326,14 +326,19 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
                       method: 'POST',
                       headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const data = await response.json();
-                    if (response.ok) {
-                      alert(`Success! ${data.message}\n\nActivated: ${data.activated} jobs\nSkipped (duplicates): ${data.skipped} jobs`);
-                      window.location.reload();
-                    } else {
-                      alert('Error: ' + data.detail);
+                    
+                    // Check status BEFORE parsing JSON
+                    if (!response.ok) {
+                      const error = await response.json();
+                      alert('Error: ' + (error.detail || 'Activation failed'));
+                      return;
                     }
+                    
+                    const data = await response.json();
+                    alert(`✅ Success! ${data.message}\n\n📊 Activated: ${data.activated} jobs\n⏭️ Skipped: ${data.skipped} duplicates\n📦 Total: ${data.total_processed} jobs`);
+                    window.location.reload();
                   } catch (error) {
+                    console.error('Activation error:', error);
                     alert('Error: ' + error.message);
                   }
                 }}
