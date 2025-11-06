@@ -233,7 +233,7 @@ Code: ${app.referral_code}
 
 ${app.cover_letter ? `\nCANDIDATE COVER LETTER:\n${app.cover_letter}\n` : ''}
 
-To view the full candidate profile and manage this application, please log in to your MedEvidences employer dashboard at: https://medexpert-hire.preview.emergentagent.com
+To view the full candidate profile and manage this application, please log in to your MedEvidences employer dashboard at: https://med-ai-hiring.preview.emergentagent.com
 
 Best regards,
 MedEvidences Team

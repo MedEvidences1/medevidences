@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-BACKEND_URL = "https://medexpert-hire.preview.emergentagent.com/api"
+BACKEND_URL = "https://med-ai-hiring.preview.emergentagent.com/api"
 
 class SubscriptionActivationTester:
     def __init__(self):

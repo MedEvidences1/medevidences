@@ -11,7 +11,7 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 
-BACKEND_URL = "https://medexpert-hire.preview.emergentagent.com/api"
+BACKEND_URL = "https://med-ai-hiring.preview.emergentagent.com/api"
 
 class CompleteSubscriptionTester:
     def __init__(self):
