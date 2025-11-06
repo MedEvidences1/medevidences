@@ -128,7 +128,7 @@ export default function PayrollTracking() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6">
           <button
-            onClick={() => navigate(user.role === 'candidate' ? '/candidate-dashboard' : '/employer-dashboard')}
+            onClick={() => navigate('/dashboard')}
             className="text-blue-600 hover:text-blue-800 flex items-center"
           >
             ← Back to Dashboard
