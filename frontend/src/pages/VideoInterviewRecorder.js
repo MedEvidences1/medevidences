@@ -314,6 +314,7 @@ export default function VideoInterviewRecorder() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-bold text-lg mb-2">✅ Interview Analysis Complete!</h3>
                   <p className="text-sm">Your AI vetting score: <span className="font-bold text-2xl">{results.analysis.overall_score}/100</span></p>
+                  <p className="text-sm mt-2">Hire Decision: <span className="font-bold">{results.analysis.hire_decision}</span></p>
                 </div>
 
                 <Card>
@@ -337,6 +338,10 @@ export default function VideoInterviewRecorder() {
                       <div>
                         <p className="text-sm text-gray-600">Confidence</p>
                         <p className="text-xl font-bold">{results.analysis.confidence_score}/100</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Job Fit</p>
+                        <p className="text-xl font-bold">{results.analysis.job_fit_score}/100</p>
                       </div>
                     </div>
                   </CardContent>
@@ -368,14 +373,40 @@ export default function VideoInterviewRecorder() {
                   </CardContent>
                 </Card>
 
+                <Card>
+                  <CardHeader>
+                    <CardTitle>💡 Key Insights</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="list-disc list-inside space-y-1">
+                      {results.analysis.key_insights.map((insight, i) => (
+                        <li key={i} className="text-blue-700">{insight}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <p className="font-bold">Recommendation:</p>
                   <p className="text-lg">{results.analysis.recommendation}</p>
+                  <p className="text-sm mt-2 text-gray-600">{results.analysis.reasoning}</p>
                 </div>
 
-                <Button onClick={() => navigate('/dashboard')} className="w-full">
-                  Return to Dashboard
-                </Button>
+                <div className="flex gap-3">
+                  <Button onClick={() => {
+                    setStep('select-job');
+                    setRecordedBlob(null);
+                    setAnswers([]);
+                    setResults(null);
+                    setQuestions([]);
+                    setCurrentQuestionIndex(0);
+                  }} variant="outline" className="flex-1">
+                    🔄 New Interview
+                  </Button>
+                  <Button onClick={() => navigate('/dashboard')} className="flex-1">
+                    Return to Dashboard
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
