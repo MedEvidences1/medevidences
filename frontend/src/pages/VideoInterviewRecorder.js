@@ -125,18 +125,19 @@ export default function VideoInterviewRecorder() {
     }
   };
 
-  const uploadVideo = async () => {
+  const uploadAnswer = async () => {
     if (!recordedBlob) return;
 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('video', recordedBlob, 'interview.webm');
-      formData.append('job_id', 'self-interview');
+      formData.append('video', recordedBlob, `answer_${currentQuestionIndex}.webm`);
+      formData.append('interview_id', interviewId);
+      formData.append('question_index', currentQuestionIndex);
 
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${API}/video-interview/upload`,
+        `${API}/video-interview/upload-answer`,
         formData,
         {
           headers: {
@@ -146,11 +147,23 @@ export default function VideoInterviewRecorder() {
         }
       );
 
-      setInterviewId(response.data.interview_id);
-      toast.success('Video uploaded successfully!');
+      // Save answer path
+      const newAnswers = [...answers, {
+        question_index: currentQuestionIndex,
+        path: response.data.video_path
+      }];
+      setAnswers(newAnswers);
+
+      toast.success(`Answer ${currentQuestionIndex + 1} uploaded!`);
       
-      // Auto-start transcription
-      await transcribeVideo(response.data.interview_id);
+      // Move to next question or finish
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setRecordedBlob(null);
+      } else {
+        // All questions answered, complete interview
+        await completeInterview(newAnswers);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error(error.response?.data?.detail || 'Upload failed');
@@ -159,21 +172,24 @@ export default function VideoInterviewRecorder() {
     }
   };
 
-  const transcribeVideo = async (id) => {
+  const completeInterview = async (allAnswers) => {
     setProcessing(true);
+    toast.info('🤖 AI is analyzing your interview...');
+    
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${API}/video-interview/transcribe/${id}`,
-        {},
+        `${API}/video-interview/complete/${interviewId}`,
+        { video_paths: allAnswers },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
 
       setResults(response.data);
+      setStep('results');
       toast.success('✅ AI Analysis Complete!');
     } catch (error) {
-      console.error('Transcription error:', error);
-      toast.error('Processing failed: ' + (error.response?.data?.detail || 'Unknown error'));
+      console.error('Complete error:', error);
+      toast.error('Analysis failed: ' + (error.response?.data?.detail || 'Unknown error'));
     } finally {
       setProcessing(false);
     }
