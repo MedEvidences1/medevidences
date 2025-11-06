@@ -316,6 +316,30 @@ Sent At: ${new Date(app.sent_at).toLocaleString()}
               >
                 🌐 Import from APIs
               </Button>
+              <Button 
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={async () => {
+                  if (!confirm('This will make all imported jobs visible to applicants. Continue?')) return;
+                  try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/admin/activate-imported-jobs`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                      alert(`Success! ${data.message}\n\nActivated: ${data.activated} jobs\nSkipped (duplicates): ${data.skipped} jobs`);
+                      window.location.reload();
+                    } else {
+                      alert('Error: ' + data.detail);
+                    }
+                  } catch (error) {
+                    alert('Error: ' + error.message);
+                  }
+                }}
+              >
+                ✅ Activate Jobs
+              </Button>
               <span className="text-sm text-gray-600">{user.email}</span>
               <Button variant="outline" onClick={onLogout}>Logout</Button>
             </div>
