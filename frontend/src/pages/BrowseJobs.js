@@ -121,8 +121,17 @@ function BrowseJobs({ user, onLogout }) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900" data-testid="page-title">Browse Jobs</h2>
-          <p className="text-gray-600 mt-2" data-testid="page-subtitle">Find your next opportunity in medical and scientific fields</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900" data-testid="page-title">Browse Jobs</h2>
+              <p className="text-gray-600 mt-2" data-testid="page-subtitle">Find your next opportunity in medical and scientific fields</p>
+            </div>
+            <div className="bg-blue-100 px-6 py-3 rounded-lg border-2 border-blue-200">
+              <p className="text-sm text-gray-600">Total Jobs</p>
+              <p className="text-3xl font-bold text-blue-600">{totalCount}</p>
+              <p className="text-xs text-gray-500 mt-1">Showing {filteredJobs.length} filtered</p>
+            </div>
+          </div>
         </div>
 
         {/* Filters */}
