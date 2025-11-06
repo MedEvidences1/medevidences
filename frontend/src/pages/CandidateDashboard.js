@@ -309,13 +309,45 @@ function CandidateDashboard({ user, onLogout }) {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location">City/Location</Label>
                     <Input
                       id="location"
-                      placeholder="e.g., New York, USA"
+                      placeholder="e.g., New York"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       data-testid="location-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country *</Label>
+                    <Select value={formData.country || ''} onValueChange={(value) => setFormData({ ...formData, country: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        <SelectItem value="United States">United States</SelectItem>
+                        <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                        <SelectItem value="Canada">Canada</SelectItem>
+                        <SelectItem value="India">India</SelectItem>
+                        <SelectItem value="Australia">Australia</SelectItem>
+                        <SelectItem value="Germany">Germany</SelectItem>
+                        <SelectItem value="France">France</SelectItem>
+                        <SelectItem value="Singapore">Singapore</SelectItem>
+                        <SelectItem value="UAE">UAE</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="linkedin_url">LinkedIn Profile URL</Label>
+                    <Input
+                      id="linkedin_url"
+                      placeholder="https://linkedin.com/in/yourprofile"
+                      value={formData.linkedin_url || ''}
+                      onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
