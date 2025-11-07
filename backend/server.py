@@ -239,6 +239,7 @@ class JobCreate(BaseModel):
     compensation_details: str
     terms_conditions: str
     project_summary: str
+    employment_type: str = "Permanent"  # Permanent, Contractual
 
 class Application(BaseModel):
     model_config = ConfigDict(extra="ignore")
