@@ -224,6 +224,15 @@ function BrowseJobs({ user, onLogout }) {
                       <Briefcase className="w-4 h-4 mr-1" />
                       {job.job_type}
                     </div>
+                    {job.employment_type && (
+                      <Badge 
+                        variant={job.employment_type === 'Contractual' ? 'outline' : 'default'}
+                        className={job.employment_type === 'Contractual' ? 'border-orange-400 text-orange-600' : 'bg-green-100 text-green-700'}
+                        data-testid={`employment-type-${job.id}`}
+                      >
+                        {job.employment_type}
+                      </Badge>
+                    )}
                     <div className="flex items-center text-sm text-gray-600">
                       <MapPin className="w-4 h-4 mr-1" />
                       {job.location}
