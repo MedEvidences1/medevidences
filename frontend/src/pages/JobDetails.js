@@ -226,6 +226,15 @@ function JobDetails({ user, onLogout }) {
 
             <div className="flex flex-wrap gap-4 mb-6">
               <Badge variant="secondary" className="text-sm" data-testid="job-category">{job.category}</Badge>
+              {job.employment_type && (
+                <Badge 
+                  variant={job.employment_type === 'Contractual' ? 'outline' : 'default'}
+                  className={job.employment_type === 'Contractual' ? 'border-orange-400 text-orange-600 text-sm' : 'bg-green-100 text-green-700 text-sm'}
+                  data-testid="employment-type"
+                >
+                  {job.employment_type}
+                </Badge>
+              )}
               <div className="flex items-center text-sm text-gray-600">
                 <Briefcase className="w-4 h-4 mr-2" />
                 <span data-testid="job-type">{job.job_type}</span>
