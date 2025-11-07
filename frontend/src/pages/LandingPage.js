@@ -102,8 +102,12 @@ function LandingPage({ user, onLogout }) {
           <h2 className="text-5xl font-bold text-gray-900 mb-6" data-testid="hero-title">
             Enhance Future Of AI
           </h2>
-          <p className="text-2xl text-gray-600 mb-8" data-testid="hero-subtitle">
+          <p className="text-2xl text-gray-600 mb-4" data-testid="hero-subtitle">
             With your Outstanding Skills & Knowledge.<br />Grab top remote jobs with AI roles.
+          </p>
+          
+          <p className="text-sm text-gray-500 mb-8" data-testid="job-types-info">
+            Average pay $85 per hour - Remote, Onsite, Contractual & Permanent positions
           </p>
           
           {/* Search Section */}
