@@ -211,6 +211,7 @@ class Job(BaseModel):
     compensation_details: str
     terms_conditions: str
     project_summary: str
+    employment_type: str = "Permanent"  # Permanent, Contractual
     posted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: str = "active"  # active, closed
 
