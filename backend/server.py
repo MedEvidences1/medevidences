@@ -1567,34 +1567,12 @@ async def create_application(
     if current_user['role'] != UserRole.CANDIDATE:
         raise HTTPException(status_code=403, detail="Only candidates can apply to jobs")
     
-    # Check subscription status (both active and cancelled have access until period end)
+    # Get candidate profile for validation
     candidate_profile = await db.candidate_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
     if not candidate_profile:
         raise HTTPException(status_code=404, detail="Please complete your profile first")
     
-    subscription_status = candidate_profile.get('subscription_status', 'free')
-    if subscription_status not in ['active', 'cancelled']:
-        raise HTTPException(
-            status_code=402, 
-            detail="Subscription required to apply to jobs. Please upgrade to a paid plan to apply."
-        )
-    
-    # Check if subscription is still valid (for both active and cancelled)
-    subscription_end = candidate_profile.get('subscription_end')
-    if subscription_end:
-        if isinstance(subscription_end, str):
-            subscription_end = datetime.fromisoformat(subscription_end)
-        if subscription_end < datetime.now(timezone.utc):
-            # Update status to expired
-            await db.candidate_profiles.update_one(
-                {"user_id": current_user['id']},
-                {"$set": {"subscription_status": "expired"}}
-            )
-            raise HTTPException(
-                status_code=402, 
-                detail="Your subscription has expired. Please renew to continue applying to jobs."
-            )
-    
+    # SUBSCRIPTION REMOVED - Candidates can apply for FREE
     # MANDATORY VALIDATION: Check Resume Upload
     if not candidate_profile.get('resume_url'):
         raise HTTPException(
