@@ -86,17 +86,8 @@ function JobDetails({ user, onLogout }) {
       
       const errorMessage = error.response?.data?.detail || 'Failed to submit application';
       
-      // Check if it's a subscription error (402 Payment Required)
-      if (error.response?.status === 402) {
-        toast.error(errorMessage);
-        // Save the job ID so we can return after subscription
-        sessionStorage.setItem('pendingJobApplication', jobId);
-        // Redirect to subscription page
-        setTimeout(() => {
-          navigate('/subscription');
-        }, 2000);
-      } else if (error.response?.status === 400) {
-        // Validation errors - show detailed message
+      // Validation errors - show detailed message
+      if (error.response?.status === 400) {
         toast.error(errorMessage, { duration: 6000 });
         
         // If it's about missing requirements, redirect to dashboard after a delay
