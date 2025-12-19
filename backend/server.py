@@ -1859,6 +1859,8 @@ async def create_forecast(request: ForecastRequest, user: dict = Depends(get_cur
     doc = {"id": forecast_id, "user_id": user["id"], **forecast}
     await db.forecasts.insert_one(doc)
     
+    # Remove MongoDB _id before returning
+    doc.pop("_id", None)
     return doc
 
 @api_router.get("/forecast/{forecast_id}", tags=["Forecasting"])
