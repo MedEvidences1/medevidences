@@ -1,0 +1,123 @@
+{
+  "identity": {
+    "name": "Plutus Predict",
+    "persona": "The Void Terminal",
+    "description": "A hyper-dense, institutional-grade forecasting platform that merges hard financial data with disaster intelligence and vedic astrology. The aesthetic is 'Bloomberg Terminal meets Cyberpunk Control Room'.",
+    "emotional_tone": "Authority, Precision, Urgency, Insight",
+    "theme_mode": "dark"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "IBM Plex Sans, sans-serif",
+      "body": "Inter, sans-serif",
+      "data": "JetBrains Mono, monospace"
+    },
+    "weights": {
+      "headings": "600",
+      "body": "400",
+      "data": "500"
+    },
+    "usage_rules": [
+      "Use 'JetBrains Mono' for ALL numbers, dates, probabilities, and grid data.",
+      "Use 'IBM Plex Sans' for section headers and navigation.",
+      "Use 'Inter' for long-form text (news summaries, analysis).",
+      "Headings must be uppercase with tracking-widest (e.g., 'RISK_GRID')."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": "#050505",
+      "surface": "#0A0A0A",
+      "surface_highlight": "#141414",
+      "border": "#1F1F1F",
+      "primary": "#00E5FF",
+      "secondary": "#FF3333",
+      "tertiary": "#FFD700",
+      "text_primary": "#EDEDED",
+      "text_secondary": "#888888",
+      "text_muted": "#444444"
+    },
+    "semantic": {
+      "success": "#00FF94",
+      "warning": "#FFAA00",
+      "error": "#FF3333",
+      "info": "#00E5FF",
+      "profit": "#00FF94",
+      "loss": "#FF3333",
+      "astrology": "#9D4EDD"
+    },
+    "gradients": {
+      "glow_primary": "radial-gradient(circle at center, rgba(0, 229, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)",
+      "glow_danger": "radial-gradient(circle at center, rgba(255, 51, 51, 0.15) 0%, rgba(0, 0, 0, 0) 70%)"
+    }
+  },
+  "layout": {
+    "grid_system": "The Control Room Grid (Mode B)",
+    "spacing": {
+      "container_padding": "p-4 md:p-6",
+      "item_gap": "gap-2",
+      "internal_padding": "p-3"
+    },
+    "rules": [
+      "Density is King. Minimize whitespace between cards.",
+      "Use 'border-r' and 'border-b' to create a grid-line aesthetic instead of separated cards where possible.",
+      "Dashboard widgets must fill 100% height of their grid cell.",
+      "Sidebar should be collapsible or icon-only on smaller screens to maximize data real estate."
+    ]
+  },
+  "components": {
+    "cards": {
+      "style": "Sharp edges (rounded-none or rounded-sm), 1px border (#1F1F1F), dark background (#0A0A0A).",
+      "hover": "Border color shifts to Primary (#00E5FF) or White (#FFF) on hover. No lift/shadow."
+    },
+    "buttons": {
+      "primary": "bg-primary text-black font-bold uppercase tracking-wider rounded-sm hover:bg-white transition-colors",
+      "secondary": "border border-border text-primary hover:bg-primary/10 rounded-sm",
+      "destructive": "bg-red-900/20 text-red-500 border border-red-900 hover:bg-red-900/40"
+    },
+    "inputs": {
+      "style": "bg-black border-border rounded-sm focus:ring-1 focus:ring-primary focus:border-primary font-mono text-sm"
+    },
+    "charts": {
+      "library": "Recharts (via Shadcn)",
+      "style": "Minimalist. Hide grid lines or make them very subtle (#222). Use neon stroke colors. Tooltips must be dark high-contrast."
+    },
+    "maps": {
+      "style": "Dark mode vector map. Land: #111, Water: #050505, Borders: #333. Data points: Glowing dots."
+    }
+  },
+  "visual_enhancers": {
+    "scanlines": "Overlay a repeating linear gradient (opacity 0.02) to simulate a CRT monitor.",
+    "tracing_beam": "Use for the 'AI Forecasting' active state.",
+    "glassmorphism": "Minimal usage. Only for floating modals/toasts. High blur (backdrop-blur-xl), low opacity bg.",
+    "borders": "All borders should be 1px solid #1F1F1F. Active elements get #00E5FF."
+  },
+  "assets": {
+    "images": {
+      "hero_bg": "https://images.unsplash.com/photo-1713098965471-d324f294a71d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwzfHxnbG9iYWwlMjBkaXNhc3RlciUyMG1hcmtldCUyMGRhdGElMjBzY3JlZW4lMjBkYXJrJTIwbW9kZXxlbnwwfHx8Ymx1ZXwxNzY2MTc2MzU0fDA&ixlib=rb-4.1.0&q=85",
+      "finance_texture": "https://images.unsplash.com/photo-1647067517631-aa36cda58a17?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxzdG9jayUyMG1hcmtldCUyMGRhdGElMjBzY3JlZW4lMjBkYXJrJTIwbW9kZXxlbnwwfHx8YmxhY2t8MTc2NjE3NjM1MHww&ixlib=rb-4.1.0&q=85",
+      "astrology_placeholder": "https://images.unsplash.com/photo-1582744709859-2d89c6920cfb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxQcmFzaGFudCUyMEthcG9vciUyMGFzdHJvbG9nZXJ8ZW58MHx8fHwxNzY2MTc2MzUzfDA&ixlib=rb-4.1.0&q=85"
+    },
+    "icons": "Lucide React (default). Use thin strokes (stroke-width={1.5}) for elegance."
+  },
+  "motion": {
+    "type": "Technical / Instant",
+    "duration": "duration-150",
+    "easing": "ease-out",
+    "rules": [
+      "Avoid bouncy springs.",
+      "Use 'opacity' and 'color' transitions.",
+      "Data updates should 'flash' (bg-color highlight then fade) to signal real-time changes."
+    ]
+  },
+  "universal_guidelines": [
+    "DARK MODE ONLY. Do not implement a light mode toggle.",
+    "Data Density > Whitespace. This is a tool for pros, not a marketing page.",
+    "All numbers must be monospaced.",
+    "Use 'data-testid' on all interactive elements.",
+    "Do not use gradients for text. Keep text high-contrast solid colors.",
+    "Ensure all charts have tooltips.",
+    "For the 'Vedic Astrology' section, use a purple/gold accent theme to differentiate it from the main financial data."
+  ],
+  "instructions_to_main_agent": "You are building a high-density financial dashboard. Start by setting up the global CSS variables in index.css to match the 'colors' section. Then, customize the Shadcn 'Card' and 'Button' components to remove rounded corners and add the specific border styles. Use the 'Control Room' grid layout for the main dashboard view."
+}
