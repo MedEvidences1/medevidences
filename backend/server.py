@@ -1233,12 +1233,13 @@ async def public_stats():
             "osint_sources": "1,000,000+",
             "countries_tracked": 54,
             "ceos_tracked": 42,
-            "astrology_channels": 3
+            "astrology_channels": 4
         },
         "api_status": {
             "emergent_llm": "configured" if EMERGENT_LLM_KEY else "not configured",
             "stripe": "configured" if STRIPE_API_KEY else "not configured",
-            "youtube": "configured" if YOUTUBE_API_KEY else "not configured"
+            "supadata": "configured" if SUPADATA_API_KEY else "not configured",
+            "youtube_transcript": "available (no key needed)"
         },
         "sensors": {"usgs": "online", "noaa": "online", "gdacs": "online"},
         "team": {"ceo": "Parimal Shah", "coo": "Neil Shah", "cto": "Aditya Jyoti"}
