@@ -58,6 +58,12 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
 SUPADATA_API_KEY = os.environ.get('SUPADATA_API_KEY', 'sd_05d93ed22e29')  # Free tier key
 APP_SECRET_KEY = os.environ.get('APP_SECRET_KEY', secrets.token_hex(32))
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'alerts@plutuspredict.com')
+
+# Initialize Resend
+if RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder':
+    resend.api_key = RESEND_API_KEY
 
 # Create the main app
 app = FastAPI(
