@@ -22,9 +22,17 @@ from enum import Enum
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
 
-# YouTube Integrations (FREE)
-from supadata import Supadata
+# YouTube Integrations (FREE - No API Key Required)
 from youtube_transcript_api import YouTubeTranscriptApi
+import yt_dlp
+
+# Optional Supadata (may not have valid key)
+try:
+    from supadata import Supadata
+    SUPADATA_AVAILABLE = True
+except ImportError:
+    SUPADATA_AVAILABLE = False
+    Supadata = None
 
 # APScheduler for Cron Jobs
 try:
