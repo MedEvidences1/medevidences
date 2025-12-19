@@ -1472,6 +1472,10 @@ const MainApp = () => {
         return <Astrology getHeaders={getHeaders} user={user} />;
       case "tabular":
         return <TabularPredictions />;
+      case "accuracy":
+        return <AccuracyDashboard getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
+      case "my-dashboards":
+        return <CustomDashboards getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "osint":
         return <OSINTSearch />;
       case "grid":
