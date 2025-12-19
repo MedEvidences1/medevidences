@@ -1897,6 +1897,154 @@ async def get_geopolitical_table():
     return await tabular_engine.generate_geopolitical_events_table()
 
 # =============================================================================
+# API ENDPOINTS - EMAIL ALERTS
+# =============================================================================
+
+class EmailAlertRequest(BaseModel):
+    subject: str
+    html_content: str
+
+@api_router.post("/alerts/send", tags=["Email Alerts"])
+async def send_custom_alert(request: EmailAlertRequest, user: dict = Depends(get_current_user)):
+    """Send a custom email alert to the current user"""
+    result = await email_service.send_alert(user["email"], request.subject, request.html_content)
+    return result
+
+@api_router.post("/alerts/test", tags=["Email Alerts"])
+async def send_test_alert(user: dict = Depends(get_current_user)):
+    """Send a test email alert to verify email configuration"""
+    result = await email_service.send_alert(
+        user["email"],
+        "🔔 Plutus Predict - Test Alert",
+        """
+        <html>
+        <body style="font-family: Arial; background: #0A0A0A; color: #EDEDED; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: #1A1A1A; padding: 20px; border-radius: 10px;">
+                <h1 style="color: #00FF94;">Test Alert Successful!</h1>
+                <p>Your email alerts are configured correctly.</p>
+                <p>You will receive alerts when:</p>
+                <ul>
+                    <li>Astrology predictions match actual disaster events</li>
+                    <li>Risk levels exceed your configured thresholds</li>
+                    <li>High-confidence forecasts are generated</li>
+                </ul>
+                <p style="color: #888; font-size: 12px; margin-top: 20px;">- Plutus Predict Team</p>
+            </div>
+        </body>
+        </html>
+        """
+    )
+    return result
+
+@api_router.get("/alerts/status", tags=["Email Alerts"])
+async def get_alert_status():
+    """Check email alert service status"""
+    return {
+        "configured": bool(RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder'),
+        "sender_email": SENDER_EMAIL,
+        "status": "active" if RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder' else "simulated"
+    }
+
+# =============================================================================
+# API ENDPOINTS - PREDICTION ACCURACY
+# =============================================================================
+
+class PredictionOutcomeRequest(BaseModel):
+    prediction_id: str
+    actual_outcome: bool
+    notes: str = ""
+
+@api_router.post("/accuracy/record-outcome", tags=["Accuracy Tracking"])
+async def record_prediction_outcome(request: PredictionOutcomeRequest, user: dict = Depends(get_current_user)):
+    """Record the actual outcome of a prediction"""
+    result = await accuracy_tracker.record_prediction_outcome(
+        request.prediction_id,
+        request.actual_outcome,
+        verified_by=user["email"],
+        notes=request.notes
+    )
+    return result
+
+@api_router.get("/accuracy/stats", tags=["Accuracy Tracking"])
+async def get_accuracy_statistics(category: str = None, days: int = 90):
+    """Get prediction accuracy statistics"""
+    return await accuracy_tracker.get_accuracy_stats(category, days)
+
+@api_router.get("/accuracy/trends", tags=["Accuracy Tracking"])
+async def get_accuracy_trends(months: int = 6):
+    """Get accuracy trends over time"""
+    return await accuracy_tracker.get_accuracy_over_time(months)
+
+@api_router.get("/accuracy/leaderboard", tags=["Accuracy Tracking"])
+async def get_accuracy_leaderboard():
+    """Get accuracy leaderboard by category"""
+    categories = ["economics", "disaster", "technology", "geopolitics"]
+    leaderboard = []
+    
+    for category in categories:
+        stats = await accuracy_tracker.get_accuracy_stats(category, days=365)
+        if stats.get("total_predictions", 0) > 0:
+            leaderboard.append({
+                "category": category,
+                "total": stats["total_predictions"],
+                "accuracy": stats["overall_accuracy"],
+                "brier_score": stats["average_brier_score"],
+                "grade": stats["calibration_grade"]
+            })
+    
+    # Sort by accuracy
+    leaderboard.sort(key=lambda x: x["accuracy"], reverse=True)
+    return {"leaderboard": leaderboard}
+
+# =============================================================================
+# API ENDPOINTS - CUSTOM DASHBOARDS
+# =============================================================================
+
+class DashboardCreateRequest(BaseModel):
+    name: str
+    config: Dict = {}
+
+class DashboardUpdateRequest(BaseModel):
+    name: str = None
+    widgets: List[Dict] = None
+    filters: Dict = None
+
+@api_router.post("/dashboards", tags=["Custom Dashboards"])
+async def create_dashboard(request: DashboardCreateRequest, user: dict = Depends(get_current_user)):
+    """Create a new custom dashboard"""
+    return await dashboard_manager.create_dashboard(user["id"], request.name, request.config)
+
+@api_router.get("/dashboards", tags=["Custom Dashboards"])
+async def list_dashboards(user: dict = Depends(get_current_user)):
+    """List all dashboards for current user"""
+    dashboards = await dashboard_manager.get_user_dashboards(user["id"])
+    return {"dashboards": dashboards, "count": len(dashboards)}
+
+@api_router.get("/dashboards/widgets", tags=["Custom Dashboards"])
+async def get_available_widgets():
+    """Get list of available widget types"""
+    return {"widgets": await dashboard_manager.get_default_widgets()}
+
+@api_router.get("/dashboards/{dashboard_id}", tags=["Custom Dashboards"])
+async def get_dashboard(dashboard_id: str, user: dict = Depends(get_current_user)):
+    """Get a specific dashboard with populated data"""
+    dashboard = await dashboard_manager.get_dashboard(dashboard_id, user["id"])
+    if not dashboard:
+        raise HTTPException(404, "Dashboard not found")
+    return dashboard
+
+@api_router.put("/dashboards/{dashboard_id}", tags=["Custom Dashboards"])
+async def update_dashboard(dashboard_id: str, request: DashboardUpdateRequest, user: dict = Depends(get_current_user)):
+    """Update a dashboard"""
+    updates = {k: v for k, v in request.dict().items() if v is not None}
+    return await dashboard_manager.update_dashboard(dashboard_id, user["id"], updates)
+
+@api_router.delete("/dashboards/{dashboard_id}", tags=["Custom Dashboards"])
+async def delete_dashboard(dashboard_id: str, user: dict = Depends(get_current_user)):
+    """Delete a dashboard"""
+    return await dashboard_manager.delete_dashboard(dashboard_id, user["id"])
+
+# =============================================================================
 # API ENDPOINTS - CRON JOBS
 # =============================================================================
 
