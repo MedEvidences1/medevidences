@@ -1462,12 +1462,16 @@ const MainApp = () => {
         return <Dashboard getHeaders={getHeaders} />;
       case "forecast":
         return <AIForecast getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
-      case "disasters-astrology":
-        return <DisastersAndAstrology getHeaders={getHeaders} user={user} />;
+      case "deep-forecast":
+        return <DeepForecast getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
+      case "disasters":
+        return <Disasters getHeaders={getHeaders} />;
+      case "astrology":
+        return <Astrology getHeaders={getHeaders} user={user} />;
+      case "tabular":
+        return <TabularPredictions />;
       case "osint":
         return <OSINTSearch />;
-      case "backtest":
-        return <Backtest getHeaders={getHeaders} />;
       case "grid":
         return <RiskGrid />;
       case "chat":
