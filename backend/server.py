@@ -760,8 +760,8 @@ class VedicAstrologyEngine:
             "predictions": all_predictions
         }
     
-    async def reconcile_predictions(self, days_window: int = 30) -> Dict:
-        """Reconcile astrology predictions with actual disaster data"""
+    async def reconcile_predictions(self, days_window: int = 30, notify_users: bool = True) -> Dict:
+        """Reconcile astrology predictions with actual disaster data and send email alerts"""
         # Get unreconciled predictions
         unreconciled = await db.astrology_predictions.find(
             {"reconciled": False},
@@ -789,7 +789,7 @@ class VedicAstrologyEngine:
                                 "type": "earthquake",
                                 "event": f"M{eq['magnitude']} - {eq['location']}",
                                 "date": eq.get("time"),
-                                "match_confidence": "possible"
+                                "match_confidence": "high" if eq.get("magnitude", 0) >= 6.5 else "possible"
                             })
                 
                 elif category in ["tsunami", "war"]:
@@ -799,6 +799,16 @@ class VedicAstrologyEngine:
                                 "type": category,
                                 "event": disaster.get("title"),
                                 "date": disaster.get("published"),
+                                "match_confidence": "possible"
+                            })
+                
+                elif category == "pandemic":
+                    for alert in weather_alerts:
+                        if "health" in alert.get("event", "").lower() or "disease" in alert.get("headline", "").lower():
+                            matches.append({
+                                "type": "pandemic",
+                                "event": alert.get("headline"),
+                                "date": alert.get("effective"),
                                 "match_confidence": "possible"
                             })
             
@@ -817,14 +827,35 @@ class VedicAstrologyEngine:
                 reconciliation_results.append({
                     "prediction_id": pred["id"],
                     "video_title": pred.get("title"),
+                    "channel": pred.get("channel"),
                     "matches": matches
                 })
+                
+                # Send email alerts to subscribed users
+                if notify_users:
+                    users_to_notify = await db.users.find(
+                        {"alert_preferences.reconciliation": True},
+                        {"_id": 0, "email": 1}
+                    ).to_list(100)
+                    
+                    for user in users_to_notify:
+                        for match in matches:
+                            await email_service.send_prediction_match_alert(
+                                user["email"],
+                                {
+                                    "title": pred.get("title"),
+                                    "channel": pred.get("channel"),
+                                    "category": match.get("type")
+                                },
+                                match
+                            )
         
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "predictions_checked": len(unreconciled),
             "matches_found": len(reconciliation_results),
-            "results": reconciliation_results
+            "results": reconciliation_results,
+            "alerts_sent": len(reconciliation_results) > 0
         }
     
     async def get_stored_predictions(self, prediction_type: str = None, limit: int = 50) -> List[Dict]:
