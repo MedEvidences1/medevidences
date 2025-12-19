@@ -2521,6 +2521,16 @@ async def startup():
     await db.forecasts.create_index("id", unique=True)
     await db.predictions.create_index("id", unique=True)
     
+    # New indexes for accuracy tracking, dashboards, and alerts
+    await db.prediction_outcomes.create_index("id", unique=True)
+    await db.prediction_outcomes.create_index("prediction_id")
+    await db.prediction_outcomes.create_index("verified_at")
+    await db.custom_dashboards.create_index("id", unique=True)
+    await db.custom_dashboards.create_index("user_id")
+    await db.astrology_predictions.create_index("id", unique=True)
+    await db.astrology_predictions.create_index("reconciled")
+    await db.deep_forecasts.create_index("id", unique=True)
+    
     # Create admin user if not exists
     admin = await db.users.find_one({"email": "admin@plutuspredict.com"})
     if not admin:
@@ -2532,9 +2542,17 @@ async def startup():
             "name": "Admin",
             "role": "admin",
             "plan": "enterprise",
+            "alert_preferences": {"reconciliation": True, "high_risk": True},
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         logger.info("Admin user created: admin@plutuspredict.com / admin123")
+    else:
+        # Update existing admin with alert preferences if not present
+        if "alert_preferences" not in admin:
+            await db.users.update_one(
+                {"email": "admin@plutuspredict.com"},
+                {"$set": {"alert_preferences": {"reconciliation": True, "high_risk": True}}}
+            )
     
     # Create sample predictions
     count = await db.predictions.count_documents({})
@@ -2564,6 +2582,7 @@ async def startup():
     
     logger.info("=" * 60)
     logger.info("PLUTUS PREDICT - PRODUCTION PLATFORM STARTED")
+    logger.info("Features: Email Alerts, Accuracy Tracking, Custom Dashboards")
     logger.info("Cron Jobs: OSINT (daily), Astrology (daily), Disasters (hourly), Reconciliation (daily)")
     logger.info("=" * 60)
 
