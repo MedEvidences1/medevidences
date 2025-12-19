@@ -612,13 +612,18 @@ class VedicAstrologyEngine:
     def get_transcript(self, video_id: str) -> Dict:
         """Get video transcript using youtube-transcript-api (FREE, no API key)"""
         try:
-            transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'hi', 'en-IN'])
+            # New API: use fetch() instead of get_transcript()
+            ytt_api = YouTubeTranscriptApi()
+            transcript_list = ytt_api.fetch(video_id, languages=['en', 'hi', 'en-IN'])
+            
+            # Convert to list format for iteration
+            transcript_entries = list(transcript_list)
             
             # Combine transcript into full text
-            full_text = " ".join([entry['text'] for entry in transcript_list])
+            full_text = " ".join([entry.text for entry in transcript_entries])
             
             # Extract timestamps for key moments
-            timestamped = [{"time": entry['start'], "text": entry['text']} for entry in transcript_list]
+            timestamped = [{"time": entry.start, "text": entry.text} for entry in transcript_entries]
             
             return {
                 "video_id": video_id,
