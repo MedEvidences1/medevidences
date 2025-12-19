@@ -527,62 +527,82 @@ PREDICTION_KEYWORDS = {
 class VedicAstrologyEngine:
     def __init__(self):
         self.channels = VEDIC_CHANNELS
-        self.supadata = Supadata(api_key=SUPADATA_API_KEY) if SUPADATA_API_KEY else None
+        # Configure yt-dlp for search (no API key required)
+        self.ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'extract_flat': True,
+            'skip_download': True,
+        }
     
-    async def search_videos(self, query: str, max_results: int = 20) -> List[Dict]:
-        """Search YouTube for astrology prediction videos using Supadata"""
-        if self.supadata:
-            try:
-                # Use Supadata search
-                search_query = f"{query} astrology prediction vedic 2025"
-                result = self.supadata.youtube.search(query=search_query, limit=max_results)
+    async def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
+        """Search YouTube for astrology prediction videos using yt-dlp (FREE, no API key)"""
+        try:
+            search_query = f"ytsearch{max_results}:{query} vedic astrology prediction 2025"
+            
+            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: ydl.extract_info(search_query, download=False)
+                )
                 
                 videos = []
-                for item in result.get("videos", [])[:max_results]:
-                    videos.append({
-                        "video_id": item.get("id"),
-                        "title": item.get("title"),
-                        "channel": item.get("channel", {}).get("name", "Unknown"),
-                        "channel_id": item.get("channel", {}).get("id"),
-                        "published": item.get("publishedAt"),
-                        "thumbnail": item.get("thumbnail"),
-                        "url": f"https://youtube.com/watch?v={item.get('id')}",
-                        "views": item.get("viewCount"),
-                        "duration": item.get("duration")
-                    })
-                return videos
-            except Exception as e:
-                logger.error(f"Supadata search error: {e}")
+                for entry in result.get('entries', [])[:max_results]:
+                    if entry:
+                        video_id = entry.get('id', '')
+                        videos.append({
+                            "video_id": video_id,
+                            "title": entry.get('title', 'Unknown'),
+                            "channel": entry.get('channel', entry.get('uploader', 'Unknown')),
+                            "channel_id": entry.get('channel_id', ''),
+                            "published": entry.get('upload_date', ''),
+                            "thumbnail": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
+                            "url": f"https://youtube.com/watch?v={video_id}",
+                            "views": entry.get('view_count', 0),
+                            "duration": entry.get('duration', 0)
+                        })
+                
+                if videos:
+                    logger.info(f"yt-dlp search found {len(videos)} videos for query: {query}")
+                    return videos
+                    
+        except Exception as e:
+            logger.error(f"yt-dlp search error: {e}")
         
-        # Fallback to sample data
+        # Fallback to curated real astrology videos
         return self._get_sample_predictions(query)
     
-    async def get_channel_videos(self, channel_key: str, limit: int = 20) -> List[Dict]:
-        """Get recent videos from a specific astrology channel"""
+    async def get_channel_videos(self, channel_key: str, limit: int = 10) -> List[Dict]:
+        """Get recent videos from a specific astrology channel using yt-dlp"""
         if channel_key not in self.channels:
             return []
         
         channel = self.channels[channel_key]
+        channel_url = f"https://www.youtube.com/{channel.get('handle', '@channel')}"
         
-        if self.supadata:
-            try:
-                result = self.supadata.youtube.channel(
-                    identifier=channel.get("handle") or channel.get("channel_id"),
-                    limit=limit
+        try:
+            opts = {**self.ydl_opts, 'playlistend': limit}
+            
+            with yt_dlp.YoutubeDL(opts) as ydl:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: ydl.extract_info(channel_url, download=False)
                 )
                 
                 videos = []
-                for item in result.get("videos", [])[:limit]:
-                    videos.append({
-                        "video_id": item.get("id"),
-                        "title": item.get("title"),
-                        "channel": channel["name"],
-                        "channel_id": channel["channel_id"],
-                        "published": item.get("publishedAt"),
-                        "thumbnail": item.get("thumbnail"),
-                        "url": f"https://youtube.com/watch?v={item.get('id')}"
-                    })
-                return videos
+                for entry in result.get('entries', [])[:limit]:
+                    if entry:
+                        video_id = entry.get('id', '')
+                        videos.append({
+                            "video_id": video_id,
+                            "title": entry.get('title', 'Unknown'),
+                            "channel": channel["name"],
+                            "channel_id": channel["channel_id"],
+                            "published": entry.get('upload_date', ''),
+                            "thumbnail": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
+                            "url": f"https://youtube.com/watch?v={video_id}"
+                        })
+                
+                if videos:
+                    return videos
             except Exception as e:
                 logger.error(f"Supadata channel error: {e}")
         
