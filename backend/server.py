@@ -14,6 +14,7 @@ import secrets
 import asyncio
 import math
 import re
+import random
 from datetime import datetime, timezone, timedelta
 from enum import Enum
 
@@ -24,6 +25,14 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 # YouTube Integrations (FREE)
 from supadata import Supadata
 from youtube_transcript_api import YouTubeTranscriptApi
+
+# APScheduler for Cron Jobs
+try:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
+    from apscheduler.triggers.cron import CronTrigger
+    SCHEDULER_AVAILABLE = True
+except ImportError:
+    SCHEDULER_AVAILABLE = False
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -36,7 +45,7 @@ db = client[os.environ['DB_NAME']]
 # API Keys
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 STRIPE_API_KEY = os.environ.get('STRIPE_API_KEY', 'sk_test_emergent')
-SUPADATA_API_KEY = os.environ.get('SUPADATA_API_KEY', '')
+SUPADATA_API_KEY = os.environ.get('SUPADATA_API_KEY', 'sd_05d93ed22e29')  # Free tier key
 APP_SECRET_KEY = os.environ.get('APP_SECRET_KEY', secrets.token_hex(32))
 
 # Create the main app
