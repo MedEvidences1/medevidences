@@ -1396,6 +1396,8 @@ class DeepForecastEngine:
         # Store in database
         await db.deep_forecasts.insert_one(report)
         
+        # Remove MongoDB _id before returning
+        report.pop("_id", None)
         return report
     
     async def _generate_questions(self, topic: str, num_questions: int, timeframe: str) -> List[str]:
