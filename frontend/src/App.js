@@ -124,9 +124,11 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
   const tabs = [
     { id: "dashboard", label: "DASHBOARD", icon: Home },
     { id: "forecast", label: "AI_FORECAST", icon: Brain },
-    { id: "disasters-astrology", label: "DISASTERS_&_ASTROLOGY", icon: AlertTriangle },
+    { id: "deep-forecast", label: "DEEP_FORECAST", icon: Sparkles },
+    { id: "disasters", label: "DISASTERS", icon: AlertTriangle },
+    { id: "astrology", label: "ASTROLOGY", icon: Moon },
+    { id: "tabular", label: "TABULAR", icon: BarChart3 },
     { id: "osint", label: "OSINT", icon: Search },
-    { id: "backtest", label: "BACKTEST", icon: BarChart3 },
     { id: "grid", label: "RISK_GRID", icon: Globe },
     { id: "chat", label: "CHAT", icon: MessageSquare },
   ];
