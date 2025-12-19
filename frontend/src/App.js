@@ -1246,12 +1246,10 @@ const MainApp = () => {
         return <Dashboard getHeaders={getHeaders} />;
       case "forecast":
         return <AIForecast getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
-      case "disasters":
-        return <Disasters />;
+      case "disasters-astrology":
+        return <DisastersAndAstrology getHeaders={getHeaders} user={user} />;
       case "osint":
         return <OSINTSearch />;
-      case "astrology":
-        return <Astrology />;
       case "backtest":
         return <Backtest getHeaders={getHeaders} />;
       case "grid":
