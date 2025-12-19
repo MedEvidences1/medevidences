@@ -1358,6 +1358,96 @@ async def list_forecasts(limit: int = 50):
     return {"forecasts": forecasts, "total": len(forecasts)}
 
 # =============================================================================
+# API ENDPOINTS - MANTIC-STYLE DEEP FORECASTS
+# =============================================================================
+
+@api_router.post("/deep-forecast", tags=["Deep Forecasts"])
+async def create_deep_forecast(request: DeepForecastRequest, user: dict = Depends(get_current_user)):
+    """Generate a Mantic-style deep forecast report on a topic"""
+    report = await deep_forecast_engine.generate_deep_forecast(
+        request.topic,
+        request.num_questions,
+        request.timeframe
+    )
+    return report
+
+@api_router.get("/deep-forecasts", tags=["Deep Forecasts"])
+async def list_deep_forecasts(limit: int = 20):
+    """List all deep forecast reports"""
+    cursor = db.deep_forecasts.find({}, {"_id": 0}).sort("created_at", -1).limit(limit)
+    reports = await cursor.to_list(length=limit)
+    return {"reports": reports, "total": len(reports)}
+
+@api_router.get("/deep-forecast/{report_id}", tags=["Deep Forecasts"])
+async def get_deep_forecast(report_id: str):
+    """Get a specific deep forecast report"""
+    report = await db.deep_forecasts.find_one({"id": report_id}, {"_id": 0})
+    if not report:
+        raise HTTPException(404, "Report not found")
+    return report
+
+# =============================================================================
+# API ENDPOINTS - TABULAR PREDICTIONS (Mantic-style)
+# =============================================================================
+
+@api_router.get("/tabular/all", tags=["Tabular Predictions"])
+async def get_all_tabular_predictions():
+    """Get all tabular predictions (terror, CEO, geopolitical)"""
+    return await tabular_engine.generate_all_tables()
+
+@api_router.get("/tabular/terror-attacks", tags=["Tabular Predictions"])
+async def get_terror_attack_table():
+    """Get terror attack probability by country"""
+    return await tabular_engine.generate_terror_attack_table()
+
+@api_router.get("/tabular/ceo-departures", tags=["Tabular Predictions"])
+async def get_ceo_departures_table():
+    """Get CEO departure probability table"""
+    return await tabular_engine.generate_ceo_departures_table()
+
+@api_router.get("/tabular/geopolitical", tags=["Tabular Predictions"])
+async def get_geopolitical_table():
+    """Get geopolitical events probability"""
+    return await tabular_engine.generate_geopolitical_events_table()
+
+# =============================================================================
+# API ENDPOINTS - CRON JOBS
+# =============================================================================
+
+@api_router.get("/cron/status", tags=["Cron Jobs"])
+async def get_cron_status():
+    """Get cron job scheduler status"""
+    return cron_manager.get_status()
+
+@api_router.post("/cron/run/{job_type}", tags=["Cron Jobs"])
+async def run_cron_job_manually(job_type: str, user: dict = Depends(get_current_user)):
+    """Manually trigger a cron job"""
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Admin required")
+    
+    if job_type == "osint":
+        await cron_manager.daily_osint_collection()
+    elif job_type == "astrology":
+        await cron_manager.daily_astrology_fetch()
+    elif job_type == "disasters":
+        await cron_manager.hourly_disaster_refresh()
+    elif job_type == "reconciliation":
+        await cron_manager.daily_reconciliation()
+    elif job_type == "tabular":
+        await cron_manager.update_tabular_predictions()
+    else:
+        raise HTTPException(400, f"Unknown job type: {job_type}")
+    
+    return {"status": "triggered", "job_type": job_type}
+
+@api_router.get("/cron/history", tags=["Cron Jobs"])
+async def get_cron_history(limit: int = 50):
+    """Get cron job execution history"""
+    cursor = db.cron_job_history.find({}, {"_id": 0}).sort("completed_at", -1).limit(limit)
+    history = await cursor.to_list(length=limit)
+    return {"history": history, "total": len(history)}
+
+# =============================================================================
 # API ENDPOINTS - DISASTERS
 # =============================================================================
 
