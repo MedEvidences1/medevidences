@@ -1894,10 +1894,16 @@ async def startup():
             })
         logger.info("Sample predictions created")
     
+    # Initialize cron job scheduler
+    cron_manager.initialize()
+    
     logger.info("=" * 60)
     logger.info("PLUTUS PREDICT - PRODUCTION PLATFORM STARTED")
+    logger.info("Cron Jobs: OSINT (daily), Astrology (daily), Disasters (hourly), Reconciliation (daily)")
     logger.info("=" * 60)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    if cron_manager.scheduler:
+        cron_manager.scheduler.shutdown()
     client.close()
