@@ -1541,12 +1541,7 @@ const CustomDashboards = ({ getHeaders, user, setShowAuth }) => {
   const [newDashboardName, setNewDashboardName] = useState("");
   const [availableWidgets, setAvailableWidgets] = useState([]);
 
-  useEffect(() => {
-    if (user) loadDashboards();
-    loadWidgets();
-  }, [user]);
-
-  const loadDashboards = async () => {
+  const loadDashboards = useCallback(async () => {
     try {
       const res = await axios.get(`${API}/dashboards`, { headers: getHeaders() });
       setDashboards(res.data.dashboards || []);
@@ -1554,16 +1549,21 @@ const CustomDashboards = ({ getHeaders, user, setShowAuth }) => {
       console.error("Error loading dashboards:", e);
     }
     setLoading(false);
-  };
+  }, [getHeaders]);
 
-  const loadWidgets = async () => {
+  const loadWidgets = useCallback(async () => {
     try {
       const res = await axios.get(`${API}/dashboards/widgets`);
       setAvailableWidgets(res.data.widgets || []);
     } catch (e) {
       console.error("Error loading widgets:", e);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) loadDashboards();
+    loadWidgets();
+  }, [user, loadDashboards, loadWidgets]);
 
   const createDashboard = async () => {
     if (!user) {
