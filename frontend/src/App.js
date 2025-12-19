@@ -1372,6 +1372,388 @@ const Chat = ({ getHeaders, user, setShowAuth }) => {
   );
 };
 
+// Accuracy Dashboard Component
+const AccuracyDashboard = ({ getHeaders, user, setShowAuth }) => {
+  const [stats, setStats] = useState(null);
+  const [trends, setTrends] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(90);
+
+  useEffect(() => {
+    loadData();
+  }, [days]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [statsRes, trendsRes, leaderRes] = await Promise.all([
+        axios.get(`${API}/accuracy/stats?days=${days}`),
+        axios.get(`${API}/accuracy/trends?months=6`),
+        axios.get(`${API}/accuracy/leaderboard`)
+      ]);
+      setStats(statsRes.data);
+      setTrends(trendsRes.data);
+      setLeaderboard(leaderRes.data.leaderboard || []);
+    } catch (e) {
+      console.error("Error loading accuracy data:", e);
+    }
+    setLoading(false);
+  };
+
+  const getGradeColor = (grade) => {
+    if (grade?.startsWith("A")) return "text-[#00FF94]";
+    if (grade?.startsWith("B")) return "text-[#00E5FF]";
+    if (grade?.startsWith("C")) return "text-[#FFD700]";
+    return "text-[#FF4444]";
+  };
+
+  return (
+    <div className="space-y-6" data-testid="accuracy-dashboard">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Target className="w-6 h-6 text-[#00FF94]" />PREDICTION_ACCURACY
+        </h2>
+        <div className="flex gap-2">
+          {[30, 90, 180, 365].map(d => (
+            <Button
+              key={d}
+              size="sm"
+              variant={days === d ? "default" : "outline"}
+              onClick={() => setDays(d)}
+              className={days === d ? "bg-[#00FF94] text-black" : "border-[#333]"}
+            >
+              {d}D
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-[#888]">Loading accuracy data...</div>
+      ) : (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#00FF94]">{stats?.total_predictions || 0}</div>
+                <div className="text-xs text-[#888] mt-1">TOTAL RESOLVED</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#00E5FF]">{stats?.overall_accuracy || 0}%</div>
+                <div className="text-xs text-[#888] mt-1">ACCURACY RATE</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#FFD700]">{stats?.average_brier_score || 0}</div>
+                <div className="text-xs text-[#888] mt-1">BRIER SCORE</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className={`text-2xl font-bold ${getGradeColor(stats?.calibration_grade)}`}>
+                  {stats?.calibration_grade || "N/A"}
+                </div>
+                <div className="text-xs text-[#888] mt-1">CALIBRATION</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Trends Chart */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#00E5FF]" />ACCURACY_TREND
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trends}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1F1F1F" />
+                    <XAxis dataKey="month" stroke="#888" tick={{ fill: "#888", fontSize: 10 }} />
+                    <YAxis stroke="#888" tick={{ fill: "#888", fontSize: 10 }} domain={[0, 100]} />
+                    <RechartsTooltip
+                      contentStyle={{ backgroundColor: "#0A0A0A", border: "1px solid #1F1F1F" }}
+                      labelStyle={{ color: "#EDEDED" }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="accuracy"
+                      stroke="#00FF94"
+                      fill="#00FF94"
+                      fillOpacity={0.2}
+                      name="Accuracy %"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Leaderboard */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Star className="w-4 h-4 text-[#FFD700]" />CATEGORY_LEADERBOARD
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {leaderboard.length > 0 ? (
+                <div className="space-y-2">
+                  {leaderboard.map((cat, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-[#0A0A0A] border border-[#1F1F1F] rounded">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-bold text-[#444]">#{i + 1}</span>
+                        <div>
+                          <div className="font-medium text-[#EDEDED] uppercase">{cat.category}</div>
+                          <div className="text-xs text-[#888]">{cat.total} predictions</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-[#00FF94]">{cat.accuracy}%</div>
+                        <div className="text-xs text-[#888]">Brier: {cat.brier_score}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-[#888]">No resolved predictions yet. Start tracking accuracy by resolving predictions.</div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Custom Dashboards Component
+const CustomDashboards = ({ getHeaders, user, setShowAuth }) => {
+  const [dashboards, setDashboards] = useState([]);
+  const [selectedDashboard, setSelectedDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [newDashboardName, setNewDashboardName] = useState("");
+  const [availableWidgets, setAvailableWidgets] = useState([]);
+
+  useEffect(() => {
+    if (user) loadDashboards();
+    loadWidgets();
+  }, [user]);
+
+  const loadDashboards = async () => {
+    try {
+      const res = await axios.get(`${API}/dashboards`, { headers: getHeaders() });
+      setDashboards(res.data.dashboards || []);
+    } catch (e) {
+      console.error("Error loading dashboards:", e);
+    }
+    setLoading(false);
+  };
+
+  const loadWidgets = async () => {
+    try {
+      const res = await axios.get(`${API}/dashboards/widgets`);
+      setAvailableWidgets(res.data.widgets || []);
+    } catch (e) {
+      console.error("Error loading widgets:", e);
+    }
+  };
+
+  const createDashboard = async () => {
+    if (!user) {
+      setShowAuth(true);
+      return;
+    }
+    if (!newDashboardName.trim()) return;
+    
+    try {
+      const res = await axios.post(`${API}/dashboards`, {
+        name: newDashboardName,
+        config: {
+          widgets: [
+            { type: "risk_gauge" },
+            { type: "predictions_list", category: "disaster", limit: 5 },
+            { type: "disaster_feed", region: "global" }
+          ]
+        }
+      }, { headers: getHeaders() });
+      
+      toast.success("Dashboard created!");
+      setDashboards([...dashboards, res.data.dashboard]);
+      setNewDashboardName("");
+      setCreating(false);
+    } catch (e) {
+      toast.error("Failed to create dashboard");
+    }
+  };
+
+  const loadDashboard = async (dashboardId) => {
+    try {
+      const res = await axios.get(`${API}/dashboards/${dashboardId}`, { headers: getHeaders() });
+      setSelectedDashboard(res.data);
+    } catch (e) {
+      toast.error("Failed to load dashboard");
+    }
+  };
+
+  const deleteDashboard = async (dashboardId) => {
+    try {
+      await axios.delete(`${API}/dashboards/${dashboardId}`, { headers: getHeaders() });
+      setDashboards(dashboards.filter(d => d.id !== dashboardId));
+      if (selectedDashboard?.id === dashboardId) setSelectedDashboard(null);
+      toast.success("Dashboard deleted");
+    } catch (e) {
+      toast.error("Failed to delete dashboard");
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <Layers className="w-12 h-12 text-[#444] mx-auto mb-4" />
+        <h3 className="text-lg text-[#888] mb-4">Login to create custom dashboards</h3>
+        <Button onClick={() => setShowAuth(true)} className="btn-primary">
+          <LogIn className="w-4 h-4 mr-2" />LOGIN
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6" data-testid="custom-dashboards">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Layers className="w-6 h-6 text-[#9D4EDD]" />MY_DASHBOARDS
+        </h2>
+        {!creating ? (
+          <Button onClick={() => setCreating(true)} className="btn-primary">
+            <Sparkles className="w-4 h-4 mr-2" />CREATE_NEW
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Input
+              value={newDashboardName}
+              onChange={(e) => setNewDashboardName(e.target.value)}
+              placeholder="Dashboard name..."
+              className="terminal-input w-48"
+            />
+            <Button onClick={createDashboard} className="bg-[#00FF94] text-black hover:bg-[#00FF94]/80">CREATE</Button>
+            <Button onClick={() => setCreating(false)} variant="outline" className="border-[#333]">CANCEL</Button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Dashboard List */}
+        <div className="space-y-2">
+          <h3 className="text-sm text-[#888] mb-2">YOUR DASHBOARDS ({dashboards.length})</h3>
+          {dashboards.length > 0 ? (
+            dashboards.map((dash) => (
+              <Card
+                key={dash.id}
+                className={`terminal-card cursor-pointer transition-all ${selectedDashboard?.id === dash.id ? 'border-[#9D4EDD]' : 'hover:border-[#333]'}`}
+                onClick={() => loadDashboard(dash.id)}
+              >
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-[#EDEDED]">{dash.name}</div>
+                    <div className="text-xs text-[#888]">{dash.widgets?.length || 0} widgets</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => { e.stopPropagation(); deleteDashboard(dash.id); }}
+                    className="text-[#FF4444] hover:bg-[#FF4444]/20"
+                  >
+                    ×
+                  </Button>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="text-center py-8 text-[#888]">No dashboards yet. Create one!</div>
+          )}
+        </div>
+
+        {/* Dashboard Preview */}
+        <div className="md:col-span-2">
+          {selectedDashboard ? (
+            <Card className="terminal-card h-full">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">{selectedDashboard.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedDashboard.widgets?.map((widget, i) => (
+                    <div key={i} className="p-4 bg-[#0A0A0A] border border-[#1F1F1F] rounded">
+                      <div className="text-xs text-[#9D4EDD] mb-2 uppercase">{widget.type?.replace("_", " ")}</div>
+                      {widget.data ? (
+                        <div className="text-sm text-[#888]">
+                          {widget.type === "risk_gauge" && (
+                            <div className="text-center">
+                              <div className="text-3xl font-bold text-[#FFD700]">{widget.data?.global_risk_score || 52}%</div>
+                              <div className="text-xs">Global Risk Score</div>
+                            </div>
+                          )}
+                          {widget.type === "predictions_list" && (
+                            <div className="space-y-1">
+                              {widget.data?.slice(0, 3).map((p, j) => (
+                                <div key={j} className="text-xs truncate">{p.title}</div>
+                              ))}
+                            </div>
+                          )}
+                          {widget.type === "disaster_feed" && (
+                            <div className="space-y-1">
+                              {widget.data?.earthquakes?.slice(0, 3).map((eq, j) => (
+                                <div key={j} className="text-xs">M{eq.magnitude} - {eq.location?.slice(0, 30)}</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-[#666]">Widget configured</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="flex items-center justify-center h-full text-[#888]">
+              Select a dashboard to view
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Available Widgets */}
+      <Card className="terminal-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Settings className="w-4 h-4 text-[#888]" />AVAILABLE_WIDGETS
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {availableWidgets.map((widget, i) => (
+              <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] rounded text-center">
+                <div className="text-xs font-medium text-[#EDEDED]">{widget.name}</div>
+                <div className="text-xs text-[#666] mt-1">{widget.description?.slice(0, 40)}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 // Auth Modal
 const AuthModal = ({ isOpen, onClose, login, register }) => {
   const [isLogin, setIsLogin] = useState(true);
