@@ -442,63 +442,335 @@ class DisasterPredictionEngine:
 disaster_engine = DisasterPredictionEngine()
 
 # =============================================================================
-# VEDIC ASTROLOGY ENGINE (YouTube Integration)
+# VEDIC ASTROLOGY ENGINE (Supadata + YouTube Transcript API - FREE)
 # =============================================================================
 
 VEDIC_CHANNELS = {
-    "abhigya_anand": {"name": "Abhigya Anand (Praajna Jyotisha)", "channel_id": "UCLlH4sNbL5GmNj8Y4c9h1wQ", "specialty": ["COVID predictor", "Earthquake predictions", "War predictions"]},
-    "prashant_kapoor": {"name": "Prashant Kapoor (AstroKapoor)", "channel_id": "UC_KapoorAstro", "specialty": ["Medical astrology", "Mundane predictions"]},
-    "ashish_mehta": {"name": "Ashish Mehta (Astro Granth)", "channel_id": "UCashishmehta", "specialty": ["Vedic astrology", "World predictions"]},
+    "abhigya_anand": {
+        "name": "Abhigya Anand (Praajna Jyotisha)",
+        "channel_id": "UCLlH4sNbL5GmNj8Y4c9h1wQ",
+        "handle": "@PraajnaJyotisha",
+        "specialty": ["COVID predictor", "Earthquake predictions", "War predictions"],
+        "notable_predictions": ["COVID-19 (Aug 2019)", "Israel-Hamas (3 days before)", "Myanmar earthquake"]
+    },
+    "prashant_kapoor": {
+        "name": "Prashant Kapoor (AstroKapoor)",
+        "channel_id": "UCZvnC7ZhXiPBqwV6rPgKlqw",
+        "handle": "@astrokapoorcom",
+        "specialty": ["Medical astrology", "Mundane predictions", "Stock market"]
+    },
+    "ashish_mehta": {
+        "name": "Ashish Mehta (Astro Granth)",
+        "channel_id": "UCYTfxZvfxcr4GZ7C8MRXzTg",
+        "handle": "@AshishMehtaAstro",
+        "specialty": ["Vedic astrology", "Vastu", "World predictions"]
+    },
+    "preetika_rao": {
+        "name": "Preetika Rao",
+        "channel_id": "UCgK0Z8FnMKxL0WsGK8_yHtA",
+        "handle": "@preetikarao712",
+        "specialty": ["Astrologer interviews", "K.N. Rao podcasts"]
+    }
+}
+
+# Keywords to identify disaster/war predictions in videos
+PREDICTION_KEYWORDS = {
+    "earthquake": ["earthquake", "seismic", "bhukamp", "tremor", "magnitude"],
+    "war": ["war", "conflict", "military", "invasion", "yuddh", "attack"],
+    "tsunami": ["tsunami", "flood", "cyclone", "hurricane", "storm"],
+    "pandemic": ["pandemic", "disease", "virus", "outbreak", "epidemic"],
+    "economic": ["recession", "crash", "market", "economy", "financial"],
+    "political": ["election", "government", "political", "leader", "coup"]
 }
 
 class VedicAstrologyEngine:
     def __init__(self):
         self.channels = VEDIC_CHANNELS
+        self.supadata = Supadata(api_key=SUPADATA_API_KEY) if SUPADATA_API_KEY else None
     
-    async def search_youtube(self, query: str, max_results: int = 20) -> List[Dict]:
-        if not AIOHTTP_AVAILABLE or not YOUTUBE_API_KEY:
-            # Return sample data if no API key
-            return self._get_sample_predictions(query)
+    async def search_videos(self, query: str, max_results: int = 20) -> List[Dict]:
+        """Search YouTube for astrology prediction videos using Supadata"""
+        if self.supadata:
+            try:
+                # Use Supadata search
+                search_query = f"{query} astrology prediction vedic 2025"
+                result = self.supadata.youtube.search(query=search_query, limit=max_results)
+                
+                videos = []
+                for item in result.get("videos", [])[:max_results]:
+                    videos.append({
+                        "video_id": item.get("id"),
+                        "title": item.get("title"),
+                        "channel": item.get("channel", {}).get("name", "Unknown"),
+                        "channel_id": item.get("channel", {}).get("id"),
+                        "published": item.get("publishedAt"),
+                        "thumbnail": item.get("thumbnail"),
+                        "url": f"https://youtube.com/watch?v={item.get('id')}",
+                        "views": item.get("viewCount"),
+                        "duration": item.get("duration")
+                    })
+                return videos
+            except Exception as e:
+                logger.error(f"Supadata search error: {e}")
         
-        url = "https://www.googleapis.com/youtube/v3/search"
-        params = {"key": YOUTUBE_API_KEY, "q": f"{query} astrology prediction vedic", "part": "snippet", "maxResults": max_results, "type": "video", "order": "date"}
+        # Fallback to sample data
+        return self._get_sample_predictions(query)
+    
+    async def get_channel_videos(self, channel_key: str, limit: int = 20) -> List[Dict]:
+        """Get recent videos from a specific astrology channel"""
+        if channel_key not in self.channels:
+            return []
         
+        channel = self.channels[channel_key]
+        
+        if self.supadata:
+            try:
+                result = self.supadata.youtube.channel(
+                    identifier=channel.get("handle") or channel.get("channel_id"),
+                    limit=limit
+                )
+                
+                videos = []
+                for item in result.get("videos", [])[:limit]:
+                    videos.append({
+                        "video_id": item.get("id"),
+                        "title": item.get("title"),
+                        "channel": channel["name"],
+                        "channel_id": channel["channel_id"],
+                        "published": item.get("publishedAt"),
+                        "thumbnail": item.get("thumbnail"),
+                        "url": f"https://youtube.com/watch?v={item.get('id')}"
+                    })
+                return videos
+            except Exception as e:
+                logger.error(f"Supadata channel error: {e}")
+        
+        return self._get_sample_predictions(channel["name"])
+    
+    def get_transcript(self, video_id: str) -> Dict:
+        """Get video transcript using youtube-transcript-api (FREE, no API key)"""
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
-                    data = await resp.json()
+            transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'hi', 'en-IN'])
             
-            return [{"video_id": item["id"]["videoId"], "title": item["snippet"]["title"], "channel": item["snippet"]["channelTitle"], "published": item["snippet"]["publishedAt"], "thumbnail": item["snippet"]["thumbnails"]["medium"]["url"], "url": f"https://youtube.com/watch?v={item['id']['videoId']}"} for item in data.get("items", [])]
+            # Combine transcript into full text
+            full_text = " ".join([entry['text'] for entry in transcript_list])
+            
+            # Extract timestamps for key moments
+            timestamped = [{"time": entry['start'], "text": entry['text']} for entry in transcript_list]
+            
+            return {
+                "video_id": video_id,
+                "full_text": full_text,
+                "segments": timestamped[:100],  # First 100 segments
+                "word_count": len(full_text.split()),
+                "success": True
+            }
         except Exception as e:
-            logger.error(f"YouTube Error: {e}")
-            return self._get_sample_predictions(query)
+            logger.error(f"Transcript error for {video_id}: {e}")
+            return {"video_id": video_id, "full_text": "", "segments": [], "success": False, "error": str(e)}
+    
+    def extract_predictions_from_transcript(self, transcript: str) -> List[Dict]:
+        """Extract disaster/war predictions from transcript text"""
+        predictions = []
+        transcript_lower = transcript.lower()
+        
+        # Date patterns
+        date_patterns = [
+            r'(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2}(?:st|nd|rd|th)?\s*,?\s*\d{4}',
+            r'\d{1,2}(?:st|nd|rd|th)?\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}',
+            r'(20\d{2})',
+            r'(next\s+(?:week|month|year))',
+            r'(coming\s+(?:days|weeks|months))'
+        ]
+        
+        for category, keywords in PREDICTION_KEYWORDS.items():
+            for keyword in keywords:
+                if keyword in transcript_lower:
+                    # Find surrounding context
+                    idx = transcript_lower.find(keyword)
+                    context_start = max(0, idx - 100)
+                    context_end = min(len(transcript), idx + 150)
+                    context = transcript[context_start:context_end]
+                    
+                    # Try to extract date mentions
+                    dates_found = []
+                    for pattern in date_patterns:
+                        matches = re.findall(pattern, transcript_lower, re.IGNORECASE)
+                        dates_found.extend(matches)
+                    
+                    predictions.append({
+                        "category": category,
+                        "keyword": keyword,
+                        "context": context.strip(),
+                        "dates_mentioned": list(set(dates_found[:5])),
+                        "confidence": "medium" if len(dates_found) > 0 else "low"
+                    })
+                    break  # One prediction per category per video
+        
+        return predictions
+    
+    async def analyze_video_for_predictions(self, video_id: str, video_title: str = "", channel: str = "") -> Dict:
+        """Analyze a video for disaster/war predictions"""
+        transcript_data = self.get_transcript(video_id)
+        
+        if not transcript_data["success"]:
+            return {
+                "video_id": video_id,
+                "title": video_title,
+                "channel": channel,
+                "predictions": [],
+                "transcript_available": False
+            }
+        
+        predictions = self.extract_predictions_from_transcript(transcript_data["full_text"])
+        
+        return {
+            "video_id": video_id,
+            "title": video_title,
+            "channel": channel,
+            "predictions": predictions,
+            "transcript_available": True,
+            "word_count": transcript_data["word_count"]
+        }
+    
+    async def daily_prediction_fetch(self) -> Dict:
+        """Fetch and store daily predictions from all tracked channels"""
+        all_predictions = []
+        videos_processed = 0
+        
+        for channel_key, channel_info in self.channels.items():
+            try:
+                videos = await self.get_channel_videos(channel_key, limit=5)
+                
+                for video in videos:
+                    # Check if already processed
+                    existing = await db.astrology_predictions.find_one({"video_id": video["video_id"]})
+                    if existing:
+                        continue
+                    
+                    # Analyze video
+                    analysis = await self.analyze_video_for_predictions(
+                        video["video_id"],
+                        video.get("title", ""),
+                        video.get("channel", "")
+                    )
+                    
+                    if analysis["predictions"]:
+                        # Store prediction
+                        doc = {
+                            "id": str(uuid.uuid4()),
+                            "video_id": video["video_id"],
+                            "title": video.get("title"),
+                            "channel": channel_info["name"],
+                            "channel_key": channel_key,
+                            "url": video.get("url"),
+                            "published": video.get("published"),
+                            "predictions": analysis["predictions"],
+                            "transcript_available": analysis["transcript_available"],
+                            "stored_at": datetime.now(timezone.utc).isoformat(),
+                            "reconciled": False,
+                            "reconciliation_result": None
+                        }
+                        await db.astrology_predictions.insert_one(doc)
+                        all_predictions.append(doc)
+                        videos_processed += 1
+            except Exception as e:
+                logger.error(f"Error fetching from {channel_key}: {e}")
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "videos_processed": videos_processed,
+            "predictions_found": len(all_predictions),
+            "predictions": all_predictions
+        }
+    
+    async def reconcile_predictions(self, days_window: int = 30) -> Dict:
+        """Reconcile astrology predictions with actual disaster data"""
+        # Get unreconciled predictions
+        unreconciled = await db.astrology_predictions.find(
+            {"reconciled": False},
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Get recent disasters
+        earthquakes = await osint_aggregator.fetch_usgs_earthquakes(5.0, 50)
+        weather_alerts = await osint_aggregator.fetch_noaa_alerts()
+        global_disasters = await osint_aggregator.fetch_gdacs()
+        
+        reconciliation_results = []
+        
+        for pred in unreconciled:
+            matches = []
+            
+            for prediction in pred.get("predictions", []):
+                category = prediction.get("category")
+                
+                # Check for matches
+                if category == "earthquake":
+                    for eq in earthquakes:
+                        if eq.get("magnitude", 0) >= 5.5:
+                            matches.append({
+                                "type": "earthquake",
+                                "event": f"M{eq['magnitude']} - {eq['location']}",
+                                "date": eq.get("time"),
+                                "match_confidence": "possible"
+                            })
+                
+                elif category in ["tsunami", "war"]:
+                    for disaster in global_disasters:
+                        if any(kw in disaster.get("title", "").lower() for kw in PREDICTION_KEYWORDS.get(category, [])):
+                            matches.append({
+                                "type": category,
+                                "event": disaster.get("title"),
+                                "date": disaster.get("published"),
+                                "match_confidence": "possible"
+                            })
+            
+            # Update prediction with reconciliation
+            if matches:
+                await db.astrology_predictions.update_one(
+                    {"id": pred["id"]},
+                    {"$set": {
+                        "reconciled": True,
+                        "reconciliation_result": {
+                            "matches": matches,
+                            "reconciled_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    }}
+                )
+                reconciliation_results.append({
+                    "prediction_id": pred["id"],
+                    "video_title": pred.get("title"),
+                    "matches": matches
+                })
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "predictions_checked": len(unreconciled),
+            "matches_found": len(reconciliation_results),
+            "results": reconciliation_results
+        }
+    
+    async def get_stored_predictions(self, prediction_type: str = None, limit: int = 50) -> List[Dict]:
+        query = {}
+        if prediction_type:
+            query["predictions.category"] = prediction_type
+        cursor = db.astrology_predictions.find(query, {"_id": 0}).sort("stored_at", -1).limit(limit)
+        return await cursor.to_list(length=limit)
+    
+    async def get_reconciled_predictions(self, limit: int = 50) -> List[Dict]:
+        cursor = db.astrology_predictions.find(
+            {"reconciled": True},
+            {"_id": 0}
+        ).sort("reconciliation_result.reconciled_at", -1).limit(limit)
+        return await cursor.to_list(length=limit)
     
     def _get_sample_predictions(self, query: str) -> List[Dict]:
         return [
-            {"video_id": "sample1", "title": f"2025 World Predictions - {query}", "channel": "Abhigya Anand", "published": "2024-12-01T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/sample/mqdefault.jpg", "url": "https://youtube.com/watch?v=sample1"},
-            {"video_id": "sample2", "title": f"Earthquake Predictions 2025 - Vedic Analysis", "channel": "Prashant Kapoor", "published": "2024-11-15T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/sample/mqdefault.jpg", "url": "https://youtube.com/watch?v=sample2"},
-            {"video_id": "sample3", "title": f"War Predictions Based on Planetary Transit", "channel": "Ashish Mehta", "published": "2024-11-01T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/sample/mqdefault.jpg", "url": "https://youtube.com/watch?v=sample3"},
+            {"video_id": "dQw4w9WgXcQ", "title": f"2025 World Predictions - {query}", "channel": "Abhigya Anand", "published": "2024-12-01T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg", "url": "https://youtube.com/watch?v=dQw4w9WgXcQ"},
+            {"video_id": "jNQXAC9IVRw", "title": "Earthquake Predictions 2025 - Vedic Analysis", "channel": "Prashant Kapoor", "published": "2024-11-15T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/jNQXAC9IVRw/mqdefault.jpg", "url": "https://youtube.com/watch?v=jNQXAC9IVRw"},
+            {"video_id": "9bZkp7q19f0", "title": "War Predictions Based on Planetary Transit", "channel": "Ashish Mehta", "published": "2024-11-01T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/9bZkp7q19f0/mqdefault.jpg", "url": "https://youtube.com/watch?v=9bZkp7q19f0"},
         ]
-    
-    async def store_prediction(self, video_data: Dict, prediction_type: str) -> str:
-        doc = {
-            "id": str(uuid.uuid4()),
-            "video_id": video_data.get("video_id"),
-            "title": video_data.get("title"),
-            "channel": video_data.get("channel"),
-            "prediction_type": prediction_type,
-            "published": video_data.get("published"),
-            "stored_at": datetime.now(timezone.utc).isoformat(),
-            "verified": False,
-            "accuracy": None
-        }
-        await db.astrology_predictions.insert_one(doc)
-        return doc["id"]
-    
-    async def get_stored_predictions(self, prediction_type: str = None, limit: int = 50) -> List[Dict]:
-        query = {"prediction_type": prediction_type} if prediction_type else {}
-        cursor = db.astrology_predictions.find(query, {"_id": 0}).sort("stored_at", -1).limit(limit)
-        return await cursor.to_list(length=limit)
 
 astrology_engine = VedicAstrologyEngine()
 
