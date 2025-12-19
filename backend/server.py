@@ -97,6 +97,30 @@ class PaymentRequest(BaseModel):
     plan: str
     origin_url: str
 
+# Mantic-style Deep Forecast Request
+class DeepForecastRequest(BaseModel):
+    topic: str = Field(..., min_length=5, max_length=200)
+    num_questions: int = Field(default=5, ge=1, le=10)
+    timeframe: str = "2025"
+
+# Custom Dashboard Request
+class DashboardRequest(BaseModel):
+    name: str
+    predictions: List[str]  # List of prediction IDs to track
+    notify_on_change: bool = True
+
+# Tabular Prediction Categories (Mantic-style)
+TABULAR_CATEGORIES = {
+    "terror_attacks": {"name": "Terror Attack Probability", "refresh_hours": 24},
+    "ceo_departures": {"name": "CEO Departure Probability", "refresh_hours": 168},
+    "country_risk": {"name": "Country Risk Index", "refresh_hours": 24},
+    "economic_indicators": {"name": "Economic Indicators", "refresh_hours": 24},
+    "natural_disasters": {"name": "Natural Disaster Risk", "refresh_hours": 6},
+    "geopolitical": {"name": "Geopolitical Events", "refresh_hours": 12},
+    "pandemic": {"name": "Pandemic Risk", "refresh_hours": 24},
+    "market_events": {"name": "Market Events", "refresh_hours": 12},
+}
+
 class AstrologySearchRequest(BaseModel):
     query: str
     channel_filter: Optional[str] = None
