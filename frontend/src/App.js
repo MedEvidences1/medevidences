@@ -1380,11 +1380,7 @@ const AccuracyDashboard = ({ getHeaders, user, setShowAuth }) => {
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(90);
 
-  useEffect(() => {
-    loadData();
-  }, [days]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [statsRes, trendsRes, leaderRes] = await Promise.all([
@@ -1399,7 +1395,11 @@ const AccuracyDashboard = ({ getHeaders, user, setShowAuth }) => {
       console.error("Error loading accuracy data:", e);
     }
     setLoading(false);
-  };
+  }, [days]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const getGradeColor = (grade) => {
     if (grade?.startsWith("A")) return "text-[#00FF94]";
