@@ -495,24 +495,40 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   );
 };
 
-// Disasters Component
-const Disasters = () => {
+// Combined Disasters & Astrology Component (Side-by-Side)
+const DisastersAndAstrology = ({ getHeaders, user }) => {
   const [earthquakes, setEarthquakes] = useState([]);
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [globalDisasters, setGlobalDisasters] = useState([]);
+  const [disasterSummary, setDisasterSummary] = useState(null);
+  const [channels, setChannels] = useState({});
+  const [videos, setVideos] = useState([]);
+  const [storedPredictions, setStoredPredictions] = useState([]);
+  const [reconciled, setReconciled] = useState([]);
+  const [query, setQuery] = useState("earthquake prediction 2025");
   const [loading, setLoading] = useState(true);
+  const [fetchingDaily, setFetchingDaily] = useState(false);
+  const [reconciling, setReconciling] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eqRes, wxRes, gdRes] = await Promise.all([
-        axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=30`),
+      const [eqRes, wxRes, gdRes, summaryRes, channelsRes, storedRes, reconciledRes] = await Promise.all([
+        axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=15`),
         axios.get(`${API}/disasters/weather-alerts`),
         axios.get(`${API}/disasters/global`),
+        axios.get(`${API}/disasters/summary`),
+        axios.get(`${API}/astrology/channels`),
+        axios.get(`${API}/astrology/stored?limit=10`),
+        axios.get(`${API}/astrology/reconciled?limit=10`),
       ]);
       setEarthquakes(eqRes.data.earthquakes || []);
       setWeatherAlerts(wxRes.data.alerts || []);
       setGlobalDisasters(gdRes.data.disasters || []);
+      setDisasterSummary(summaryRes.data);
+      setChannels(channelsRes.data.channels || {});
+      setStoredPredictions(storedRes.data.predictions || []);
+      setReconciled(reconciledRes.data.predictions || []);
     } catch (e) {
       console.error(e);
     }
@@ -523,69 +539,253 @@ const Disasters = () => {
     loadData();
   }, [loadData]);
 
+  const searchAstrology = async () => {
+    try {
+      const res = await axios.get(`${API}/astrology/search?query=${encodeURIComponent(query)}`);
+      setVideos(res.data.videos || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const runDailyFetch = async () => {
+    if (!user) {
+      toast.error("Please login to run daily fetch");
+      return;
+    }
+    setFetchingDaily(true);
+    try {
+      const res = await axios.post(`${API}/astrology/daily-fetch`, {}, { headers: getHeaders() });
+      toast.success(`Fetched ${res.data.predictions_found} predictions from ${res.data.videos_processed} videos`);
+      loadData();
+    } catch (e) {
+      toast.error("Daily fetch failed");
+    }
+    setFetchingDaily(false);
+  };
+
+  const runReconciliation = async () => {
+    if (!user) {
+      toast.error("Please login to reconcile");
+      return;
+    }
+    setReconciling(true);
+    try {
+      const res = await axios.post(`${API}/astrology/reconcile`, {}, { headers: getHeaders() });
+      toast.success(`Found ${res.data.matches_found} matches from ${res.data.predictions_checked} predictions`);
+      loadData();
+    } catch (e) {
+      toast.error("Reconciliation failed");
+    }
+    setReconciling(false);
+  };
+
   return (
-    <div className="space-y-6" data-testid="disasters-view">
+    <div className="space-y-6" data-testid="disasters-astrology-view">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold flex items-center gap-2">
           <AlertTriangle className="w-5 h-5 text-[#FF3333]" />
-          DISASTER_MONITORING
+          DISASTERS
+          <span className="text-[#888] mx-2">&</span>
+          <Moon className="w-5 h-5 text-[#9D4EDD]" />
+          ASTROLOGY_PREDICTIONS
         </h2>
-        <Button onClick={loadData} variant="outline" size="sm" className="btn-secondary" data-testid="refresh-disasters-btn">
-          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-          REFRESH
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={loadData} variant="outline" size="sm" className="btn-secondary" data-testid="refresh-all-btn">
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+            REFRESH
+          </Button>
+        </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* Earthquakes */}
-        <Card className="terminal-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#FF3333]" />
-              EARTHQUAKES_USGS
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-2">
-                {earthquakes.map((eq, i) => (
-                  <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] border-l-2 border-l-[#FF3333]">
-                    <div className="flex justify-between">
-                      <span className="font-mono font-bold text-[#FF3333]">M{eq.magnitude}</span>
-                      <span className="text-xs text-[#888]">{new Date(eq.time).toLocaleString()}</span>
-                    </div>
-                    <p className="text-sm text-[#EDEDED] mt-1">{eq.location}</p>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+      {/* Risk Summary */}
+      {disasterSummary && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card className="terminal-card border-l-2 border-l-[#FF3333]">
+            <CardContent className="p-3 text-center">
+              <div className="font-mono text-2xl font-bold text-[#FF3333]">{disasterSummary.earthquake_risk?.probability || 0}%</div>
+              <div className="text-xs text-[#888]">EARTHQUAKE RISK</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card border-l-2 border-l-[#FFAA00]">
+            <CardContent className="p-3 text-center">
+              <div className="font-mono text-2xl font-bold text-[#FFAA00]">{disasterSummary.weather_risk?.probability || 0}%</div>
+              <div className="text-xs text-[#888]">WEATHER RISK</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card border-l-2 border-l-[#00E5FF]">
+            <CardContent className="p-3 text-center">
+              <div className="font-mono text-2xl font-bold text-[#00E5FF]">{disasterSummary.global_risk_score || 0}%</div>
+              <div className="text-xs text-[#888]">GLOBAL RISK</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card border-l-2 border-l-[#9D4EDD]">
+            <CardContent className="p-3 text-center">
+              <div className="font-mono text-2xl font-bold text-[#9D4EDD]">{storedPredictions.length}</div>
+              <div className="text-xs text-[#888]">STORED PREDICTIONS</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-        {/* Weather Alerts */}
-        <Card className="terminal-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Cloud className="w-4 h-4 text-[#FFAA00]" />
-              WEATHER_ALERTS_NOAA
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px]">
-              <div className="space-y-2">
-                {weatherAlerts.map((alert, i) => (
-                  <div key={i} className={`p-3 bg-[#0A0A0A] border border-[#1F1F1F] border-l-2 ${alert.severity === "Extreme" ? "border-l-[#FF3333]" : alert.severity === "Severe" ? "border-l-[#FFAA00]" : "border-l-[#FFD700]"}`}>
-                    <div className="font-medium text-sm">{alert.event}</div>
-                    <div className="text-xs text-[#888] mt-1">{alert.areas}</div>
-                    <Badge className={`mt-2 text-xs ${alert.severity === "Extreme" ? "risk-critical" : alert.severity === "Severe" ? "risk-high" : "risk-moderate"}`}>
-                      {alert.severity}
-                    </Badge>
-                  </div>
-                ))}
+      {/* Main Side-by-Side Grid */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* LEFT: Disasters */}
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#FF3333]" />
+                LIVE_EARTHQUAKES_USGS
+                <Badge variant="outline" className="ml-2 text-xs border-[#FF3333]/30 text-[#FF3333]">
+                  <span className="w-2 h-2 bg-[#FF3333] rounded-full mr-1 animate-pulse" />
+                  LIVE
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-2">
+                  {earthquakes.map((eq, i) => (
+                    <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] border-l-2 border-l-[#FF3333]">
+                      <div className="flex justify-between">
+                        <span className="font-mono font-bold text-[#FF3333]">M{eq.magnitude}</span>
+                        <span className="text-xs text-[#888]">{new Date(eq.time).toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-[#EDEDED] mt-1">{eq.location}</p>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Cloud className="w-4 h-4 text-[#FFAA00]" />
+                WEATHER_ALERTS_NOAA
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[200px]">
+                <div className="space-y-2">
+                  {weatherAlerts.slice(0, 8).map((alert, i) => (
+                    <div key={i} className={`p-2 bg-[#0A0A0A] border border-[#1F1F1F] border-l-2 ${alert.severity === "Extreme" ? "border-l-[#FF3333]" : "border-l-[#FFAA00]"}`}>
+                      <div className="font-medium text-xs">{alert.event}</div>
+                      <div className="text-xs text-[#888] truncate">{alert.areas}</div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* RIGHT: Astrology */}
+        <div className="space-y-4">
+          <Card className="terminal-card astrology-accent">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Moon className="w-4 h-4 text-[#9D4EDD]" />
+                  VEDIC_ASTROLOGY_PREDICTIONS
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button onClick={runDailyFetch} disabled={fetchingDaily} size="sm" className="bg-[#9D4EDD] hover:bg-[#9D4EDD]/80 text-white text-xs" data-testid="daily-fetch-btn">
+                    {fetchingDaily ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                    <span className="ml-1">FETCH</span>
+                  </Button>
+                  <Button onClick={runReconciliation} disabled={reconciling} size="sm" variant="outline" className="text-xs border-[#9D4EDD] text-[#9D4EDD]" data-testid="reconcile-btn">
+                    {reconciling ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Target className="w-3 h-3" />}
+                    <span className="ml-1">RECONCILE</span>
+                  </Button>
+                </div>
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              {/* Search */}
+              <div className="flex gap-2 mb-3">
+                <Input
+                  data-testid="astrology-search-input"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search predictions..."
+                  className="terminal-input flex-1 text-sm"
+                  onKeyDown={(e) => e.key === "Enter" && searchAstrology()}
+                />
+                <Button onClick={searchAstrology} size="sm" className="bg-[#9D4EDD] hover:bg-[#9D4EDD]/80">
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Channels */}
+              <div className="mb-3">
+                <div className="text-xs text-[#888] uppercase mb-2">TRACKED CHANNELS</div>
+                <div className="flex flex-wrap gap-1">
+                  {Object.entries(channels).map(([key, ch]) => (
+                    <Badge key={key} className="astrology-badge text-xs">{ch.name.split(" ")[0]}</Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stored Predictions */}
+              <ScrollArea className="h-[250px]">
+                <div className="space-y-2">
+                  {storedPredictions.length > 0 ? storedPredictions.map((pred, i) => (
+                    <div key={i} className="p-2 bg-[#0A0A0A] border border-[#9D4EDD]/30 hover:border-[#9D4EDD]">
+                      <div className="font-medium text-xs text-[#EDEDED] line-clamp-2">{pred.title}</div>
+                      <div className="text-xs text-[#888] mt-1">{pred.channel}</div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {pred.predictions?.slice(0, 2).map((p, j) => (
+                          <Badge key={j} variant="outline" className="text-xs border-[#9D4EDD]/30 text-[#9D4EDD]">{p.category}</Badge>
+                        ))}
+                      </div>
+                      {pred.reconciled && (
+                        <Badge className="mt-1 bg-[#00FF94]/20 text-[#00FF94] text-xs">RECONCILED</Badge>
+                      )}
+                    </div>
+                  )) : videos.map((v, i) => (
+                    <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#9D4EDD]">
+                      <div className="font-medium text-xs text-[#EDEDED] line-clamp-2">{v.title}</div>
+                      <div className="text-xs text-[#888] mt-1">{v.channel}</div>
+                      <a href={v.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#9D4EDD] mt-1 flex items-center gap-1">
+                        <Play className="w-3 h-3" /> Watch
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Reconciled Predictions */}
+          {reconciled.length > 0 && (
+            <Card className="terminal-card border-[#00FF94]/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Target className="w-4 h-4 text-[#00FF94]" />
+                  RECONCILED_WITH_ACTUAL_EVENTS
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[150px]">
+                  <div className="space-y-2">
+                    {reconciled.map((pred, i) => (
+                      <div key={i} className="p-2 bg-[#0A0A0A] border border-[#00FF94]/30">
+                        <div className="text-xs text-[#EDEDED]">{pred.title}</div>
+                        <div className="text-xs text-[#00FF94] mt-1">
+                          Matched: {pred.reconciliation_result?.matches?.length || 0} events
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Global Disasters */}
@@ -597,13 +797,12 @@ const Disasters = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {globalDisasters.map((d, i) => (
-              <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#00E5FF] transition-colors">
-                <div className="font-medium text-sm text-[#EDEDED]">{d.title}</div>
-                <p className="text-xs text-[#888] mt-1 line-clamp-2">{d.summary}</p>
-                <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00E5FF] mt-2 flex items-center gap-1 hover:underline">
-                  <ExternalLink className="w-3 h-3" /> View Details
+          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {globalDisasters.slice(0, 8).map((d, i) => (
+              <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#00E5FF]">
+                <div className="font-medium text-xs text-[#EDEDED] line-clamp-2">{d.title}</div>
+                <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00E5FF] mt-1 flex items-center gap-1">
+                  <ExternalLink className="w-3 h-3" /> Details
                 </a>
               </div>
             ))}
