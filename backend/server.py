@@ -913,18 +913,69 @@ async def get_astrology_channels():
 
 @api_router.get("/astrology/search", tags=["Astrology"])
 async def search_astrology_predictions(query: str = "earthquake prediction 2025"):
-    videos = await astrology_engine.search_youtube(query)
+    videos = await astrology_engine.search_videos(query)
     return {"videos": videos, "count": len(videos)}
 
-@api_router.post("/astrology/store", tags=["Astrology"])
-async def store_astrology_prediction(video_data: Dict, prediction_type: str = "general", user: dict = Depends(get_current_user)):
-    pred_id = await astrology_engine.store_prediction(video_data, prediction_type)
-    return {"id": pred_id, "status": "stored"}
+@api_router.get("/astrology/channel/{channel_key}", tags=["Astrology"])
+async def get_channel_videos(channel_key: str, limit: int = 20):
+    videos = await astrology_engine.get_channel_videos(channel_key, limit)
+    return {"channel": channel_key, "videos": videos, "count": len(videos)}
+
+@api_router.get("/astrology/transcript/{video_id}", tags=["Astrology"])
+async def get_video_transcript(video_id: str):
+    transcript = astrology_engine.get_transcript(video_id)
+    return transcript
+
+@api_router.post("/astrology/analyze/{video_id}", tags=["Astrology"])
+async def analyze_video(video_id: str, title: str = "", channel: str = ""):
+    analysis = await astrology_engine.analyze_video_for_predictions(video_id, title, channel)
+    return analysis
+
+@api_router.post("/astrology/daily-fetch", tags=["Astrology"])
+async def run_daily_prediction_fetch(user: dict = Depends(get_current_user)):
+    """Manually trigger daily prediction fetch from all channels"""
+    result = await astrology_engine.daily_prediction_fetch()
+    return result
+
+@api_router.post("/astrology/reconcile", tags=["Astrology"])
+async def reconcile_predictions(user: dict = Depends(get_current_user)):
+    """Reconcile astrology predictions with actual disaster data"""
+    result = await astrology_engine.reconcile_predictions()
+    return result
 
 @api_router.get("/astrology/stored", tags=["Astrology"])
 async def get_stored_predictions(prediction_type: str = None, limit: int = 50):
     predictions = await astrology_engine.get_stored_predictions(prediction_type, limit)
     return {"predictions": predictions, "count": len(predictions)}
+
+@api_router.get("/astrology/reconciled", tags=["Astrology"])
+async def get_reconciled_predictions(limit: int = 50):
+    predictions = await astrology_engine.get_reconciled_predictions(limit)
+    return {"predictions": predictions, "count": len(predictions)}
+
+@api_router.get("/astrology/combined-view", tags=["Astrology"])
+async def get_combined_disaster_astrology_view():
+    """Get combined view of disasters and astrology predictions for side-by-side display"""
+    # Get disaster data
+    disaster_summary = await disaster_engine.get_global_summary()
+    earthquakes = await osint_aggregator.fetch_usgs_earthquakes(4.5, 10)
+    
+    # Get stored astrology predictions
+    stored_predictions = await astrology_engine.get_stored_predictions(limit=20)
+    reconciled = await astrology_engine.get_reconciled_predictions(limit=10)
+    
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "disasters": {
+            "summary": disaster_summary,
+            "recent_earthquakes": earthquakes
+        },
+        "astrology": {
+            "stored_predictions": stored_predictions,
+            "reconciled_predictions": reconciled,
+            "channels": astrology_engine.channels
+        }
+    }
 
 # =============================================================================
 # API ENDPOINTS - PREDICTIONS
