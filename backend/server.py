@@ -603,8 +603,9 @@ class VedicAstrologyEngine:
                 
                 if videos:
                     return videos
-            except Exception as e:
-                logger.error(f"Supadata channel error: {e}")
+                    
+        except Exception as e:
+            logger.error(f"yt-dlp channel error: {e}")
         
         return self._get_sample_predictions(channel["name"])
     
