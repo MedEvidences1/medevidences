@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Dict, Optional, Any
 import uuid
 import hashlib
@@ -21,6 +21,9 @@ from enum import Enum
 # Emergent Integrations
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+
+# Email Alerts with Resend
+import resend
 
 # YouTube Integrations (FREE - No API Key Required)
 from youtube_transcript_api import YouTubeTranscriptApi
