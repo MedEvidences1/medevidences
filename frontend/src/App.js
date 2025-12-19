@@ -128,6 +128,8 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
     { id: "disasters", label: "DISASTERS", icon: AlertTriangle },
     { id: "astrology", label: "ASTROLOGY", icon: Moon },
     { id: "tabular", label: "TABULAR", icon: BarChart3 },
+    { id: "accuracy", label: "ACCURACY", icon: Target },
+    { id: "my-dashboards", label: "MY_DASHBOARDS", icon: Layers },
     { id: "osint", label: "OSINT", icon: Search },
     { id: "grid", label: "RISK_GRID", icon: Globe },
     { id: "chat", label: "CHAT", icon: MessageSquare },
