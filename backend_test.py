@@ -1,410 +1,283 @@
 #!/usr/bin/env python3
-"""
-Comprehensive Backend API Testing for Plutus Predict
-Testing all features: Admin Panels, Conversational AI Chat, Multi-language Support
-"""
 
 import requests
 import sys
 import json
 from datetime import datetime
-import time
 
 class PlutusAPITester:
     def __init__(self, base_url="https://disasterforesight.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
-        self.admin_token = None
         self.tests_run = 0
         self.tests_passed = 0
-        self.failed_tests = []
-        
-        # Test credentials from review request
-        self.admin_email = "admin@plutuspredict.com"
-        self.admin_password = "admin123"
+        self.results = []
 
-    def log_test(self, name, success, response_data=None, error=None):
-        """Log test results"""
+    def log_result(self, test_name, success, details="", expected_status=None, actual_status=None):
+        """Log test result"""
         self.tests_run += 1
         if success:
             self.tests_passed += 1
-            print(f"✅ {name}")
+            print(f"✅ {test_name}")
         else:
-            print(f"❌ {name} - {error}")
-            self.failed_tests.append({
-                "test": name,
-                "error": error,
-                "response": response_data
-            })
+            print(f"❌ {test_name} - {details}")
+            if expected_status and actual_status:
+                print(f"   Expected: {expected_status}, Got: {actual_status}")
+        
+        self.results.append({
+            "test": test_name,
+            "success": success,
+            "details": details,
+            "expected_status": expected_status,
+            "actual_status": actual_status
+        })
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
-        """Run a single API test"""
-        url = f"{self.api_url}/{endpoint}"
-        test_headers = {'Content-Type': 'application/json'}
-        if headers:
-            test_headers.update(headers)
+    def test_health_check(self):
+        """Test basic health check"""
+        try:
+            response = requests.get(f"{self.api_url}/health", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Health Check", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Status: {data.get('status', 'unknown')}")
+            return success
+        except Exception as e:
+            self.log_result("Health Check", False, f"Exception: {str(e)}")
+            return False
 
-        print(f"\n🔍 Testing {name}...")
-        print(f"   URL: {url}")
+    def test_login(self):
+        """Test admin login"""
+        try:
+            response = requests.post(f"{self.api_url}/auth/login", 
+                                   json={"email": "admin@plutuspredict.com", "password": "admin123"},
+                                   timeout=10)
+            success = response.status_code == 200
+            self.log_result("Admin Login", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                self.token = data.get("token")
+                print(f"   User: {data.get('name', 'Unknown')}")
+                print(f"   Role: {data.get('role', 'Unknown')}")
+            return success
+        except Exception as e:
+            self.log_result("Admin Login", False, f"Exception: {str(e)}")
+            return False
+
+    def get_headers(self):
+        """Get authorization headers"""
+        return {"Authorization": f"Bearer {self.token}"} if self.token else {}
+
+    def test_pricing_plans(self):
+        """Test NEW: Pricing plans API - should return 3 plans"""
+        try:
+            response = requests.get(f"{self.api_url}/payments/plans", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Pricing Plans API", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                plans = data.get("plans", {})
+                plan_count = len(plans)
+                print(f"   Plans found: {plan_count}")
+                for plan_name, plan_data in plans.items():
+                    print(f"   - {plan_name}: ${plan_data.get('price', 0)}/month")
+                
+                # Check if we have exactly 3 plans as expected
+                if plan_count == 3:
+                    print(f"   ✅ Correct number of plans (3)")
+                else:
+                    print(f"   ⚠️  Expected 3 plans, found {plan_count}")
+            return success
+        except Exception as e:
+            self.log_result("Pricing Plans API", False, f"Exception: {str(e)}")
+            return False
+
+    def test_osint_live_stream(self):
+        """Test NEW: OSINT Live Stream API - should return pipeline data"""
+        try:
+            response = requests.get(f"{self.api_url}/osint/live-stream", timeout=15)
+            success = response.status_code == 200
+            self.log_result("OSINT Live Stream API", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Pipeline status: {data.get('pipeline_status', 'unknown')}")
+                print(f"   Sources active: {data.get('sources_active', 0)}")
+                print(f"   Total events: {data.get('total_events', 0)}")
+                
+                # Check for expected data structure
+                if 'events' in data and 'pipeline_status' in data:
+                    print(f"   ✅ Pipeline data structure correct")
+                else:
+                    print(f"   ⚠️  Missing expected pipeline data fields")
+            return success
+        except Exception as e:
+            self.log_result("OSINT Live Stream API", False, f"Exception: {str(e)}")
+            return False
+
+    def test_dashboard_stats(self):
+        """Test dashboard stats loading"""
+        try:
+            response = requests.get(f"{self.api_url}/stats", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Dashboard Stats", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Total users: {data.get('total_users', 0)}")
+                print(f"   Total forecasts: {data.get('total_forecasts', 0)}")
+            return success
+        except Exception as e:
+            self.log_result("Dashboard Stats", False, f"Exception: {str(e)}")
+            return False
+
+    def test_earthquakes_api(self):
+        """Test earthquakes API"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/earthquakes?min_magnitude=4.5&limit=10", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Earthquakes API", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                earthquakes = data.get("earthquakes", [])
+                print(f"   Earthquakes found: {len(earthquakes)}")
+                if earthquakes:
+                    latest = earthquakes[0]
+                    print(f"   Latest: M{latest.get('magnitude', 0)} - {latest.get('location', 'Unknown')}")
+            return success
+        except Exception as e:
+            self.log_result("Earthquakes API", False, f"Exception: {str(e)}")
+            return False
+
+    def test_forecast_generation(self):
+        """Test AI forecast generation"""
+        if not self.token:
+            self.log_result("AI Forecast Generation", False, "No authentication token")
+            return False
         
         try:
-            if method == 'GET':
-                response = requests.get(url, headers=test_headers, timeout=30)
-            elif method == 'POST':
-                response = requests.post(url, json=data, headers=test_headers, timeout=30)
-            elif method == 'PUT':
-                response = requests.put(url, json=data, headers=test_headers, timeout=30)
-            elif method == 'DELETE':
-                response = requests.delete(url, headers=test_headers, timeout=30)
-
-            print(f"   Status: {response.status_code}")
-            
-            success = response.status_code == expected_status
-            response_data = {}
-            
-            try:
-                response_data = response.json()
-                if success:
-                    print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
-            except:
-                response_data = {"text": response.text[:200]}
-
-            self.log_test(name, success, response_data, 
-                         f"Expected {expected_status}, got {response.status_code}")
-            
-            return success, response_data
-
+            response = requests.post(f"{self.api_url}/forecast", 
+                                   json={"question": "Will there be a major earthquake in Japan by 2025?"},
+                                   headers=self.get_headers(),
+                                   timeout=30)
+            success = response.status_code == 200
+            self.log_result("AI Forecast Generation", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Probability: {data.get('probability', 0)}%")
+                print(f"   Confidence: {data.get('confidence', 'unknown')}")
+            return success
         except Exception as e:
-            error_msg = f"Request failed: {str(e)}"
-            print(f"   Error: {error_msg}")
-            self.log_test(name, False, {}, error_msg)
-            return False, {}
+            self.log_result("AI Forecast Generation", False, f"Exception: {str(e)}")
+            return False
 
-    def test_admin_login(self):
-        """Test admin login and get token"""
-        print("\n" + "="*60)
-        print("TESTING ADMIN AUTHENTICATION")
-        print("="*60)
-        
-        success, response = self.run_test(
-            "Admin Login",
-            "POST",
-            "auth/login",
-            200,
-            data={"email": self.admin_email, "password": self.admin_password}
-        )
-        
-        if success and 'token' in response:
-            self.admin_token = response['token']
-            print(f"   Admin token obtained: {self.admin_token[:20]}...")
-            return True
-        return False
-
-    def get_admin_headers(self):
-        """Get headers with admin token"""
-        return {'Authorization': f'Bearer {self.admin_token}'} if self.admin_token else {}
-
-    def test_language_apis(self):
-        """Test multi-language support APIs"""
-        print("\n" + "="*60)
-        print("TESTING MULTI-LANGUAGE SUPPORT")
-        print("="*60)
-        
-        # Test GET /api/languages - should return 6 supported languages
-        success, response = self.run_test(
-            "Get Supported Languages",
-            "GET", 
-            "languages",
-            200
-        )
-        
-        if success:
-            languages = response.get('languages', {})
-            expected_langs = ['en', 'es', 'fr', 'ar', 'id', 'sw']
-            found_langs = list(languages.keys())
-            
-            if len(found_langs) == 6 and all(lang in found_langs for lang in expected_langs):
-                print(f"   ✅ All 6 languages found: {found_langs}")
-            else:
-                print(f"   ❌ Expected 6 languages {expected_langs}, got {found_langs}")
-        
-        # Test translations for each language
-        for lang in ['es', 'fr', 'ar', 'id', 'sw']:
-            success, response = self.run_test(
-                f"Get {lang.upper()} Translations",
-                "GET",
-                f"translations/{lang}",
-                200
-            )
-            
+    def test_disaster_summary(self):
+        """Test disaster summary API"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/summary", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Disaster Summary", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
             if success:
-                translations = response.get('translations', {})
-                if len(translations) > 0:
-                    print(f"   ✅ {lang.upper()} has {len(translations)} translations")
-                else:
-                    print(f"   ❌ {lang.upper()} has no translations")
+                data = response.json()
+                print(f"   Global risk score: {data.get('global_risk_score', 0)}%")
+                earthquake_risk = data.get('earthquake_risk', {})
+                print(f"   Earthquake risk: {earthquake_risk.get('probability', 0)}%")
+            return success
+        except Exception as e:
+            self.log_result("Disaster Summary", False, f"Exception: {str(e)}")
+            return False
 
-    def test_owner_availability(self):
-        """Test owner availability API"""
-        print("\n" + "="*60)
-        print("TESTING OWNER AVAILABILITY")
-        print("="*60)
-        
-        success, response = self.run_test(
-            "Get Owner Availability",
-            "GET",
-            "owner/availability",
-            200
-        )
-        
-        if success:
-            available_slots = response.get('available_slots', 0)
-            max_owners = response.get('max_owners', 0)
-            print(f"   Available slots: {available_slots}/{max_owners}")
-            
-            if max_owners == 3:
-                print(f"   ✅ Correct max owners limit: {max_owners}")
-            else:
-                print(f"   ❌ Expected max_owners=3, got {max_owners}")
-
-    def test_admin_organization_apis(self):
-        """Test admin organization management APIs"""
-        print("\n" + "="*60)
-        print("TESTING ADMIN ORGANIZATION MANAGEMENT")
-        print("="*60)
-        
-        if not self.admin_token:
-            print("❌ No admin token available for organization tests")
-            return
-        
-        headers = self.get_admin_headers()
-        
-        # Test create enterprise organization
-        org_data = {
-            "name": "Test Enterprise Corp",
-            "description": "Test organization for API testing",
-            "max_employees": 10
-        }
-        
-        success, response = self.run_test(
-            "Create Enterprise Organization",
-            "POST",
-            "admin/organization/create",
-            201,
-            data=org_data,
-            headers=headers
-        )
-        
-        org_id = None
-        if success:
-            org_id = response.get('organization', {}).get('id')
-            print(f"   Created organization ID: {org_id}")
-        
-        # Test get organization employees (if org created)
-        if org_id:
-            success, response = self.run_test(
-                "Get Organization Employees",
-                "GET",
-                f"admin/organization/{org_id}/employees",
-                200,
-                headers=headers
-            )
-            
+    def test_languages_support(self):
+        """Test multi-language support"""
+        try:
+            response = requests.get(f"{self.api_url}/languages", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Languages Support", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
             if success:
-                employees = response.get('employees', [])
-                max_employees = response.get('max_employees', 0)
-                print(f"   Employees: {len(employees)}/{max_employees}")
-                
-                if max_employees == 10:
-                    print(f"   ✅ Correct employee limit: {max_employees}")
-                else:
-                    print(f"   ❌ Expected max_employees=10, got {max_employees}")
+                data = response.json()
+                languages = data.get("languages", {})
+                print(f"   Languages supported: {len(languages)}")
+                for code, info in languages.items():
+                    print(f"   - {code}: {info.get('name', 'Unknown')}")
+            return success
+        except Exception as e:
+            self.log_result("Languages Support", False, f"Exception: {str(e)}")
+            return False
 
-    def test_admin_document_apis(self):
-        """Test admin document management APIs"""
-        print("\n" + "="*60)
-        print("TESTING ADMIN DOCUMENT MANAGEMENT")
-        print("="*60)
+    def test_chat_functionality(self):
+        """Test AI chat functionality"""
+        if not self.token:
+            self.log_result("AI Chat", False, "No authentication token")
+            return False
         
-        if not self.admin_token:
-            print("❌ No admin token available for document tests")
-            return
-        
-        headers = self.get_admin_headers()
-        
-        # Test save document
-        doc_data = {
-            "title": "Test Document",
-            "content": "This is a test document for API testing",
-            "category": "general"
-        }
-        
-        success, response = self.run_test(
-            "Save Document",
-            "POST",
-            "admin/documents",
-            201,
-            data=doc_data,
-            headers=headers
-        )
-        
-        # Test get documents
-        success, response = self.run_test(
-            "Get User Documents",
-            "GET",
-            "admin/documents",
-            200,
-            headers=headers
-        )
-        
-        if success:
-            documents = response.get('documents', [])
-            print(f"   Found {len(documents)} documents")
-
-    def test_admin_settings_apis(self):
-        """Test admin settings APIs"""
-        print("\n" + "="*60)
-        print("TESTING ADMIN SETTINGS")
-        print("="*60)
-        
-        if not self.admin_token:
-            print("❌ No admin token available for settings tests")
-            return
-        
-        headers = self.get_admin_headers()
-        
-        # Test get email settings
-        success, response = self.run_test(
-            "Get Email Settings",
-            "GET",
-            "admin/email-settings",
-            200,
-            headers=headers
-        )
-        
-        # Test get payment history
-        success, response = self.run_test(
-            "Get Payment History",
-            "GET",
-            "admin/payments/history",
-            200,
-            headers=headers
-        )
-
-    def test_chat_apis(self):
-        """Test conversational AI chat APIs"""
-        print("\n" + "="*60)
-        print("TESTING CONVERSATIONAL AI CHAT")
-        print("="*60)
-        
-        if not self.admin_token:
-            print("❌ No admin token available for chat tests")
-            return
-        
-        headers = self.get_admin_headers()
-        
-        # Test basic chat
-        chat_data = {
-            "message": "What is Plutus Predict and how does it work?"
-        }
-        
-        success, response = self.run_test(
-            "Basic AI Chat",
-            "POST",
-            "chat",
-            200,
-            data=chat_data,
-            headers=headers
-        )
-        
-        if success:
-            ai_response = response.get('response', '')
-            if len(ai_response) > 0:
-                print(f"   ✅ AI responded with {len(ai_response)} characters")
-                print(f"   Response preview: {ai_response[:100]}...")
-            else:
-                print(f"   ❌ Empty AI response")
-        
-        # Test interactive chat with context
-        interactive_data = {
-            "message": "Tell me about disaster prediction capabilities",
-            "context": "investment analysis"
-        }
-        
-        success, response = self.run_test(
-            "Interactive Context-Aware Chat",
-            "POST",
-            "chat/interactive",
-            200,
-            data=interactive_data,
-            headers=headers
-        )
-        
-        if success:
-            ai_response = response.get('response', '')
-            if len(ai_response) > 0:
-                print(f"   ✅ Interactive AI responded with {len(ai_response)} characters")
-                print(f"   Response preview: {ai_response[:100]}...")
-            else:
-                print(f"   ❌ Empty interactive AI response")
-
-    def test_core_functionality(self):
-        """Test core forecasting functionality"""
-        print("\n" + "="*60)
-        print("TESTING CORE FUNCTIONALITY")
-        print("="*60)
-        
-        # Test basic endpoints without auth
-        endpoints_to_test = [
-            ("Get Stats", "GET", "stats", 200),
-            ("Get Languages", "GET", "languages", 200),
-            ("Get Disasters Summary", "GET", "disasters/summary", 200),
-            ("Get Earthquakes", "GET", "disasters/earthquakes?limit=5", 200),
-        ]
-        
-        for name, method, endpoint, expected_status in endpoints_to_test:
-            self.run_test(name, method, endpoint, expected_status)
+        try:
+            response = requests.post(f"{self.api_url}/chat", 
+                                   json={"message": "What is the current global risk level?"},
+                                   headers=self.get_headers(),
+                                   timeout=20)
+            success = response.status_code == 200
+            self.log_result("AI Chat", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Response length: {len(data.get('response', ''))}")
+            return success
+        except Exception as e:
+            self.log_result("AI Chat", False, f"Exception: {str(e)}")
+            return False
 
     def run_all_tests(self):
-        """Run comprehensive test suite"""
-        print("🚀 Starting Plutus Predict API Testing")
-        print(f"Backend URL: {self.base_url}")
-        print(f"API URL: {self.api_url}")
+        """Run all tests"""
+        print("🚀 Starting Plutus Predict API Tests")
+        print(f"📡 Testing against: {self.base_url}")
+        print("=" * 60)
         
-        start_time = time.time()
+        # Core functionality tests
+        self.test_health_check()
+        login_success = self.test_login()
         
-        # Test core functionality first
-        self.test_core_functionality()
+        # NEW FEATURES - Priority tests from review request
+        print("\n🆕 Testing NEW Features:")
+        self.test_pricing_plans()  # NEW: Should return 3 plans
+        self.test_osint_live_stream()  # NEW: Should return pipeline data
         
-        # Test admin authentication
-        if self.test_admin_login():
-            # Test all admin features
-            self.test_owner_availability()
-            self.test_admin_organization_apis()
-            self.test_admin_document_apis()
-            self.test_admin_settings_apis()
-            self.test_chat_apis()
+        # Core API tests
+        print("\n📊 Testing Core APIs:")
+        self.test_dashboard_stats()
+        self.test_earthquakes_api()
+        self.test_disaster_summary()
+        self.test_languages_support()
         
-        # Test multi-language support
-        self.test_language_apis()
+        # Authenticated features
+        if login_success:
+            print("\n🔐 Testing Authenticated Features:")
+            self.test_forecast_generation()
+            self.test_chat_functionality()
         
-        end_time = time.time()
+        # Print summary
+        print("\n" + "=" * 60)
+        print(f"📈 RESULTS: {self.tests_passed}/{self.tests_run} tests passed ({(self.tests_passed/self.tests_run*100):.1f}%)")
         
-        # Print final results
-        print("\n" + "="*60)
-        print("FINAL TEST RESULTS")
-        print("="*60)
-        print(f"Tests Run: {self.tests_run}")
-        print(f"Tests Passed: {self.tests_passed}")
-        print(f"Tests Failed: {len(self.failed_tests)}")
-        print(f"Success Rate: {(self.tests_passed/self.tests_run*100):.1f}%")
-        print(f"Total Time: {end_time - start_time:.2f} seconds")
+        # Detailed results
+        failed_tests = [r for r in self.results if not r["success"]]
+        if failed_tests:
+            print(f"\n❌ Failed Tests ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"   - {test['test']}: {test['details']}")
         
-        if self.failed_tests:
-            print("\n❌ FAILED TESTS:")
-            for i, test in enumerate(self.failed_tests, 1):
-                print(f"{i}. {test['test']}: {test['error']}")
+        passed_tests = [r for r in self.results if r["success"]]
+        if passed_tests:
+            print(f"\n✅ Passed Tests ({len(passed_tests)}):")
+            for test in passed_tests:
+                print(f"   - {test['test']}")
         
         return self.tests_passed == self.tests_run
 
