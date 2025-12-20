@@ -54,6 +54,7 @@ import {
   Shield,
   Target,
   MapPin,
+  FileText,
 } from "lucide-react";
 
 // Recharts
