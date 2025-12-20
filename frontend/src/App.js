@@ -1003,26 +1003,144 @@ const Astrology = ({ getHeaders, user }) => {
 
 // Tabular Predictions Component
 const TabularPredictions = () => {
-              <ScrollArea className="h-[150px]">
-                <div className="space-y-2">
-                  {reconciled.length > 0 ? reconciled.map((pred, i) => (
-                    <div key={i} className="p-2 bg-[#0A0A0A] border border-[#00FF94]/30">
-                      <div className="text-xs text-[#EDEDED] line-clamp-1">{pred.title}</div>
-                      <div className="text-xs text-[#00FF94] mt-1">Matched: {pred.reconciliation_result?.matches?.length || 0} actual events</div>
-                    </div>
-                  )) : (
-                    <div className="text-center text-[#888] py-4 text-xs">Click RECONCILE to match predictions with actual disasters</div>
-                  )}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+  const [tables, setTables] = useState(null);
+  const [activeTable, setActiveTable] = useState("business_tech");
+  const [loading, setLoading] = useState(true);
+  const [metadata, setMetadata] = useState(null);
+
+  useEffect(() => {
+    axios.get(`${API}/tabular/all`).then(res => { 
+      setTables(res.data.tables); 
+      setMetadata({ source: res.data.source, osint: res.data.osint_sources, categories: res.data.categories });
+      setLoading(false); 
+    }).catch(console.error);
+  }, []);
+
+  const getRiskColor = (prob) => {
+    if (prob >= 70) return "text-[#FF3333]";
+    if (prob >= 50) return "text-[#FFAA00]";
+    if (prob >= 30) return "text-[#FFD700]";
+    return "text-[#00FF94]";
+  };
+
+  // Mantic-style categories (full coverage)
+  const tableOptions = [
+    { id: "business_tech", label: "BUSINESS", icon: TrendingUp },
+    { id: "economics", label: "ECONOMICS", icon: BarChart3 },
+    { id: "global_affairs", label: "GLOBAL", icon: Globe },
+    { id: "geopolitical", label: "CONFLICT", icon: Shield },
+    { id: "terror_attacks", label: "SECURITY", icon: AlertTriangle },
+    { id: "ceo_departures", label: "CORPORATE", icon: Users },
+  ];
+
+  return (
+    <div className="space-y-6" data-testid="tabular-view">
+      {/* Header with OSINT badge */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-[#00E5FF]" />PROBABILITY_STREAMS
+          </h2>
+          <p className="text-xs text-[#888] mt-1">AI-powered predictions across business, economics, geopolitics & more</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">1M+ OSINT SOURCES</Badge>
+          <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD] text-xs">3-LLM ENSEMBLE</Badge>
         </div>
       </div>
 
-      <div className="text-xs text-[#444] text-center">
-        Astrology predictions are reconciled with AI disaster data for accuracy enhancement. View DISASTERS tab for live data.
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-1 border-b border-[#1F1F1F] pb-2">
+        {tableOptions.map(t => (
+          <Button 
+            key={t.id} 
+            onClick={() => setActiveTable(t.id)} 
+            variant={activeTable === t.id ? "default" : "ghost"} 
+            size="sm" 
+            className={activeTable === t.id ? "bg-[#00E5FF] text-black text-xs" : "text-[#888] hover:text-white text-xs"}
+          >
+            <t.icon className="w-3 h-3 mr-1" />{t.label}
+          </Button>
+        ))}
       </div>
+
+      {loading ? (
+        <div className="text-center py-8 text-[#888]">Loading probability streams...</div>
+      ) : tables && tables[activeTable] && (
+        <Card className="terminal-card">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm">{tables[activeTable].title}</CardTitle>
+                <CardDescription className="text-xs text-[#888]">
+                  Updated: {new Date(tables[activeTable].updated_at).toLocaleString()}
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="text-[#00E5FF] border-[#00E5FF]/30">
+                {tables[activeTable].data?.length || 0} FORECASTS
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[#1F1F1F]">
+                    <th className="text-left py-3 text-xs text-[#888] uppercase w-[50%]">Prediction</th>
+                    {(activeTable === "ceo_departures") && <th className="text-left py-3 text-xs text-[#888] uppercase">Company</th>}
+                    {(activeTable === "terror_attacks") && <th className="text-left py-3 text-xs text-[#888] uppercase">Region</th>}
+                    {(activeTable === "business_tech" || activeTable === "global_affairs") && <th className="text-left py-3 text-xs text-[#888] uppercase">Category</th>}
+                    <th className="text-center py-3 text-xs text-[#888] uppercase">Probability</th>
+                    <th className="text-center py-3 text-xs text-[#888] uppercase">Change</th>
+                    <th className="text-center py-3 text-xs text-[#888] uppercase">Confidence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tables[activeTable].data?.map((row, i) => (
+                    <tr key={i} className="border-b border-[#1F1F1F]/50 hover:bg-[#141414] cursor-pointer">
+                      <td className="py-3 text-[#EDEDED]">{row.question || row.name || row.country || row.event}</td>
+                      {(activeTable === "ceo_departures") && <td className="py-3 text-[#888]">{row.company}</td>}
+                      {(activeTable === "terror_attacks") && <td className="py-3 text-[#888]">{row.code}</td>}
+                      {(activeTable === "business_tech" || activeTable === "global_affairs") && (
+                        <td className="py-3">
+                          <Badge variant="outline" className="text-xs border-[#333]">{row.category || row.region}</Badge>
+                        </td>
+                      )}
+                      <td className="py-3 text-center">
+                        <span className={`font-mono font-bold text-lg ${getRiskColor(row.probability)}`}>{row.probability}%</span>
+                      </td>
+                      <td className={`py-3 text-center font-mono text-sm ${(row.change_30d || row.change_7d) > 0 ? "text-[#00FF94]" : (row.change_30d || row.change_7d) < 0 ? "text-[#FF3333]" : "text-[#888]"}`}>
+                        {(row.change_30d || row.change_7d) > 0 ? "↑" : (row.change_30d || row.change_7d) < 0 ? "↓" : "–"} {Math.abs(row.change_30d || row.change_7d || 0)}%
+                      </td>
+                      <td className="py-3 text-center">
+                        <Badge className={`text-xs ${row.confidence === "high" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FFD700]/20 text-[#FFD700]"}`}>
+                          {row.confidence || "medium"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Categories Overview */}
+      <Card className="terminal-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">PREDICTION_CATEGORIES</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            {["Business", "Economics", "Finance", "Global Affairs", "Politics", "Conflict", "Technology", "Space", "Earthquake", "Weather", "Pandemic", "Energy", "India", "China", "USA", "Europe"].map((cat, i) => (
+              <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded text-center">
+                <div className="text-xs text-[#888]">{cat.toUpperCase()}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
