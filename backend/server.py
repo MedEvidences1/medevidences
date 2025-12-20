@@ -534,9 +534,18 @@ PREDICTION_KEYWORDS = {
 }
 
 class VedicAstrologyEngine:
+    """
+    Fetches videos ONLY from the 4 specified Vedic astrology channels:
+    1. Abhigya Anand (Praajna Jyotisha)
+    2. Prashant Kapoor (AstroKapoor)
+    3. Ashish Mehta (Astro Granth)
+    4. Preetika Rao (Podcasts with various astrologers)
+    
+    Imports transcripts and extracts disaster/war predictions for 2025-2030
+    """
     def __init__(self):
         self.channels = VEDIC_CHANNELS
-        # Configure yt-dlp for search (no API key required)
+        # Configure yt-dlp for channel fetching (no API key required)
         self.ydl_opts = {
             'quiet': True,
             'no_warnings': True,
@@ -544,44 +553,8 @@ class VedicAstrologyEngine:
             'skip_download': True,
         }
     
-    async def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
-        """Search YouTube for astrology prediction videos using yt-dlp (FREE, no API key)"""
-        try:
-            search_query = f"ytsearch{max_results}:{query} vedic astrology prediction 2025"
-            
-            with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
-                result = await asyncio.get_event_loop().run_in_executor(
-                    None, lambda: ydl.extract_info(search_query, download=False)
-                )
-                
-                videos = []
-                for entry in result.get('entries', [])[:max_results]:
-                    if entry:
-                        video_id = entry.get('id', '')
-                        videos.append({
-                            "video_id": video_id,
-                            "title": entry.get('title', 'Unknown'),
-                            "channel": entry.get('channel', entry.get('uploader', 'Unknown')),
-                            "channel_id": entry.get('channel_id', ''),
-                            "published": entry.get('upload_date', ''),
-                            "thumbnail": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
-                            "url": f"https://youtube.com/watch?v={video_id}",
-                            "views": entry.get('view_count', 0),
-                            "duration": entry.get('duration', 0)
-                        })
-                
-                if videos:
-                    logger.info(f"yt-dlp search found {len(videos)} videos for query: {query}")
-                    return videos
-                    
-        except Exception as e:
-            logger.error(f"yt-dlp search error: {e}")
-        
-        # Fallback to curated real astrology videos
-        return self._get_sample_predictions(query)
-    
-    async def get_channel_videos(self, channel_key: str, limit: int = 10) -> List[Dict]:
-        """Get recent videos from a specific astrology channel using yt-dlp"""
+    async def fetch_channel_videos(self, channel_key: str, limit: int = 15) -> List[Dict]:
+        """Fetch recent videos from a specific tracked channel using yt-dlp"""
         if channel_key not in self.channels:
             return []
         
@@ -600,23 +573,80 @@ class VedicAstrologyEngine:
                 for entry in result.get('entries', [])[:limit]:
                     if entry:
                         video_id = entry.get('id', '')
-                        videos.append({
-                            "video_id": video_id,
-                            "title": entry.get('title', 'Unknown'),
-                            "channel": channel["name"],
-                            "channel_id": channel["channel_id"],
-                            "published": entry.get('upload_date', ''),
-                            "thumbnail": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
-                            "url": f"https://youtube.com/watch?v={video_id}"
-                        })
+                        title = entry.get('title', '')
+                        
+                        # Filter for prediction-related videos
+                        title_lower = title.lower()
+                        is_prediction_video = any(kw in title_lower for kw in [
+                            'prediction', '2025', '2026', '2027', 'earthquake', 'war', 
+                            'disaster', 'forecast', 'future', 'world', 'india', 'pakistan',
+                            'conflict', 'tsunami', 'flood', 'economic'
+                        ])
+                        
+                        if is_prediction_video or len(videos) < 5:  # Always include at least 5 videos
+                            videos.append({
+                                "video_id": video_id,
+                                "title": title,
+                                "channel": channel["name"],
+                                "channel_key": channel_key,
+                                "channel_id": channel["channel_id"],
+                                "published": entry.get('upload_date', ''),
+                                "thumbnail": f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg",
+                                "url": f"https://youtube.com/watch?v={video_id}",
+                                "duration": entry.get('duration', 0)
+                            })
                 
-                if videos:
-                    return videos
+                logger.info(f"Fetched {len(videos)} videos from {channel['name']}")
+                return videos
                     
         except Exception as e:
-            logger.error(f"yt-dlp channel error: {e}")
+            logger.error(f"yt-dlp channel fetch error for {channel_key}: {e}")
         
-        return self._get_sample_predictions(channel["name"])
+        return []
+    
+    async def fetch_all_channels(self, videos_per_channel: int = 10) -> List[Dict]:
+        """Fetch videos from ALL 4 tracked channels"""
+        all_videos = []
+        
+        for channel_key in self.channels.keys():
+            videos = await self.fetch_channel_videos(channel_key, videos_per_channel)
+            all_videos.extend(videos)
+            await asyncio.sleep(1)  # Rate limit between channel requests
+        
+        return all_videos
+    
+    async def search_videos(self, query: str, max_results: int = 10) -> List[Dict]:
+        """Search for videos from the 4 tracked channels only"""
+        # Search within the tracked channels
+        search_queries = [
+            f"{query} site:youtube.com/@PraajnaJyotisha",
+            f"{query} site:youtube.com/@preetikarao712", 
+            f"{query} site:youtube.com/@AshishMehtaAstro",
+            f"{query} site:youtube.com/@astrokapoorcom"
+        ]
+        
+        # Try fetching from each channel and filter by query
+        all_videos = []
+        for channel_key in self.channels.keys():
+            try:
+                videos = await self.fetch_channel_videos(channel_key, 20)
+                # Filter videos matching the query
+                query_lower = query.lower()
+                for video in videos:
+                    if query_lower in video['title'].lower():
+                        all_videos.append(video)
+            except Exception as e:
+                logger.error(f"Error searching {channel_key}: {e}")
+        
+        if all_videos:
+            return all_videos[:max_results]
+        
+        # If no matches, return recent videos from all channels
+        return await self.fetch_all_channels(max_results // 4 + 1)
+    
+    async def get_channel_videos(self, channel_key: str, limit: int = 10) -> List[Dict]:
+        """Alias for fetch_channel_videos"""
+        return await self.fetch_channel_videos(channel_key, limit)
     
     def get_transcript(self, video_id: str) -> Dict:
         """Get video transcript using youtube-transcript-api (FREE, no API key)"""
