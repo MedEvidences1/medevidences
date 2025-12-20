@@ -45,6 +45,12 @@ try:
 except ImportError:
     SCHEDULER_AVAILABLE = False
 
+# Live OSINT Pipeline Dependencies
+import aiohttp
+import feedparser
+from collections import deque
+import json
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
