@@ -662,62 +662,344 @@ const Disasters = ({ getHeaders }) => {
   );
 };
 
-// Astrology Component (Independent - for reconciliation)
+// Astrology Component - Focus on Transcript Text & Disaster/War Predictions
 const Astrology = ({ getHeaders, user }) => {
   const [channels, setChannels] = useState({});
-  const [videos, setVideos] = useState([]);
-  const [storedPredictions, setStoredPredictions] = useState([]);
-  const [reconciled, setReconciled] = useState([]);
-  const [query, setQuery] = useState("earthquake prediction 2025");
+  const [importedPredictions, setImportedPredictions] = useState([]);
+  const [reconciledMatches, setReconciledMatches] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [fetchingDaily, setFetchingDaily] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [reconciling, setReconciling] = useState(false);
+  const [activeView, setActiveView] = useState("predictions");
+  const [selectedPrediction, setSelectedPrediction] = useState(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [channelsRes, storedRes, reconciledRes] = await Promise.all([
+      const [channelsRes, predictionsRes, reconciledRes] = await Promise.all([
         axios.get(`${API}/astrology/channels`),
-        axios.get(`${API}/astrology/stored?limit=20`),
+        axios.get(`${API}/astrology/imported-predictions?limit=50`),
         axios.get(`${API}/astrology/reconciled?limit=20`),
       ]);
       setChannels(channelsRes.data.channels || {});
-      setStoredPredictions(storedRes.data.predictions || []);
-      setReconciled(reconciledRes.data.predictions || []);
+      setImportedPredictions(predictionsRes.data.predictions || []);
+      setReconciledMatches(reconciledRes.data.predictions || []);
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadData(); searchAstrology(); }, [loadData]);
-
-  const searchAstrology = async () => {
-    try {
-      const res = await axios.get(`${API}/astrology/search?query=${encodeURIComponent(query)}`);
-      setVideos(res.data.videos || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const runDailyFetch = async () => {
-    if (!user) { toast.error("Please login"); return; }
-    setFetchingDaily(true);
-    try {
-      const res = await axios.post(`${API}/astrology/daily-fetch`, {}, { headers: getHeaders() });
-      toast.success(`Fetched ${res.data.predictions_found} predictions`);
-      loadData();
-    } catch (e) { toast.error("Fetch failed"); }
-    setFetchingDaily(false);
-  };
+  useEffect(() => { loadData(); }, [loadData]);
 
   const importTranscripts = async () => {
     if (!user) { toast.error("Please login"); return; }
-    setFetchingDaily(true);
-    toast.info("Importing transcripts from all channels... This may take a minute.");
+    setImporting(true);
+    toast.info("Importing transcripts & extracting WAR/DISASTER predictions...");
     try {
-      const res = await axios.post(`${API}/astrology/import-transcripts?videos_per_channel=8`, {}, { headers: getHeaders() });
+      const res = await axios.post(`${API}/astrology/import-transcripts?videos_per_channel=10`, {}, { headers: getHeaders() });
+      toast.success(`Imported ${res.data.transcripts_fetched} transcripts, extracted ${res.data.predictions_extracted} WAR/DISASTER predictions`);
+      loadData();
+    } catch (e) { toast.error("Import failed"); }
+    setImporting(false);
+  };
+
+  const runReconciliation = async () => {
+    if (!user) { toast.error("Please login"); return; }
+    setReconciling(true);
+    toast.info("Reconciling astrology predictions with AI disaster data...");
+    try {
+      const res = await axios.post(`${API}/astrology/reconcile`, {}, { headers: getHeaders() });
+      toast.success(`Found ${res.data.matches_found} matches with actual disaster/conflict data`);
+      loadData();
+    } catch (e) { toast.error("Reconciliation failed"); }
+    setReconciling(false);
+  };
+
+  const getCategoryColor = (cat) => {
+    const colors = {
+      earthquake: "#FF4444",
+      war: "#FF6B6B",
+      natural_disaster: "#00E5FF",
+      pandemic: "#9D4EDD",
+      volcanic: "#FF8C00",
+      nuclear: "#FFD700"
+    };
+    return colors[cat] || "#888";
+  };
+
+  const getCategoryIcon = (cat) => {
+    if (cat === "earthquake") return "🌍";
+    if (cat === "war") return "⚔️";
+    if (cat === "natural_disaster") return "🌊";
+    if (cat === "pandemic") return "🦠";
+    if (cat === "volcanic") return "🌋";
+    if (cat === "nuclear") return "☢️";
+    return "📊";
+  };
+
+  // Count predictions by category
+  const predictionCounts = importedPredictions.reduce((acc, p) => {
+    (p.predictions || []).forEach(pred => {
+      acc[pred.category] = (acc[pred.category] || 0) + 1;
+    });
+    return acc;
+  }, {});
+
+  return (
+    <div className="space-y-6" data-testid="astrology-view">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Moon className="w-5 h-5 text-[#9D4EDD]" />
+            VEDIC_ASTROLOGY_DISASTER_PREDICTIONS
+          </h2>
+          <p className="text-xs text-[#888] mt-1">War & Natural Disaster predictions from Abhigya Anand, Prashant Kapoor, Ashish Mehta & Preetika Rao</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={importTranscripts} disabled={importing} size="sm" className="bg-[#FFD700] hover:bg-[#FFD700]/80 text-black text-xs">
+            {importing ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <FileText className="w-3 h-3 mr-1" />}
+            IMPORT_TRANSCRIPTS
+          </Button>
+          <Button onClick={runReconciliation} disabled={reconciling} size="sm" className="bg-[#00FF94] hover:bg-[#00FF94]/80 text-black text-xs">
+            {reconciling ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <Target className="w-3 h-3 mr-1" />}
+            RECONCILE_WITH_AI
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#9D4EDD]">{Object.keys(channels).length}</div>
+            <div className="text-xs text-[#888]">CHANNELS</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#FFD700]">{importedPredictions.length}</div>
+            <div className="text-xs text-[#888]">TRANSCRIPTS</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#FF4444]">{predictionCounts.earthquake || 0}</div>
+            <div className="text-xs text-[#888]">EARTHQUAKE</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#FF6B6B]">{predictionCounts.war || 0}</div>
+            <div className="text-xs text-[#888]">WAR</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#00E5FF]">{predictionCounts.natural_disaster || 0}</div>
+            <div className="text-xs text-[#888]">DISASTERS</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#00FF94]">{reconciledMatches.length}</div>
+            <div className="text-xs text-[#888]">RECONCILED</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* View Tabs */}
+      <div className="flex gap-2 border-b border-[#1F1F1F] pb-2">
+        {[
+          { id: "predictions", label: "EXTRACTED PREDICTIONS", icon: FileText },
+          { id: "reconciled", label: "AI RECONCILED", icon: Target },
+          { id: "channels", label: "SOURCE CHANNELS", icon: Star }
+        ].map(tab => (
+          <Button
+            key={tab.id}
+            variant={activeView === tab.id ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveView(tab.id)}
+            className={activeView === tab.id ? "bg-[#9D4EDD] text-white" : "text-[#888]"}
+          >
+            <tab.icon className="w-3 h-3 mr-1" />{tab.label}
+          </Button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-[#888]">Loading predictions...</div>
+      ) : (
+        <>
+          {/* EXTRACTED PREDICTIONS VIEW - Shows actual transcript text */}
+          {activeView === "predictions" && (
+            <div className="space-y-4">
+              {importedPredictions.length === 0 ? (
+                <Card className="terminal-card">
+                  <CardContent className="p-8 text-center">
+                    <FileText className="w-12 h-12 text-[#444] mx-auto mb-4" />
+                    <h3 className="text-lg text-[#888] mb-2">No transcripts imported yet</h3>
+                    <p className="text-sm text-[#666] mb-4">Click "IMPORT_TRANSCRIPTS" to fetch video transcripts from the 4 tracked channels and extract war/disaster predictions for 2025-2030</p>
+                    <Button onClick={importTranscripts} disabled={importing} className="bg-[#FFD700] text-black">
+                      {importing ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <FileText className="w-4 h-4 mr-2" />}
+                      IMPORT TRANSCRIPTS NOW
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {importedPredictions.map((item, idx) => (
+                    <Card key={idx} className="terminal-card hover:border-[#9D4EDD]/50 transition-colors">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-sm text-[#EDEDED]">{item.title}</CardTitle>
+                            <CardDescription className="text-xs text-[#9D4EDD]">{item.channel}</CardDescription>
+                          </div>
+                          <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">
+                            {item.predictions?.length || 0} PREDICTIONS
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        {/* Show extracted predictions with context text */}
+                        <div className="space-y-3">
+                          {(item.predictions || []).map((pred, i) => (
+                            <div key={i} className="p-3 bg-[#0A0A0A] border-l-2 rounded" style={{borderColor: getCategoryColor(pred.category)}}>
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="text-lg">{getCategoryIcon(pred.category)}</span>
+                                <Badge style={{backgroundColor: `${getCategoryColor(pred.category)}30`, color: getCategoryColor(pred.category)}}>
+                                  {pred.category?.toUpperCase()}
+                                </Badge>
+                                <Badge variant="outline" className="border-[#FFD700] text-[#FFD700]">
+                                  {pred.year_predicted}
+                                </Badge>
+                                <Badge variant="outline" className={pred.confidence === "high" ? "border-[#00FF94] text-[#00FF94]" : "border-[#888] text-[#888]"}>
+                                  {pred.confidence}
+                                </Badge>
+                              </div>
+                              {/* ACTUAL TRANSCRIPT TEXT */}
+                              <div className="text-sm text-[#EDEDED] bg-[#141414] p-2 rounded border border-[#1F1F1F] italic">
+                                "{pred.context}"
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Transcript preview */}
+                        {item.transcript_text && (
+                          <details className="mt-3">
+                            <summary className="text-xs text-[#888] cursor-pointer hover:text-[#EDEDED]">
+                              View full transcript ({item.word_count} words)
+                            </summary>
+                            <div className="mt-2 p-3 bg-[#0A0A0A] text-xs text-[#888] max-h-[200px] overflow-y-auto border border-[#1F1F1F] rounded">
+                              {item.transcript_text}
+                            </div>
+                          </details>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* RECONCILED VIEW - Shows matches with AI disaster data */}
+          {activeView === "reconciled" && (
+            <div className="space-y-4">
+              {reconciledMatches.length === 0 ? (
+                <Card className="terminal-card">
+                  <CardContent className="p-8 text-center">
+                    <Target className="w-12 h-12 text-[#444] mx-auto mb-4" />
+                    <h3 className="text-lg text-[#888] mb-2">No reconciled predictions yet</h3>
+                    <p className="text-sm text-[#666] mb-4">Click "RECONCILE_WITH_AI" to match astrology predictions with actual USGS earthquake data, NOAA alerts, and GDACS disaster reports</p>
+                    <Button onClick={runReconciliation} disabled={reconciling} className="bg-[#00FF94] text-black">
+                      {reconciling ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Target className="w-4 h-4 mr-2" />}
+                      RECONCILE NOW
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  <Card className="terminal-card bg-gradient-to-r from-[#00FF94]/10 to-transparent border-[#00FF94]/30">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#00FF94]/20 flex items-center justify-center">
+                          <Target className="w-6 h-6 text-[#00FF94]" />
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-[#00FF94]">{reconciledMatches.length} MATCHES FOUND</div>
+                          <div className="text-xs text-[#888]">Astrology predictions matched with actual disaster events from USGS/NOAA/GDACS</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {reconciledMatches.map((match, idx) => (
+                    <Card key={idx} className="terminal-card border-l-4 border-l-[#00FF94]">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">{match.title}</CardTitle>
+                        <CardDescription className="text-xs text-[#888]">{match.channel}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {match.reconciliation_result?.matches?.map((m, i) => (
+                          <div key={i} className="p-3 bg-[#0A0A0A] border border-[#00FF94]/30 rounded mb-2">
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{m.type?.toUpperCase()}</Badge>
+                              <Badge variant="outline" className={m.match_confidence === "high" ? "border-[#00FF94] text-[#00FF94]" : "border-[#FFD700] text-[#FFD700]"}>
+                                {m.match_confidence} confidence
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-[#EDEDED]">{m.event}</div>
+                            <div className="text-xs text-[#888] mt-1">Date: {m.date}</div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CHANNELS VIEW */}
+          {activeView === "channels" && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {Object.entries(channels).map(([key, ch]) => (
+                <Card key={key} className="terminal-card hover:border-[#9D4EDD]/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#9D4EDD]/20 flex items-center justify-center">
+                        <Star className="w-5 h-5 text-[#9D4EDD]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-[#EDEDED]">{ch.name}</div>
+                        <div className="text-xs text-[#888] mt-1">
+                          {ch.specialty?.join(" • ")}
+                        </div>
+                        {ch.notable_predictions && (
+                          <div className="mt-2 text-xs text-[#9D4EDD]">
+                            Notable: {ch.notable_predictions?.slice(0, 2).join(", ")}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Info footer */}
+      <div className="text-xs text-[#444] text-center p-2 border-t border-[#1F1F1F]">
+        Transcripts automatically fetched daily at 6 AM • Reconciliation runs daily at 7 AM • Matches with USGS, NOAA & GDACS data
+      </div>
+    </div>
+  );
+};
       toast.success(`Imported ${res.data.transcripts_fetched} transcripts, found ${res.data.predictions_extracted} predictions`);
       loadData();
     } catch (e) { toast.error("Import failed"); }
