@@ -918,15 +918,6 @@ class VedicAstrologyEngine:
             # Economic crash
             (r'(economic|economy|market).{0,100}(crash|collapse|recession).{0,100}(202[5-9]|203[0-9])', 'economic'),
         ]
-            (r'(tsunami|flood|cyclone|hurricane|typhoon|storm).{0,150}(202[5-9]|203[0-9])', 'natural_disaster'),
-            (r'(202[5-9]|203[0-9]).{0,150}(tsunami|flood|cyclone|hurricane)', 'natural_disaster'),
-            # Volcanic eruptions
-            (r'(volcano|eruption|volcanic|lava).{0,150}(202[5-9]|203[0-9])', 'volcanic'),
-            # Pandemic
-            (r'(pandemic|disease|virus|outbreak|epidemic).{0,150}(202[5-9]|203[0-9])', 'pandemic'),
-            # Nuclear threats
-            (r'(nuclear|atomic|radiation|missile).{0,150}(202[5-9]|203[0-9]|war|attack)', 'nuclear'),
-        ]
         
         for pattern, category in prediction_patterns:
             matches = re.finditer(pattern, transcript_lower, re.IGNORECASE)
