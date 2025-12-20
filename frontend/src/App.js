@@ -2561,13 +2561,13 @@ const CompetitorComparison = () => {
         name: "Plutus Predict",
         isUs: true,
         features: {
-          "Multi-LLM Ensemble": { value: "✓", details: "GPT-4, Claude, Gemini", highlight: true },
+          "AI-Powered Engine": { value: "3 LLMs", details: "GPT-4 + Claude + Gemini ensemble", highlight: true },
           "OSINT Aggregation": { value: "1M+", details: "Sources integrated", highlight: true },
           "Prediction Categories": { value: "10+", details: "Economics, Geopolitical, Tech, etc." },
           "Probability Streams": { value: "✓", details: "Mantic-style tabular forecasts" },
-          "Deep Forecast Reports": { value: "✓", details: "On-demand analysis" },
+          "Deep Forecast Reports": { value: "AI-Gen", details: "On-demand analysis" },
           "Disaster Prediction": { value: "✓", details: "27 agencies, 57K+ IoT sensors", highlight: true },
-          "Investment Banking Suite": { value: "✓", details: "M&A, IPO, Risk Analysis", highlight: true },
+          "Investment Banking Suite": { value: "AI-Powered", details: "M&A, IPO, Risk Analysis", highlight: true },
           "Vedic Astrology": { value: "✓", details: "Curated predictions", highlight: true },
           "Real-time Alerts": { value: "✓", details: "Email & in-app" },
           "Admin Panel": { value: "Enterprise", details: "Full management suite" },
@@ -2579,7 +2579,7 @@ const CompetitorComparison = () => {
       {
         name: "Mantic.com",
         features: {
-          "Multi-LLM Ensemble": { value: "✓", details: "AI-powered" },
+          "AI-Powered Engine": { value: "1 LLM", details: "Proprietary AI model" },
           "OSINT Aggregation": { value: "✓", details: "Multiple sources" },
           "Prediction Categories": { value: "5+", details: "Geopolitics, Business, Policy" },
           "Probability Streams": { value: "✓", details: "Tabular outputs" },
@@ -2597,7 +2597,7 @@ const CompetitorComparison = () => {
       {
         name: "OneConcern",
         features: {
-          "Multi-LLM Ensemble": { value: "✗", details: "Proprietary AI" },
+          "AI-Powered Engine": { value: "1 LLM", details: "Proprietary only" },
           "OSINT Aggregation": { value: "Limited", details: "Disaster-focused" },
           "Prediction Categories": { value: "3", details: "Earthquake, Flood, Fire" },
           "Probability Streams": { value: "✗", details: "Risk scores only" },
