@@ -77,6 +77,40 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// =============================================================================
+// MULTI-LANGUAGE SUPPORT
+// =============================================================================
+const SUPPORTED_LANGUAGES = {
+  en: { name: "English", native: "English", flag: "🇬🇧" },
+  es: { name: "Spanish", native: "Español", flag: "🇪🇸" },
+  fr: { name: "French", native: "Français", flag: "🇫🇷" },
+  ar: { name: "Arabic", native: "العربية", flag: "🇸🇦", rtl: true },
+  id: { name: "Indonesian", native: "Bahasa Indonesia", flag: "🇮🇩" },
+  sw: { name: "Swahili", native: "Kiswahili", flag: "🇰🇪" },
+};
+
+const useLanguage = () => {
+  const [language, setLanguage] = useState(localStorage.getItem("plutus_lang") || "en");
+  const [translations, setTranslations] = useState({});
+
+  useEffect(() => {
+    const loadTranslations = async () => {
+      try {
+        const res = await axios.get(`${API}/translations/${language}`);
+        setTranslations(res.data.translations || {});
+      } catch (e) {
+        console.error("Failed to load translations:", e);
+      }
+    };
+    loadTranslations();
+    localStorage.setItem("plutus_lang", language);
+  }, [language]);
+
+  const t = (key) => translations[key] || key;
+
+  return { language, setLanguage, translations, t, isRTL: SUPPORTED_LANGUAGES[language]?.rtl };
+};
+
 // Auth Context
 const useAuth = () => {
   const [user, setUser] = useState(null);
