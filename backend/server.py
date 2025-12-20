@@ -6029,7 +6029,7 @@ async def get_multi_agent_methodology():
     return {
         "system": "Plutus Multi-Agent Forecasting Architecture",
         "version": multi_agent_forecaster.version,
-        "inspired_by": "Mantic.com multi-agent approach",
+        "approach": "Advanced multi-agent ensemble architecture",
         "agents": [
             {
                 "name": "ResearchAgent",
