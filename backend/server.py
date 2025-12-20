@@ -5412,6 +5412,66 @@ async def clear_chat_history(user: dict = Depends(get_current_user)):
     return {"success": True, "messages_deleted": result.deleted_count}
 
 # =============================================================================
+# API ENDPOINTS - MULTI-LANGUAGE SUPPORT
+# =============================================================================
+
+@api_router.get("/languages", tags=["Localization"])
+async def get_supported_languages():
+    """Get list of supported languages"""
+    return {
+        "languages": SUPPORTED_LANGUAGES,
+        "default": "en",
+        "total": len(SUPPORTED_LANGUAGES)
+    }
+
+@api_router.get("/translations/{lang}", tags=["Localization"])
+async def get_translations(lang: str):
+    """Get all translations for a language"""
+    if lang not in SUPPORTED_LANGUAGES:
+        raise HTTPException(400, f"Language '{lang}' not supported. Available: {list(SUPPORTED_LANGUAGES.keys())}")
+    
+    return {
+        "language": lang,
+        "language_info": SUPPORTED_LANGUAGES[lang],
+        "translations": get_all_translations(lang)
+    }
+
+@api_router.get("/translate/{lang}/{key}", tags=["Localization"])
+async def translate_key(lang: str, key: str):
+    """Get translation for a specific key"""
+    return {
+        "language": lang,
+        "key": key,
+        "translation": get_translation(lang, key)
+    }
+
+class LanguagePreference(BaseModel):
+    language: str = Field(..., pattern="^(en|es|fr|ar|id|sw)$")
+
+@api_router.put("/user/language", tags=["Localization"])
+async def set_user_language(pref: LanguagePreference, user: dict = Depends(get_current_user)):
+    """Set user's preferred language"""
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"language": pref.language}}
+    )
+    return {
+        "success": True,
+        "language": pref.language,
+        "language_info": SUPPORTED_LANGUAGES.get(pref.language)
+    }
+
+@api_router.get("/user/language", tags=["Localization"])
+async def get_user_language(user: dict = Depends(get_current_user)):
+    """Get user's preferred language"""
+    lang = user.get("language", "en")
+    return {
+        "language": lang,
+        "language_info": SUPPORTED_LANGUAGES.get(lang, SUPPORTED_LANGUAGES["en"]),
+        "translations": get_all_translations(lang)
+    }
+
+# =============================================================================
 # API ENDPOINTS - ADMIN & HEALTH
 # =============================================================================
 
