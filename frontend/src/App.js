@@ -856,11 +856,11 @@ const Astrology = ({ getHeaders, user }) => {
                 <Card className="terminal-card">
                   <CardContent className="p-8 text-center">
                     <FileText className="w-12 h-12 text-[#444] mx-auto mb-4" />
-                    <h3 className="text-lg text-[#888] mb-2">No transcripts imported yet</h3>
-                    <p className="text-sm text-[#666] mb-4">Click "IMPORT_TRANSCRIPTS" to fetch video transcripts from the 4 tracked channels and extract war/disaster predictions for 2025-2030</p>
-                    <Button onClick={importTranscripts} disabled={importing} className="bg-[#FFD700] text-black">
+                    <h3 className="text-lg text-[#888] mb-2">No predictions loaded yet</h3>
+                    <p className="text-sm text-[#666] mb-4">Click "LOAD_PREDICTIONS" to load curated predictions from Abhigya Anand, Prashant Kapoor, Ashish Mehta & Preetika Rao covering war, disasters, and metal prices for 2025-2030</p>
+                    <Button onClick={loadCuratedPredictions} disabled={importing} className="bg-[#FFD700] text-black">
                       {importing ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <FileText className="w-4 h-4 mr-2" />}
-                      IMPORT TRANSCRIPTS NOW
+                      LOAD PREDICTIONS NOW
                     </Button>
                   </CardContent>
                 </Card>
