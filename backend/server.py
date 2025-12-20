@@ -967,7 +967,7 @@ class VedicAstrologyEngine:
             {
                 "id": "curated_ashish_1",
                 "astrologer": "Ashish Mehta",
-                "channel": "Astro Granth",
+                "channel": "Asishmehta astro",
                 "prediction_type": "metals",
                 "title": "Gold & Silver Bull Market 2025-2027",
                 "context": "Predicted multi-year bull market for gold and silver starting 2025. Global uncertainty, inflation concerns, and geopolitical tensions supporting precious metals. Gold targeting $3000+ levels by 2027.",
@@ -979,7 +979,7 @@ class VedicAstrologyEngine:
             {
                 "id": "curated_ashish_2",
                 "astrologer": "Ashish Mehta",
-                "channel": "Astro Granth",
+                "channel": "Asishmehta astro",
                 "prediction_type": "earthquake",
                 "title": "Himalayan Seismic Risk 2025-2026",
                 "context": "Warned of significant earthquake risk in the Himalayan belt covering Nepal, North India, and Pakistan during 2025-2026. Historical seismic patterns combined with planetary positions suggest M6.5+ events likely.",
@@ -991,7 +991,7 @@ class VedicAstrologyEngine:
             {
                 "id": "curated_ashish_3",
                 "astrologer": "Ashish Mehta",
-                "channel": "Astro Granth",
+                "channel": "Asishmehta astro",
                 "prediction_type": "natural_disaster",
                 "title": "Volcanic Activity Increase 2025",
                 "context": "Predicted increased volcanic activity globally in 2025, particularly in Indonesia, Philippines, and Iceland. Rahu's influence on fire signs indicates potential for major eruptions affecting regional air travel and agriculture.",
@@ -1003,7 +1003,7 @@ class VedicAstrologyEngine:
             {
                 "id": "curated_ashish_4",
                 "astrologer": "Ashish Mehta",
-                "channel": "Astro Granth",
+                "channel": "Asishmehta astro",
                 "prediction_type": "war",
                 "title": "North Korea Provocations 2025",
                 "context": "Predicted increased North Korean military provocations in 2025. Missile tests and potential nuclear posturing indicated by Mars transits. Regional tensions in Korean peninsula to rise during April-June 2025.",
@@ -1015,7 +1015,7 @@ class VedicAstrologyEngine:
             {
                 "id": "curated_ashish_5",
                 "astrologer": "Ashish Mehta",
-                "channel": "Astro Granth",
+                "channel": "Asishmehta astro",
                 "prediction_type": "economic",
                 "title": "Global Economic Turbulence 2025",
                 "context": "Predicted significant economic volatility in 2025 with potential for market corrections. Banking sector vulnerabilities highlighted. Advised caution during February-April 2025 for investments. Recovery expected by late 2025.",
