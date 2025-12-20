@@ -523,15 +523,22 @@ VEDIC_CHANNELS = {
     }
 }
 
-# Keywords to identify disaster/war predictions in videos
+# Keywords to identify ONLY disaster/war predictions in videos (filtered for relevance)
 PREDICTION_KEYWORDS = {
-    "earthquake": ["earthquake", "seismic", "bhukamp", "tremor", "magnitude"],
-    "war": ["war", "conflict", "military", "invasion", "yuddh", "attack"],
-    "tsunami": ["tsunami", "flood", "cyclone", "hurricane", "storm"],
-    "pandemic": ["pandemic", "disease", "virus", "outbreak", "epidemic"],
-    "economic": ["recession", "crash", "market", "economy", "financial"],
-    "political": ["election", "government", "political", "leader", "coup"]
+    "earthquake": ["earthquake", "seismic", "bhukamp", "tremor", "magnitude", "richter"],
+    "war": ["war", "conflict", "military", "invasion", "yuddh", "attack", "battle", "troops"],
+    "tsunami": ["tsunami", "flood", "cyclone", "hurricane", "storm", "typhoon"],
+    "pandemic": ["pandemic", "disease", "virus", "outbreak", "epidemic", "plague"],
+    "volcanic": ["volcano", "eruption", "lava", "volcanic"],
+    "nuclear": ["nuclear", "atomic", "radiation", "missile"],
 }
+
+# Disaster-specific search terms for astrology videos
+DISASTER_SEARCH_TERMS = [
+    "earthquake prediction", "war prediction", "disaster prediction",
+    "tsunami prediction", "nuclear war", "world war", "conflict prediction",
+    "natural disaster", "catastrophe", "calamity prediction"
+]
 
 class VedicAstrologyEngine:
     """
