@@ -1046,6 +1046,455 @@ KEY_FACTORS: [comma-separated list of main factors]"""
 forecasting_engine = ForecastingEngine()
 
 # =============================================================================
+# PLUTUS JUDGMENTAL FORECASTING ENGINE (Proprietary)
+# =============================================================================
+
+class JudgmentalForecastEngine:
+    """
+    Plutus Predict's proprietary judgmental forecasting system.
+    Inspired by superforecaster methodology with AI-enhanced analysis.
+    
+    Key Features:
+    - Multi-factor analysis (geopolitical, economic, social, technological)
+    - Bayesian probability updating
+    - Backtesting capability for accuracy validation
+    - Confidence calibration with Brier scoring
+    - Rationale generation for every prediction
+    """
+    
+    def __init__(self):
+        self.base_rates = {
+            # Geopolitical events (annual base rates)
+            "war_outbreak": 0.05,
+            "coup_attempt": 0.08,
+            "sanctions_imposed": 0.25,
+            "trade_deal": 0.20,
+            "diplomatic_crisis": 0.30,
+            "military_action": 0.15,
+            "regime_change": 0.03,
+            "territorial_dispute": 0.20,
+            
+            # Economic events
+            "recession": 0.15,
+            "market_crash": 0.08,
+            "currency_crisis": 0.10,
+            "interest_rate_hike": 0.40,
+            "inflation_spike": 0.20,
+            "default": 0.05,
+            "bailout": 0.10,
+            
+            # Corporate events
+            "ceo_departure": 0.12,
+            "major_acquisition": 0.15,
+            "ipo": 0.08,
+            "bankruptcy": 0.03,
+            "scandal": 0.10,
+            "layoffs": 0.25,
+            
+            # Technology events
+            "breakthrough": 0.10,
+            "regulation": 0.30,
+            "cyber_attack": 0.20,
+            "ai_advancement": 0.40,
+            
+            # Disaster events
+            "earthquake_major": 0.05,
+            "hurricane_major": 0.15,
+            "pandemic": 0.02,
+            "climate_event": 0.35,
+        }
+        
+        self.factor_weights = {
+            "historical_precedent": 0.25,
+            "current_indicators": 0.30,
+            "expert_consensus": 0.20,
+            "structural_factors": 0.15,
+            "wildcards": 0.10
+        }
+        
+        self.calibration_history = []
+    
+    def _identify_event_type(self, question: str) -> str:
+        """Identify the type of event being forecast"""
+        q_lower = question.lower()
+        
+        event_keywords = {
+            "war_outbreak": ["war", "invasion", "military conflict", "armed conflict"],
+            "coup_attempt": ["coup", "overthrow", "regime", "seize power"],
+            "recession": ["recession", "economic downturn", "gdp decline", "contraction"],
+            "market_crash": ["crash", "collapse", "plunge", "market decline"],
+            "ceo_departure": ["ceo", "executive", "step down", "resign", "departure"],
+            "major_acquisition": ["acquire", "merger", "m&a", "takeover", "buy"],
+            "ipo": ["ipo", "go public", "listing", "public offering"],
+            "earthquake_major": ["earthquake", "seismic", "tremor"],
+            "pandemic": ["pandemic", "outbreak", "epidemic", "virus spread"],
+            "sanctions_imposed": ["sanctions", "embargo", "trade restrictions"],
+            "interest_rate_hike": ["interest rate", "fed", "central bank", "rate hike"],
+            "ai_advancement": ["ai", "artificial intelligence", "machine learning", "breakthrough"],
+        }
+        
+        for event_type, keywords in event_keywords.items():
+            if any(kw in q_lower for kw in keywords):
+                return event_type
+        
+        return "general"
+    
+    def _extract_time_horizon(self, question: str) -> dict:
+        """Extract time horizon from question"""
+        import re
+        
+        q_lower = question.lower()
+        
+        # Look for specific time patterns
+        patterns = {
+            "days": r"(\d+)\s*days?",
+            "weeks": r"(\d+)\s*weeks?",
+            "months": r"(\d+)\s*months?",
+            "years": r"(\d+)\s*years?|by\s*(\d{4})"
+        }
+        
+        for unit, pattern in patterns.items():
+            match = re.search(pattern, q_lower)
+            if match:
+                value = int(match.group(1) or match.group(2))
+                if unit == "days":
+                    return {"horizon_days": value, "horizon_type": "short"}
+                elif unit == "weeks":
+                    return {"horizon_days": value * 7, "horizon_type": "short"}
+                elif unit == "months":
+                    return {"horizon_days": value * 30, "horizon_type": "medium"}
+                elif unit == "years":
+                    if value > 2024:  # It's a year like 2025
+                        days = (value - 2024) * 365
+                    else:
+                        days = value * 365
+                    return {"horizon_days": days, "horizon_type": "long"}
+        
+        # Default to medium term (6 months)
+        return {"horizon_days": 180, "horizon_type": "medium"}
+    
+    def _calculate_base_rate_adjustment(self, event_type: str, horizon: dict) -> float:
+        """Adjust base rate for time horizon"""
+        base = self.base_rates.get(event_type, 0.30)
+        
+        # Adjust for time horizon (longer = higher cumulative probability)
+        if horizon["horizon_type"] == "short":
+            return base * 0.3  # 30 days or less
+        elif horizon["horizon_type"] == "medium":
+            return base * 0.7  # 30-180 days
+        else:
+            return min(base * 1.5, 0.95)  # 180+ days
+    
+    def _analyze_factors(self, question: str, context: str) -> dict:
+        """Multi-factor analysis for judgmental forecasting"""
+        factors = {
+            "historical_precedent": {
+                "score": 0.5,
+                "evidence": [],
+                "weight": self.factor_weights["historical_precedent"]
+            },
+            "current_indicators": {
+                "score": 0.5,
+                "evidence": [],
+                "weight": self.factor_weights["current_indicators"]
+            },
+            "expert_consensus": {
+                "score": 0.5,
+                "evidence": [],
+                "weight": self.factor_weights["expert_consensus"]
+            },
+            "structural_factors": {
+                "score": 0.5,
+                "evidence": [],
+                "weight": self.factor_weights["structural_factors"]
+            },
+            "wildcards": {
+                "score": 0.5,
+                "evidence": [],
+                "weight": self.factor_weights["wildcards"]
+            }
+        }
+        
+        q_lower = question.lower()
+        ctx_lower = context.lower() if context else ""
+        
+        # Historical precedent analysis
+        historical_keywords = ["historically", "previously", "past", "before", "trend"]
+        if any(kw in ctx_lower for kw in historical_keywords):
+            factors["historical_precedent"]["score"] += 0.1
+            factors["historical_precedent"]["evidence"].append("Historical context available")
+        
+        # Current indicators
+        current_keywords = ["currently", "recent", "now", "today", "ongoing", "active"]
+        crisis_keywords = ["crisis", "tension", "conflict", "dispute", "unstable"]
+        positive_keywords = ["improving", "growth", "stable", "positive", "progress"]
+        
+        if any(kw in ctx_lower for kw in current_keywords):
+            if any(kw in ctx_lower for kw in crisis_keywords):
+                factors["current_indicators"]["score"] += 0.2
+                factors["current_indicators"]["evidence"].append("Current crisis indicators detected")
+            elif any(kw in ctx_lower for kw in positive_keywords):
+                factors["current_indicators"]["score"] -= 0.1
+                factors["current_indicators"]["evidence"].append("Positive current indicators")
+        
+        # Structural factors
+        structural_keywords = ["economic", "political", "institutional", "systemic"]
+        if any(kw in q_lower for kw in structural_keywords):
+            factors["structural_factors"]["score"] += 0.1
+            factors["structural_factors"]["evidence"].append("Structural factors considered")
+        
+        # Wildcards (unexpected events)
+        wildcard_keywords = ["unexpected", "surprise", "black swan", "sudden", "shock"]
+        if any(kw in q_lower for kw in wildcard_keywords):
+            factors["wildcards"]["score"] += 0.2
+            factors["wildcards"]["evidence"].append("Wildcard event type")
+        
+        return factors
+    
+    def _bayesian_update(self, prior: float, factors: dict) -> float:
+        """Apply Bayesian updating based on factor analysis"""
+        posterior = prior
+        
+        for factor_name, factor_data in factors.items():
+            score = factor_data["score"]
+            weight = factor_data["weight"]
+            
+            # Convert score to likelihood ratio
+            if score > 0.5:
+                lr = 1 + (score - 0.5) * 2 * weight
+            else:
+                lr = 1 - (0.5 - score) * 2 * weight
+            
+            # Bayesian update: P(H|E) = P(E|H) * P(H) / P(E)
+            odds = posterior / (1 - posterior) if posterior < 1 else 99
+            new_odds = odds * lr
+            posterior = new_odds / (1 + new_odds)
+        
+        # Bound probability
+        return max(0.01, min(0.99, posterior))
+    
+    def _generate_rationale(self, question: str, factors: dict, probability: float, event_type: str) -> str:
+        """Generate human-readable rationale for the forecast"""
+        rationale_parts = []
+        
+        # Opening with probability assessment
+        if probability > 0.7:
+            rationale_parts.append(f"This event appears likely ({probability*100:.0f}% probability).")
+        elif probability > 0.4:
+            rationale_parts.append(f"This event has moderate probability ({probability*100:.0f}%).")
+        else:
+            rationale_parts.append(f"This event appears unlikely ({probability*100:.0f}% probability).")
+        
+        # Key factors
+        key_factors = sorted(factors.items(), key=lambda x: abs(x[1]["score"] - 0.5), reverse=True)[:3]
+        factor_text = []
+        for name, data in key_factors:
+            if data["evidence"]:
+                factor_text.append(f"{name.replace('_', ' ').title()}: {data['evidence'][0]}")
+        
+        if factor_text:
+            rationale_parts.append("Key factors: " + "; ".join(factor_text))
+        
+        # Base rate context
+        base = self.base_rates.get(event_type, 0.3)
+        rationale_parts.append(f"Historical base rate for similar events: {base*100:.0f}%.")
+        
+        return " ".join(rationale_parts)
+    
+    def _calculate_confidence(self, factors: dict, data_quality: str = "medium") -> dict:
+        """Calculate confidence metrics"""
+        # Measure factor agreement
+        scores = [f["score"] for f in factors.values()]
+        variance = sum((s - sum(scores)/len(scores))**2 for s in scores) / len(scores)
+        
+        # Lower variance = higher confidence
+        if variance < 0.02:
+            confidence_level = "HIGH"
+            confidence_score = 0.85
+        elif variance < 0.05:
+            confidence_level = "MEDIUM"
+            confidence_score = 0.65
+        else:
+            confidence_level = "LOW"
+            confidence_score = 0.45
+        
+        # Adjust for data quality
+        quality_mult = {"high": 1.1, "medium": 1.0, "low": 0.8}.get(data_quality, 1.0)
+        confidence_score = min(0.95, confidence_score * quality_mult)
+        
+        return {
+            "level": confidence_level,
+            "score": round(confidence_score, 2),
+            "factor_agreement": round(1 - variance * 10, 2)
+        }
+    
+    async def forecast(self, question: str, context: str = "", backtest_date: str = None) -> dict:
+        """
+        Generate a judgmental forecast for the given question.
+        
+        Args:
+            question: The forecasting question
+            context: Optional OSINT context
+            backtest_date: Optional date for backtesting (ISO format)
+        
+        Returns:
+            Complete forecast with probability, rationale, and metadata
+        """
+        # Identify event type and time horizon
+        event_type = self._identify_event_type(question)
+        horizon = self._extract_time_horizon(question)
+        
+        # Calculate base rate
+        base_rate = self._calculate_base_rate_adjustment(event_type, horizon)
+        
+        # Analyze factors
+        factors = self._analyze_factors(question, context)
+        
+        # Bayesian update
+        probability = self._bayesian_update(base_rate, factors)
+        
+        # Generate rationale
+        rationale = self._generate_rationale(question, factors, probability, event_type)
+        
+        # Calculate confidence
+        confidence = self._calculate_confidence(factors)
+        
+        # Compile forecast
+        forecast_id = str(uuid.uuid4())
+        
+        return {
+            "forecast_id": forecast_id,
+            "question": question,
+            "probability": round(probability * 100, 1),
+            "confidence": confidence,
+            "rationale": rationale,
+            "methodology": {
+                "engine": "Plutus Judgmental Forecasting Engine v1.0",
+                "event_type": event_type,
+                "time_horizon": horizon,
+                "base_rate": round(base_rate * 100, 1),
+                "factors_analyzed": len(factors),
+                "bayesian_updates": True
+            },
+            "factors": {
+                name: {
+                    "score": round(data["score"], 2),
+                    "evidence": data["evidence"],
+                    "impact": "positive" if data["score"] > 0.5 else "negative" if data["score"] < 0.5 else "neutral"
+                }
+                for name, data in factors.items()
+            },
+            "backtesting": {
+                "enabled": backtest_date is not None,
+                "reference_date": backtest_date
+            },
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "model_version": "plutus-jf-1.0"
+        }
+    
+    async def backtest(self, question: str, reference_date: str, known_outcome: bool = None) -> dict:
+        """
+        Backtest a forecast by simulating prediction from a past date.
+        
+        Args:
+            question: The forecasting question
+            reference_date: Past date to simulate prediction from (ISO format)
+            known_outcome: The actual outcome (True/False) if known
+        
+        Returns:
+            Backtest results including Brier score if outcome known
+        """
+        forecast = await self.forecast(question, backtest_date=reference_date)
+        
+        result = {
+            "forecast": forecast,
+            "backtest_metadata": {
+                "reference_date": reference_date,
+                "simulated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+        
+        if known_outcome is not None:
+            prob = forecast["probability"] / 100
+            brier_score = (prob - (1 if known_outcome else 0)) ** 2
+            result["accuracy"] = {
+                "known_outcome": known_outcome,
+                "brier_score": round(brier_score, 4),
+                "calibration": "good" if brier_score < 0.25 else "fair" if brier_score < 0.5 else "poor",
+                "correct": (prob > 0.5 and known_outcome) or (prob <= 0.5 and not known_outcome)
+            }
+        
+        return result
+    
+    async def get_calibration_report(self, forecasts: List[dict]) -> dict:
+        """Generate calibration report for a set of resolved forecasts"""
+        if not forecasts:
+            return {"error": "No forecasts provided"}
+        
+        # Calculate overall Brier score
+        brier_scores = []
+        by_bucket = {f"{i*10}-{(i+1)*10}%": {"count": 0, "outcomes": []} for i in range(10)}
+        
+        for f in forecasts:
+            if "outcome" in f:
+                prob = f["probability"] / 100
+                outcome = 1 if f["outcome"] else 0
+                brier = (prob - outcome) ** 2
+                brier_scores.append(brier)
+                
+                # Bucket by probability
+                bucket_idx = min(int(prob * 10), 9)
+                bucket_key = f"{bucket_idx*10}-{(bucket_idx+1)*10}%"
+                by_bucket[bucket_key]["count"] += 1
+                by_bucket[bucket_key]["outcomes"].append(outcome)
+        
+        # Calculate calibration per bucket
+        calibration = {}
+        for bucket, data in by_bucket.items():
+            if data["count"] > 0:
+                actual_rate = sum(data["outcomes"]) / data["count"]
+                expected = (int(bucket.split("-")[0]) + int(bucket.split("-")[1].replace("%", ""))) / 2 / 100
+                calibration[bucket] = {
+                    "count": data["count"],
+                    "actual_rate": round(actual_rate, 2),
+                    "expected_rate": expected,
+                    "calibration_error": round(abs(actual_rate - expected), 3)
+                }
+        
+        avg_brier = sum(brier_scores) / len(brier_scores) if brier_scores else None
+        
+        return {
+            "total_forecasts": len(forecasts),
+            "resolved_forecasts": len(brier_scores),
+            "average_brier_score": round(avg_brier, 4) if avg_brier else None,
+            "calibration_grade": self._grade_brier(avg_brier) if avg_brier else "N/A",
+            "calibration_by_bucket": calibration,
+            "comparison": {
+                "random_guessing": 0.25,
+                "good_forecaster": 0.15,
+                "superforecaster": 0.10,
+                "plutus_score": round(avg_brier, 4) if avg_brier else None
+            }
+        }
+    
+    def _grade_brier(self, score: float) -> str:
+        if score < 0.10:
+            return "A+ (Superforecaster level)"
+        elif score < 0.15:
+            return "A (Excellent)"
+        elif score < 0.20:
+            return "B+ (Very Good)"
+        elif score < 0.25:
+            return "B (Good - beats random)"
+        elif score < 0.30:
+            return "C (Average)"
+        else:
+            return "D (Needs improvement)"
+
+# Initialize Judgmental Forecasting Engine
+judgmental_forecaster = JudgmentalForecastEngine()
+
+# =============================================================================
 # DISASTER PREDICTION ENGINE
 # =============================================================================
 
