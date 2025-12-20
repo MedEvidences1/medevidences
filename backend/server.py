@@ -1742,7 +1742,7 @@ class LiveOSINTPipeline:
 live_osint_pipeline = LiveOSINTPipeline()
 
 # =============================================================================
-# MULTI-AGENT FORECASTING ARCHITECTURE (Mantic-Style)
+# MULTI-AGENT FORECASTING ARCHITECTURE
 # =============================================================================
 
 class ForecastingAgent:
@@ -2072,7 +2072,7 @@ class CalibrationAgent(ForecastingAgent):
 
 class MultiAgentForecaster:
     """
-    Multi-Agent Forecasting System - Mantic-style architecture.
+    Multi-Agent Forecasting System - Advanced multi-agent architecture.
     Coordinates multiple specialized agents to produce forecasts.
     """
     
@@ -2524,7 +2524,7 @@ VEDIC_CHANNELS = {
 # MANTIC-STYLE PREDICTION CATEGORIES (Full Scope)
 # =============================================================================
 
-# Full prediction categories covering all domains like Mantic.com
+# Full prediction categories covering all domains
 PREDICTION_CATEGORIES = {
     # BUSINESS & FINANCE
     "business": {
