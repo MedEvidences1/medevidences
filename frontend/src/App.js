@@ -2872,7 +2872,7 @@ const Chat = ({ getHeaders, user, setShowAuth }) => {
     "What's the IPO market outlook?"
   ]);
   const [context, setContext] = useState(null);
-  const scrollRef = React.useRef(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     if (user) {
