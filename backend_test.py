@@ -83,26 +83,28 @@ class PlutusAstrologyTester:
             200
         )
         
-        if success and isinstance(response, list):
-            prediction_count = len(response)
-            self.log(f"✅ Found {prediction_count} curated predictions")
+        if success and isinstance(response, dict):
+            predictions = response.get('predictions', [])
+            total = response.get('total', 0)
+            prediction_count = len(predictions)
+            self.log(f"✅ Found {prediction_count} curated predictions (total: {total})")
             
             # Check if we have predictions from different channels
             channels = set()
-            for pred in response:
+            for pred in predictions:
                 if 'channel' in pred:
                     channels.add(pred['channel'])
             
-            self.log(f"✅ Predictions from {len(channels)} channels: {', '.join(channels)}")
+            self.log(f"✅ Predictions from {len(channels)} channels: {', '.join(list(channels)[:3])}")
             
-            if prediction_count >= 23:
-                self.log(f"✅ Meets requirement: {prediction_count} >= 23 predictions")
+            if total >= 23:
+                self.log(f"✅ Meets requirement: {total} >= 23 predictions")
                 return True
             else:
-                self.log(f"⚠️  Warning: Only {prediction_count} predictions, expected 23+")
+                self.log(f"⚠️  Warning: Only {total} predictions, expected 23+")
                 return True  # Still pass as it's working
         else:
-            self.log(f"❌ Invalid response format or empty predictions")
+            self.log(f"❌ Invalid response format: {type(response)}")
             return False
 
     def test_load_curated(self):
