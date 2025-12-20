@@ -1871,14 +1871,16 @@ const MainApp = () => {
         return <Astrology getHeaders={getHeaders} user={user} />;
       case "tabular":
         return <TabularPredictions />;
+      case "holographic":
+        return <HolographicVisualization getHeaders={getHeaders} />;
       case "accuracy":
         return <AccuracyDashboard getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "my-dashboards":
         return <CustomDashboards getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
+      case "admin":
+        return <EnterpriseAdmin getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "osint":
         return <OSINTSearch />;
-      case "grid":
-        return <RiskGrid />;
       case "chat":
         return <Chat getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       default:
