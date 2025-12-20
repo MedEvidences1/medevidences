@@ -80,17 +80,13 @@ class PlutusAPITester:
             print(f"   Error: {error_msg}")
             self.log_test(name, False, {}, error_msg)
             return False, {}
-            else:
-                self.log(f"❌ {name} - Expected {expected_status}, got {response.status_code}")
-                self.log(f"   Response: {response.text[:200]}")
-                return False, {}
-
-        except Exception as e:
-            self.log(f"❌ {name} - Error: {str(e)}")
-            return False, {}
 
     def test_admin_login(self):
         """Test admin login and get token"""
+        print("\n" + "="*60)
+        print("TESTING ADMIN AUTHENTICATION")
+        print("="*60)
+        
         success, response = self.run_test(
             "Admin Login",
             "POST",
@@ -98,199 +94,322 @@ class PlutusAPITester:
             200,
             data={"email": self.admin_email, "password": self.admin_password}
         )
-        if success and isinstance(response, dict) and 'token' in response:
-            self.token = response['token']
-            self.log(f"✅ Admin login successful, token obtained")
+        
+        if success and 'token' in response:
+            self.admin_token = response['token']
+            print(f"   Admin token obtained: {self.admin_token[:20]}...")
             return True
-        else:
-            self.log(f"❌ Admin login failed - no token in response")
-            return False
+        return False
 
-    def test_curated_predictions(self):
-        """Test GET /api/astrology/curated - should return 23+ predictions grouped by channel"""
+    def get_admin_headers(self):
+        """Get headers with admin token"""
+        return {'Authorization': f'Bearer {self.admin_token}'} if self.admin_token else {}
+
+    def test_language_apis(self):
+        """Test multi-language support APIs"""
+        print("\n" + "="*60)
+        print("TESTING MULTI-LANGUAGE SUPPORT")
+        print("="*60)
+        
+        # Test GET /api/languages - should return 6 supported languages
         success, response = self.run_test(
-            "GET Curated Predictions",
-            "GET",
-            "astrology/curated",
+            "Get Supported Languages",
+            "GET", 
+            "languages",
             200
         )
         
-        if success and isinstance(response, dict):
-            predictions = response.get('predictions', [])
-            total = response.get('total', 0)
-            prediction_count = len(predictions)
-            self.log(f"✅ Found {prediction_count} curated predictions (total: {total})")
+        if success:
+            languages = response.get('languages', {})
+            expected_langs = ['en', 'es', 'fr', 'ar', 'id', 'sw']
+            found_langs = list(languages.keys())
             
-            # Check if we have predictions from different channels
-            channels = set()
-            for pred in predictions:
-                if 'channel' in pred:
-                    channels.add(pred['channel'])
-            
-            self.log(f"✅ Predictions from {len(channels)} channels: {', '.join(list(channels)[:3])}")
-            
-            if total >= 23:
-                self.log(f"✅ Meets requirement: {total} >= 23 predictions")
-                return True
+            if len(found_langs) == 6 and all(lang in found_langs for lang in expected_langs):
+                print(f"   ✅ All 6 languages found: {found_langs}")
             else:
-                self.log(f"⚠️  Warning: Only {total} predictions, expected 23+")
-                return True  # Still pass as it's working
-        else:
-            self.log(f"❌ Invalid response format: {type(response)}")
-            return False
-
-    def test_load_curated(self):
-        """Test POST /api/astrology/load-curated - should load predictions to MongoDB"""
-        success, response = self.run_test(
-            "POST Load Curated Predictions",
-            "POST",
-            "astrology/load-curated",
-            200
-        )
+                print(f"   ❌ Expected 6 languages {expected_langs}, got {found_langs}")
         
-        if success and isinstance(response, dict):
-            loaded = response.get('loaded', 0)
-            total = response.get('total_curated', 0)
-            self.log(f"✅ Load operation: {loaded} new predictions loaded, {total} total curated")
-            return True
-        else:
-            self.log(f"❌ Load curated failed")
-            return False
-
-    def test_imported_predictions(self):
-        """Test GET /api/astrology/imported-predictions - should return stored predictions"""
-        success, response = self.run_test(
-            "GET Imported Predictions",
-            "GET",
-            "astrology/imported-predictions",
-            200
-        )
-        
-        if success and isinstance(response, dict):
-            predictions = response.get('predictions', [])
-            count = len(predictions)
-            self.log(f"✅ Found {count} imported predictions in database")
+        # Test translations for each language
+        for lang in ['es', 'fr', 'ar', 'id', 'sw']:
+            success, response = self.run_test(
+                f"Get {lang.upper()} Translations",
+                "GET",
+                f"translations/{lang}",
+                200
+            )
             
-            # Check structure of first prediction
-            if predictions:
-                first_pred = predictions[0]
-                required_fields = ['id', 'title', 'channel', 'predictions']
-                missing_fields = [field for field in required_fields if field not in first_pred]
-                if not missing_fields:
-                    self.log(f"✅ Prediction structure valid")
+            if success:
+                translations = response.get('translations', {})
+                if len(translations) > 0:
+                    print(f"   ✅ {lang.upper()} has {len(translations)} translations")
                 else:
-                    self.log(f"⚠️  Missing fields in prediction: {missing_fields}")
-            
-            return True
-        else:
-            self.log(f"❌ Get imported predictions failed")
-            return False
+                    print(f"   ❌ {lang.upper()} has no translations")
 
-    def test_reconcile(self):
-        """Test POST /api/astrology/reconcile - should match predictions with USGS/NOAA disaster data"""
+    def test_owner_availability(self):
+        """Test owner availability API"""
+        print("\n" + "="*60)
+        print("TESTING OWNER AVAILABILITY")
+        print("="*60)
+        
         success, response = self.run_test(
-            "POST Reconcile Predictions",
-            "POST",
-            "astrology/reconcile",
+            "Get Owner Availability",
+            "GET",
+            "owner/availability",
             200
         )
         
-        if success and isinstance(response, dict):
-            matches = response.get('matches_found', 0)
-            processed = response.get('predictions_processed', 0)
-            self.log(f"✅ Reconciliation: {matches} matches found from {processed} predictions")
-            return True
-        else:
-            self.log(f"❌ Reconcile predictions failed")
-            return False
+        if success:
+            available_slots = response.get('available_slots', 0)
+            max_owners = response.get('max_owners', 0)
+            print(f"   Available slots: {available_slots}/{max_owners}")
+            
+            if max_owners == 3:
+                print(f"   ✅ Correct max owners limit: {max_owners}")
+            else:
+                print(f"   ❌ Expected max_owners=3, got {max_owners}")
 
-    def test_admin_add_prediction(self):
-        """Test POST /api/astrology/admin/add-prediction - admin endpoint to add new predictions"""
-        test_prediction = {
-            "astrologer": "Test Astrologer",
-            "channel": "Test Channel",
-            "prediction_type": "earthquake",
-            "title": "Test Earthquake Prediction 2025",
-            "context": "Test prediction about earthquake in 2025 based on planetary alignments and astrological calculations",
-            "year_predicted": "2025",
-            "confidence": "medium",
-            "source": "Test Source Video"
+    def test_admin_organization_apis(self):
+        """Test admin organization management APIs"""
+        print("\n" + "="*60)
+        print("TESTING ADMIN ORGANIZATION MANAGEMENT")
+        print("="*60)
+        
+        if not self.admin_token:
+            print("❌ No admin token available for organization tests")
+            return
+        
+        headers = self.get_admin_headers()
+        
+        # Test create enterprise organization
+        org_data = {
+            "name": "Test Enterprise Corp",
+            "description": "Test organization for API testing",
+            "max_employees": 10
         }
         
         success, response = self.run_test(
-            "POST Admin Add Prediction",
+            "Create Enterprise Organization",
             "POST",
-            "astrology/admin/add-prediction",
-            200,  # API returns 200, not 201
-            data=test_prediction
+            "admin/organization/create",
+            201,
+            data=org_data,
+            headers=headers
         )
         
-        if success and isinstance(response, dict):
-            pred_id = response.get('id')
-            self.log(f"✅ Admin add prediction successful, ID: {pred_id}")
-            return True
-        else:
-            self.log(f"❌ Admin add prediction failed")
-            return False
+        org_id = None
+        if success:
+            org_id = response.get('organization', {}).get('id')
+            print(f"   Created organization ID: {org_id}")
+        
+        # Test get organization employees (if org created)
+        if org_id:
+            success, response = self.run_test(
+                "Get Organization Employees",
+                "GET",
+                f"admin/organization/{org_id}/employees",
+                200,
+                headers=headers
+            )
+            
+            if success:
+                employees = response.get('employees', [])
+                max_employees = response.get('max_employees', 0)
+                print(f"   Employees: {len(employees)}/{max_employees}")
+                
+                if max_employees == 10:
+                    print(f"   ✅ Correct employee limit: {max_employees}")
+                else:
+                    print(f"   ❌ Expected max_employees=10, got {max_employees}")
 
-    def test_admin_get_predictions(self):
-        """Test GET /api/astrology/admin/predictions - admin endpoint to list all predictions"""
+    def test_admin_document_apis(self):
+        """Test admin document management APIs"""
+        print("\n" + "="*60)
+        print("TESTING ADMIN DOCUMENT MANAGEMENT")
+        print("="*60)
+        
+        if not self.admin_token:
+            print("❌ No admin token available for document tests")
+            return
+        
+        headers = self.get_admin_headers()
+        
+        # Test save document
+        doc_data = {
+            "title": "Test Document",
+            "content": "This is a test document for API testing",
+            "category": "general"
+        }
+        
         success, response = self.run_test(
-            "GET Admin Predictions List",
-            "GET",
-            "astrology/admin/predictions",
-            200
+            "Save Document",
+            "POST",
+            "admin/documents",
+            201,
+            data=doc_data,
+            headers=headers
         )
         
-        if success and isinstance(response, dict):
-            predictions = response.get('predictions', [])
-            count = len(predictions)
-            self.log(f"✅ Admin can access {count} predictions")
-            return True
-        else:
-            self.log(f"❌ Admin get predictions failed")
-            return False
+        # Test get documents
+        success, response = self.run_test(
+            "Get User Documents",
+            "GET",
+            "admin/documents",
+            200,
+            headers=headers
+        )
+        
+        if success:
+            documents = response.get('documents', [])
+            print(f"   Found {len(documents)} documents")
 
-    def run_all_tests(self):
-        """Run all astrology API tests"""
-        self.log("🚀 Starting Plutus Predict Astrology API Tests")
-        self.log(f"🌐 Testing against: {self.base_url}")
+    def test_admin_settings_apis(self):
+        """Test admin settings APIs"""
+        print("\n" + "="*60)
+        print("TESTING ADMIN SETTINGS")
+        print("="*60)
         
-        # Test admin login first
-        if not self.test_admin_login():
-            self.log("❌ Cannot proceed without admin authentication")
-            return False
+        if not self.admin_token:
+            print("❌ No admin token available for settings tests")
+            return
         
-        # Test all astrology endpoints
-        tests = [
-            self.test_curated_predictions,
-            self.test_load_curated,
-            self.test_imported_predictions,
-            self.test_reconcile,
-            self.test_admin_add_prediction,
-            self.test_admin_get_predictions,
+        headers = self.get_admin_headers()
+        
+        # Test get email settings
+        success, response = self.run_test(
+            "Get Email Settings",
+            "GET",
+            "admin/email-settings",
+            200,
+            headers=headers
+        )
+        
+        # Test get payment history
+        success, response = self.run_test(
+            "Get Payment History",
+            "GET",
+            "admin/payments/history",
+            200,
+            headers=headers
+        )
+
+    def test_chat_apis(self):
+        """Test conversational AI chat APIs"""
+        print("\n" + "="*60)
+        print("TESTING CONVERSATIONAL AI CHAT")
+        print("="*60)
+        
+        if not self.admin_token:
+            print("❌ No admin token available for chat tests")
+            return
+        
+        headers = self.get_admin_headers()
+        
+        # Test basic chat
+        chat_data = {
+            "message": "What is Plutus Predict and how does it work?"
+        }
+        
+        success, response = self.run_test(
+            "Basic AI Chat",
+            "POST",
+            "chat",
+            200,
+            data=chat_data,
+            headers=headers
+        )
+        
+        if success:
+            ai_response = response.get('response', '')
+            if len(ai_response) > 0:
+                print(f"   ✅ AI responded with {len(ai_response)} characters")
+                print(f"   Response preview: {ai_response[:100]}...")
+            else:
+                print(f"   ❌ Empty AI response")
+        
+        # Test interactive chat with context
+        interactive_data = {
+            "message": "Tell me about disaster prediction capabilities",
+            "context": "investment analysis"
+        }
+        
+        success, response = self.run_test(
+            "Interactive Context-Aware Chat",
+            "POST",
+            "chat/interactive",
+            200,
+            data=interactive_data,
+            headers=headers
+        )
+        
+        if success:
+            ai_response = response.get('response', '')
+            if len(ai_response) > 0:
+                print(f"   ✅ Interactive AI responded with {len(ai_response)} characters")
+                print(f"   Response preview: {ai_response[:100]}...")
+            else:
+                print(f"   ❌ Empty interactive AI response")
+
+    def test_core_functionality(self):
+        """Test core forecasting functionality"""
+        print("\n" + "="*60)
+        print("TESTING CORE FUNCTIONALITY")
+        print("="*60)
+        
+        # Test basic endpoints without auth
+        endpoints_to_test = [
+            ("Get Stats", "GET", "stats", 200),
+            ("Get Languages", "GET", "languages", 200),
+            ("Get Disasters Summary", "GET", "disasters/summary", 200),
+            ("Get Earthquakes", "GET", "disasters/earthquakes?limit=5", 200),
         ]
         
-        for test in tests:
-            try:
-                test()
-            except Exception as e:
-                self.log(f"❌ Test {test.__name__} crashed: {str(e)}")
+        for name, method, endpoint, expected_status in endpoints_to_test:
+            self.run_test(name, method, endpoint, expected_status)
+
+    def run_all_tests(self):
+        """Run comprehensive test suite"""
+        print("🚀 Starting Plutus Predict API Testing")
+        print(f"Backend URL: {self.base_url}")
+        print(f"API URL: {self.api_url}")
+        
+        start_time = time.time()
+        
+        # Test core functionality first
+        self.test_core_functionality()
+        
+        # Test admin authentication
+        if self.test_admin_login():
+            # Test all admin features
+            self.test_owner_availability()
+            self.test_admin_organization_apis()
+            self.test_admin_document_apis()
+            self.test_admin_settings_apis()
+            self.test_chat_apis()
+        
+        # Test multi-language support
+        self.test_language_apis()
+        
+        end_time = time.time()
         
         # Print final results
-        self.log(f"\n📊 Test Results: {self.tests_passed}/{self.tests_run} tests passed")
-        success_rate = (self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0
-        self.log(f"📈 Success Rate: {success_rate:.1f}%")
+        print("\n" + "="*60)
+        print("FINAL TEST RESULTS")
+        print("="*60)
+        print(f"Tests Run: {self.tests_run}")
+        print(f"Tests Passed: {self.tests_passed}")
+        print(f"Tests Failed: {len(self.failed_tests)}")
+        print(f"Success Rate: {(self.tests_passed/self.tests_run*100):.1f}%")
+        print(f"Total Time: {end_time - start_time:.2f} seconds")
         
-        if success_rate >= 85:
-            self.log("🎉 Backend APIs are working well!")
-            return True
-        else:
-            self.log("⚠️  Some backend issues need attention")
-            return False
+        if self.failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for i, test in enumerate(self.failed_tests, 1):
+                print(f"{i}. {test['test']}: {test['error']}")
+        
+        return self.tests_passed == self.tests_run
 
 def main():
-    tester = PlutusAstrologyTester()
+    tester = PlutusAPITester()
     success = tester.run_all_tests()
     return 0 if success else 1
 
