@@ -859,7 +859,7 @@ const Astrology = ({ getHeaders, user }) => {
   );
 };
 
-// Deep Forecast Component (Mantic-style)
+// Deep Forecast Component
 const DeepForecast = ({ getHeaders, user, setShowAuth }) => {
   const [topic, setTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(5);
@@ -888,7 +888,7 @@ const DeepForecast = ({ getHeaders, user, setShowAuth }) => {
       <Card className="terminal-card">
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#FFD700]" />MANTIC-STYLE_DEEP_FORECAST
+            <Sparkles className="w-5 h-5 text-[#FFD700]" />DEEP_FORECAST_ENGINE
           </CardTitle>
           <CardDescription className="text-[#888]">Generate comprehensive AI forecast reports with multiple related questions and executive summary</CardDescription>
         </CardHeader>
@@ -949,7 +949,7 @@ const DeepForecast = ({ getHeaders, user, setShowAuth }) => {
   );
 };
 
-// Tabular Predictions Component (Mantic-style)
+// Tabular Predictions Component
 const TabularPredictions = () => {
   const [tables, setTables] = useState(null);
   const [activeTable, setActiveTable] = useState("terror_attacks");
