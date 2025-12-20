@@ -4226,6 +4226,11 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
               {activeSection === "payments" && "Payment history and invoices"}
               {activeSection === "organizations" && "Manage platform organizations"}
               {activeSection === "analytics" && "Prediction and usage analytics"}
+              {activeSection === "usage" && "Monitor your usage and plan limits"}
+              {activeSection === "white-label" && "Customize branding for your organization"}
+              {activeSection === "support" && "View and manage your support tickets"}
+              {activeSection === "all-tickets" && "Manage all customer support tickets"}
+              {activeSection === "white-label-admin" && "Manage white-label requests and activations"}
             </p>
           </div>
           <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">
