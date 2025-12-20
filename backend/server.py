@@ -5988,6 +5988,49 @@ async def get_live_news(category: str = "world"):
     articles = await live_osint_pipeline.fetch_rss_news(category)
     return {"category": category, "articles": articles, "count": len(articles)}
 
+@api_router.get("/osint/live-stream", tags=["Live OSINT"])
+async def get_combined_live_stream():
+    """Get combined live stream data from all OSINT sources"""
+    try:
+        # Fetch from all sources
+        gdelt_data = list(live_osint_pipeline.data_streams.get("gdelt", []))[-50:]
+        earthquakes_data = list(live_osint_pipeline.data_streams.get("earthquakes", []))[-50:]
+        weather_data = list(live_osint_pipeline.data_streams.get("weather_alerts", []))[-50:]
+        news_data = list(live_osint_pipeline.data_streams.get("news", []))[-50:]
+        financial_data = list(live_osint_pipeline.data_streams.get("financial", []))[-50:]
+        
+        # If no cached data, fetch fresh
+        if not gdelt_data:
+            gdelt_data = await live_osint_pipeline.fetch_gdelt_events(50)
+        if not earthquakes_data:
+            earthquakes_data = await live_osint_pipeline.fetch_usgs_earthquakes_live(2.5)
+        if not weather_data:
+            weather_data = await live_osint_pipeline.fetch_noaa_alerts()
+        
+        return {
+            "streams": {
+                "gdelt": gdelt_data,
+                "earthquakes": earthquakes_data,
+                "weather_alerts": weather_data,
+                "news": news_data,
+                "financial": financial_data
+            },
+            "stats": {
+                "total_events_processed": live_osint_pipeline.stats.get("total_events_processed", 0),
+                "sources_active": len([s for s in live_osint_pipeline.data_streams.keys() if live_osint_pipeline.data_streams[s]]),
+                "last_fetch": datetime.now(timezone.utc).isoformat(),
+                "uptime_start": live_osint_pipeline.stats.get("uptime_start")
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Live stream error: {e}")
+        return {
+            "streams": {},
+            "stats": {"total_events_processed": 0, "sources_active": 0},
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
 # =============================================================================
 # API ENDPOINTS - MULTI-AGENT FORECASTING
 # =============================================================================
