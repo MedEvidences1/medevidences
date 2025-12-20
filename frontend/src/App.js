@@ -188,6 +188,7 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout, langua
     { id: "holographic", label: "3D_VISUAL", icon: Globe },
     { id: "accuracy", label: "ACCURACY", icon: Target },
     { id: "my-dashboards", label: "MY_DASHBOARDS", icon: Layers },
+    { id: "pricing", label: "PRICING", icon: CreditCard },
     { id: "admin", label: "ADMIN", icon: Shield, adminOnly: true },
     { id: "osint", label: "OSINT", icon: Search },
     { id: "chat", label: "CHAT", icon: MessageSquare },
