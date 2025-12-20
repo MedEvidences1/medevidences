@@ -1,22 +1,42 @@
 #!/usr/bin/env python3
+"""
+Comprehensive Backend API Testing for Plutus Predict
+Testing all features: Admin Panels, Conversational AI Chat, Multi-language Support
+"""
 
 import requests
 import sys
 import json
 from datetime import datetime
+import time
 
-class PlutusAstrologyTester:
+class PlutusAPITester:
     def __init__(self, base_url="https://disaster-forecast.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
+        self.admin_token = None
         self.tests_run = 0
         self.tests_passed = 0
+        self.failed_tests = []
+        
+        # Test credentials from review request
         self.admin_email = "admin@plutuspredict.com"
         self.admin_password = "admin123"
 
-    def log(self, message):
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
+    def log_test(self, name, success, response_data=None, error=None):
+        """Log test results"""
+        self.tests_run += 1
+        if success:
+            self.tests_passed += 1
+            print(f"✅ {name}")
+        else:
+            print(f"❌ {name} - {error}")
+            self.failed_tests.append({
+                "test": name,
+                "error": error,
+                "response": response_data
+            })
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
@@ -24,11 +44,9 @@ class PlutusAstrologyTester:
         test_headers = {'Content-Type': 'application/json'}
         if headers:
             test_headers.update(headers)
-        if self.token:
-            test_headers['Authorization'] = f'Bearer {self.token}'
 
-        self.tests_run += 1
-        self.log(f"🔍 Testing {name}...")
+        print(f"\n🔍 Testing {name}...")
+        print(f"   URL: {url}")
         
         try:
             if method == 'GET':
@@ -40,14 +58,28 @@ class PlutusAstrologyTester:
             elif method == 'DELETE':
                 response = requests.delete(url, headers=test_headers, timeout=30)
 
+            print(f"   Status: {response.status_code}")
+            
             success = response.status_code == expected_status
-            if success:
-                self.tests_passed += 1
-                self.log(f"✅ {name} - Status: {response.status_code}")
-                try:
-                    return True, response.json()
-                except:
-                    return True, response.text
+            response_data = {}
+            
+            try:
+                response_data = response.json()
+                if success:
+                    print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
+            except:
+                response_data = {"text": response.text[:200]}
+
+            self.log_test(name, success, response_data, 
+                         f"Expected {expected_status}, got {response.status_code}")
+            
+            return success, response_data
+
+        except Exception as e:
+            error_msg = f"Request failed: {str(e)}"
+            print(f"   Error: {error_msg}")
+            self.log_test(name, False, {}, error_msg)
+            return False, {}
             else:
                 self.log(f"❌ {name} - Expected {expected_status}, got {response.status_code}")
                 self.log(f"   Response: {response.text[:200]}")
