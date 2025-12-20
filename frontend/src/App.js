@@ -3136,8 +3136,10 @@ const CompetitorComparison = () => {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Market Summary */}
+      {activeTab !== "mantic" && (
       <Card className="terminal-card bg-gradient-to-r from-[#0A0A0A] to-[#1A1A1A]">
         <CardContent className="p-6">
           <h3 className="text-lg font-bold text-[#FFD700] mb-4">📊 Market Summary</h3>
