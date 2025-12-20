@@ -1803,14 +1803,15 @@ Provide a structured research brief with:
 4. Data gaps"""
 
         try:
-            response = await self.llm.send_async(
+            llm = self.get_llm(f"research-{uuid.uuid4()}", "You are a research analyst for forecasting.")
+            response = await llm.send_async(
                 message=UserMessage(content=research_prompt),
                 model="gpt-4o",
                 max_tokens=800
             )
             research_output = response.content
-        except:
-            research_output = "Research synthesis unavailable. Using base data."
+        except Exception as e:
+            research_output = f"Research synthesis unavailable. Using base data. Error: {str(e)[:100]}"
         
         return {
             "agent": self.name,
