@@ -5200,6 +5200,557 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
                 </Card>
               </div>
             )}
+
+            {/* USAGE & QUOTAS SECTION */}
+            {activeSection === "usage" && (
+              <div className="space-y-6">
+                {usageData ? (
+                  <>
+                    <Card className="terminal-card border-[#00E5FF]/30">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-sm text-[#888]">Current Plan</div>
+                            <div className="text-2xl font-bold text-[#00E5FF] uppercase">{usageData.plan}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-[#888]">Billing Period</div>
+                            <div className="text-xs text-[#666]">
+                              {new Date(usageData.billing_period?.start).toLocaleDateString()} - {new Date(usageData.billing_period?.end).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {usageData.quotas?.map((quota, i) => (
+                        <Card key={i} className={`terminal-card ${quota.status === "exceeded" ? "border-[#FF4444]" : quota.status === "warning" ? "border-[#FFD700]" : ""}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm text-[#888]">{quota.name}</span>
+                              <Badge className={`text-xs ${
+                                quota.status === "unlimited" ? "bg-[#00FF94]/20 text-[#00FF94]" :
+                                quota.status === "exceeded" ? "bg-[#FF4444]/20 text-[#FF4444]" :
+                                quota.status === "warning" ? "bg-[#FFD700]/20 text-[#FFD700]" :
+                                "bg-[#00E5FF]/20 text-[#00E5FF]"
+                              }`}>
+                                {quota.status === "unlimited" ? "UNLIMITED" : `${quota.percentage}%`}
+                              </Badge>
+                            </div>
+                            <div className="text-2xl font-bold text-[#EDEDED]">
+                              {quota.used} <span className="text-sm text-[#888]">/ {quota.limit}</span>
+                            </div>
+                            {quota.status !== "unlimited" && (
+                              <Progress value={quota.percentage} className={`h-2 mt-2 ${quota.status === "exceeded" ? "[&>div]:bg-[#FF4444]" : quota.status === "warning" ? "[&>div]:bg-[#FFD700]" : ""}`} />
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <Card className="terminal-card">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Plan Comparison</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-[#888] mb-4">Need more capacity? Upgrade your plan.</p>
+                        <Button onClick={() => setActiveTab("pricing")} className="btn-primary">
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          View Pricing Plans
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-[#888]">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    Loading usage data...
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* WHITE-LABEL SECTION (Enterprise Customers) */}
+            {activeSection === "white-label" && (
+              <div className="space-y-6">
+                <Card className="terminal-card">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-[#FFD700]" />
+                        White-Label Status
+                      </CardTitle>
+                      <Badge className={`${
+                        whiteLabelStatus?.status === "active" ? "bg-[#00FF94]/20 text-[#00FF94]" :
+                        whiteLabelStatus?.status === "pending" ? "bg-[#FFD700]/20 text-[#FFD700]" :
+                        "bg-[#888]/20 text-[#888]"
+                      }`}>
+                        {whiteLabelStatus?.status?.toUpperCase() || "INACTIVE"}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {whiteLabelStatus?.status === "inactive" && (
+                      <div className="text-center py-6">
+                        <Sparkles className="w-12 h-12 text-[#FFD700] mx-auto mb-4" />
+                        <h3 className="text-lg font-bold mb-2">Customize Your Brand</h3>
+                        <p className="text-sm text-[#888] mb-4 max-w-md mx-auto">
+                          White-label allows you to rebrand Plutus Predict with your company logo, colors, and name. 
+                          Present it as your own forecasting platform to your team.
+                        </p>
+                        <div className="text-3xl font-bold text-[#FFD700] mb-4">${whiteLabelStatus?.price?.toLocaleString() || "10,000"}</div>
+                        <p className="text-xs text-[#888] mb-4">One-time activation fee</p>
+                        <Button onClick={requestWhiteLabel} className="bg-[#FFD700] text-black hover:bg-[#FFD700]/80">
+                          Request White-Label
+                        </Button>
+                      </div>
+                    )}
+                    {whiteLabelStatus?.status === "pending" && (
+                      <div className="text-center py-6">
+                        <AlertTriangle className="w-12 h-12 text-[#FFD700] mx-auto mb-4" />
+                        <h3 className="text-lg font-bold mb-2">Payment Pending</h3>
+                        <p className="text-sm text-[#888] mb-4">
+                          Your white-label request is pending. Please complete payment of ${whiteLabelStatus?.price?.toLocaleString()}.
+                          Contact support for payment details. Once payment is confirmed, our team will activate your white-label.
+                        </p>
+                        <p className="text-xs text-[#666]">
+                          Requested: {new Date(whiteLabelStatus?.requested_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                    {whiteLabelStatus?.status === "active" && (
+                      <div className="space-y-6">
+                        <div className="p-3 bg-[#00FF94]/10 border border-[#00FF94]/30 rounded text-center">
+                          <Check className="w-5 h-5 text-[#00FF94] mx-auto mb-1" />
+                          <span className="text-sm text-[#00FF94]">White-Label Active</span>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-xs text-[#888] block mb-1">Company Name</label>
+                              <Input 
+                                value={whiteLabelSettings.company_name} 
+                                onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, company_name: e.target.value})}
+                                placeholder="Your Company Name"
+                                className="terminal-input"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-[#888] block mb-1">Logo URL</label>
+                              <Input 
+                                value={whiteLabelSettings.logo_url} 
+                                onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, logo_url: e.target.value})}
+                                placeholder="https://yourcompany.com/logo.png"
+                                className="terminal-input"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-xs text-[#888] block mb-1">Primary Color</label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  type="color"
+                                  value={whiteLabelSettings.primary_color} 
+                                  onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, primary_color: e.target.value})}
+                                  className="w-12 h-10 p-1 bg-transparent border-[#1F1F1F]"
+                                />
+                                <Input 
+                                  value={whiteLabelSettings.primary_color} 
+                                  onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, primary_color: e.target.value})}
+                                  className="terminal-input flex-1"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-[#888] block mb-1">Secondary Color</label>
+                              <div className="flex gap-2">
+                                <Input 
+                                  type="color"
+                                  value={whiteLabelSettings.secondary_color} 
+                                  onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, secondary_color: e.target.value})}
+                                  className="w-12 h-10 p-1 bg-transparent border-[#1F1F1F]"
+                                />
+                                <Input 
+                                  value={whiteLabelSettings.secondary_color} 
+                                  onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, secondary_color: e.target.value})}
+                                  className="terminal-input flex-1"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                          <span className="text-sm">Hide Plutus Predict Branding</span>
+                          <input 
+                            type="checkbox"
+                            checked={whiteLabelSettings.hide_plutus_branding}
+                            onChange={(e) => setWhiteLabelSettings({...whiteLabelSettings, hide_plutus_branding: e.target.checked})}
+                            className="w-4 h-4"
+                          />
+                        </div>
+                        
+                        <Button onClick={updateWhiteLabelSettings} className="btn-primary w-full">
+                          Save White-Label Settings
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* SUPPORT TICKETS SECTION */}
+            {activeSection === "support" && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-4">
+                    <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{myTickets.length} Total</Badge>
+                    <Badge className="bg-[#FFD700]/20 text-[#FFD700]">{myTickets.filter(t => t.status === "open").length} Open</Badge>
+                  </div>
+                  <Button onClick={() => setShowNewTicketModal(true)} className="btn-primary">
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Ticket
+                  </Button>
+                </div>
+
+                <div className="grid lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-1">
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm">My Tickets</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ScrollArea className="h-[400px]">
+                          <div className="space-y-2">
+                            {myTickets.length > 0 ? myTickets.map((ticket) => (
+                              <button
+                                key={ticket.id}
+                                onClick={() => loadTicketDetails(ticket.id)}
+                                className={`w-full text-left p-3 rounded border transition-all ${
+                                  selectedTicket?.id === ticket.id 
+                                    ? "border-[#00E5FF] bg-[#00E5FF]/10" 
+                                    : "border-[#1F1F1F] hover:border-[#333]"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-mono text-[#888]">#{ticket.id}</span>
+                                  <Badge className={`text-[10px] ${
+                                    ticket.status === "open" ? "bg-[#FFD700]/20 text-[#FFD700]" :
+                                    ticket.status === "resolved" ? "bg-[#00FF94]/20 text-[#00FF94]" :
+                                    ticket.status === "in_progress" ? "bg-[#00E5FF]/20 text-[#00E5FF]" :
+                                    "bg-[#888]/20 text-[#888]"
+                                  }`}>{ticket.status}</Badge>
+                                </div>
+                                <div className="text-sm text-[#EDEDED] line-clamp-1">{ticket.title}</div>
+                                <div className="text-xs text-[#666] mt-1">{new Date(ticket.updated_at).toLocaleDateString()}</div>
+                              </button>
+                            )) : (
+                              <div className="text-center py-8 text-[#888]">
+                                <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">No tickets yet</p>
+                              </div>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="lg:col-span-2">
+                    {selectedTicket ? (
+                      <Card className="terminal-card h-full">
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <CardTitle className="text-sm">#{selectedTicket.id} - {selectedTicket.title}</CardTitle>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="outline" className="text-xs">{selectedTicket.category}</Badge>
+                                <Badge className={`text-xs ${selectedTicket.priority === "critical" ? "bg-[#FF4444]/20 text-[#FF4444]" : selectedTicket.priority === "high" ? "bg-[#FFD700]/20 text-[#FFD700]" : ""}`}>
+                                  {selectedTicket.priority}
+                                </Badge>
+                              </div>
+                            </div>
+                            <Badge className={`${selectedTicket.status === "resolved" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FFD700]/20 text-[#FFD700]"}`}>
+                              {selectedTicket.status}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="flex flex-col h-[400px]">
+                          <ScrollArea className="flex-1 mb-4">
+                            <div className="space-y-3">
+                              {selectedTicket.messages?.map((msg, i) => (
+                                <div key={i} className={`p-3 rounded ${msg.sender === "customer" ? "bg-[#00E5FF]/10 border border-[#00E5FF]/30" : "bg-[#0A0A0A] border border-[#1F1F1F]"}`}>
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-medium" style={{ color: msg.sender === "support" ? "#00FF94" : "#00E5FF" }}>
+                                      {msg.sender === "support" ? "Support Team" : msg.sender_name || "You"}
+                                    </span>
+                                    <span className="text-xs text-[#666]">{new Date(msg.timestamp).toLocaleString()}</span>
+                                  </div>
+                                  <p className="text-sm text-[#EDEDED]">{msg.content}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                          <div className="flex gap-2">
+                            <Input
+                              value={ticketReply}
+                              onChange={(e) => setTicketReply(e.target.value)}
+                              placeholder="Type your reply..."
+                              className="terminal-input"
+                              onKeyDown={(e) => e.key === "Enter" && sendTicketReply()}
+                            />
+                            <Button onClick={sendTicketReply} className="btn-primary">
+                              <Send className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card className="terminal-card h-full flex items-center justify-center">
+                        <div className="text-center text-[#888]">
+                          <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p>Select a ticket to view details</p>
+                        </div>
+                      </Card>
+                    )}
+                  </div>
+                </div>
+
+                {/* New Ticket Modal */}
+                <Dialog open={showNewTicketModal} onOpenChange={setShowNewTicketModal}>
+                  <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F]">
+                    <DialogHeader>
+                      <DialogTitle>Create Support Ticket</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs text-[#888] block mb-1">Title</label>
+                        <Input
+                          value={newTicket.title}
+                          onChange={(e) => setNewTicket({...newTicket, title: e.target.value})}
+                          placeholder="Brief description of your issue"
+                          className="terminal-input"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-xs text-[#888] block mb-1">Category</label>
+                          <select
+                            value={newTicket.category}
+                            onChange={(e) => setNewTicket({...newTicket, category: e.target.value})}
+                            className="w-full p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded text-sm"
+                          >
+                            <option value="billing">Billing</option>
+                            <option value="technical">Technical</option>
+                            <option value="feature_request">Feature Request</option>
+                            <option value="bug_report">Bug Report</option>
+                            <option value="account">Account</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs text-[#888] block mb-1">Priority</label>
+                          <select
+                            value={newTicket.priority}
+                            onChange={(e) => setNewTicket({...newTicket, priority: e.target.value})}
+                            className="w-full p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded text-sm"
+                          >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-xs text-[#888] block mb-1">Description</label>
+                        <textarea
+                          value={newTicket.description}
+                          onChange={(e) => setNewTicket({...newTicket, description: e.target.value})}
+                          placeholder="Describe your issue in detail..."
+                          className="w-full p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded text-sm min-h-[100px]"
+                        />
+                      </div>
+                      <Button onClick={createTicket} className="btn-primary w-full">
+                        Create Ticket
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+
+            {/* ALL TICKETS SECTION (Owner Only) */}
+            {activeSection === "all-tickets" && isOwner && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {Object.entries(allTickets.stats?.by_status || {}).map(([status, count]) => (
+                    <Card key={status} className="terminal-card">
+                      <CardContent className="p-3 text-center">
+                        <div className="text-2xl font-bold text-[#00E5FF]">{count}</div>
+                        <div className="text-xs text-[#888] uppercase">{status.replace("_", " ")}</div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">All Support Tickets</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-[#1F1F1F]">
+                            <th className="text-left py-2 px-2 text-[#888]">ID</th>
+                            <th className="text-left py-2 px-2 text-[#888]">Title</th>
+                            <th className="text-left py-2 px-2 text-[#888]">Customer</th>
+                            <th className="text-left py-2 px-2 text-[#888]">Priority</th>
+                            <th className="text-left py-2 px-2 text-[#888]">Status</th>
+                            <th className="text-left py-2 px-2 text-[#888]">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allTickets.tickets?.map((ticket) => (
+                            <tr key={ticket.id} className="border-b border-[#1F1F1F] hover:bg-[#0A0A0A]">
+                              <td className="py-2 px-2 font-mono text-[#00E5FF]">#{ticket.id}</td>
+                              <td className="py-2 px-2">{ticket.title}</td>
+                              <td className="py-2 px-2 text-[#888]">{ticket.user_email}</td>
+                              <td className="py-2 px-2">
+                                <Badge className={`text-xs ${ticket.priority === "critical" ? "bg-[#FF4444]/20 text-[#FF4444]" : ticket.priority === "high" ? "bg-[#FFD700]/20 text-[#FFD700]" : "bg-[#888]/20 text-[#888]"}`}>
+                                  {ticket.priority}
+                                </Badge>
+                              </td>
+                              <td className="py-2 px-2">
+                                <select
+                                  value={ticket.status}
+                                  onChange={(e) => updateTicketStatus(ticket.id, e.target.value)}
+                                  className="bg-transparent border border-[#1F1F1F] rounded px-2 py-1 text-xs"
+                                >
+                                  <option value="open">Open</option>
+                                  <option value="in_progress">In Progress</option>
+                                  <option value="waiting_customer">Waiting Customer</option>
+                                  <option value="resolved">Resolved</option>
+                                  <option value="closed">Closed</option>
+                                </select>
+                              </td>
+                              <td className="py-2 px-2">
+                                <Button size="sm" variant="ghost" onClick={() => { loadTicketDetails(ticket.id); setActiveSection("support"); }}>
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* WHITE-LABEL ADMIN SECTION (Owner Only) */}
+            {activeSection === "white-label-admin" && isOwner && (
+              <div className="space-y-6">
+                <Card className="terminal-card">
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-[#FFD700]" />
+                      White-Label Pricing
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <label className="text-xs text-[#888] block mb-1">Current Price</label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl">$</span>
+                          <Input
+                            type="number"
+                            value={whiteLabelPrice}
+                            onChange={(e) => setWhiteLabelPrice(parseFloat(e.target.value) || 0)}
+                            className="terminal-input w-32"
+                          />
+                        </div>
+                      </div>
+                      <Button onClick={() => updateWhiteLabelPrice(whiteLabelPrice)} className="btn-primary mt-4">
+                        Update Price
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="terminal-card">
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-[#FFD700]" />
+                      Pending Requests ({whiteLabelRequests.pending?.length || 0})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {whiteLabelRequests.pending?.length > 0 ? (
+                      <div className="space-y-3">
+                        {whiteLabelRequests.pending.map((org) => (
+                          <div key={org.id} className="p-4 border border-[#FFD700]/30 rounded bg-[#FFD700]/5">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium">{org.name}</div>
+                                <div className="text-xs text-[#888]">Requested: {new Date(org.white_label?.requested_at).toLocaleDateString()}</div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Input placeholder="Payment Ref" className="terminal-input w-32" id={`pay-ref-${org.id}`} />
+                                <Button 
+                                  onClick={() => activateWhiteLabel(org.id, document.getElementById(`pay-ref-${org.id}`)?.value)}
+                                  className="bg-[#00FF94] text-black hover:bg-[#00FF94]/80"
+                                >
+                                  Activate
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-[#888]">No pending requests</div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="terminal-card">
+                  <CardHeader>
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Check className="w-5 h-5 text-[#00FF94]" />
+                      Active White-Labels ({whiteLabelRequests.active?.length || 0})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {whiteLabelRequests.active?.length > 0 ? (
+                      <div className="space-y-2">
+                        {whiteLabelRequests.active.map((org) => (
+                          <div key={org.id} className="p-3 border border-[#00FF94]/30 rounded flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{org.name}</div>
+                              <div className="text-xs text-[#888]">
+                                Activated: {new Date(org.white_label?.activated_at).toLocaleDateString()}
+                                {org.white_label?.settings?.company_name && ` • Branded as: ${org.white_label.settings.company_name}`}
+                              </div>
+                            </div>
+                            <Badge className="bg-[#00FF94]/20 text-[#00FF94]">ACTIVE</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-[#888]">No active white-labels</div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </>
         )}
       </div>
