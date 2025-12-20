@@ -2928,7 +2928,6 @@ const CompetitorComparison = () => {
           </div>
         </CardContent>
       </Card>
-      )}
     </div>
   );
 };
