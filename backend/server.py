@@ -4213,7 +4213,7 @@ class PortfolioRequest(BaseModel):
     holdings: List[PortfolioHolding] = []
 
 @api_router.get("/investment/summary", tags=["Investment Banking"])
-async def get_investment_executive_summary(user: dict = Depends(get_current_user)):
+async def get_investment_executive_summary(user: dict = Depends(get_optional_user)):
     """
     Executive Summary for Investment Bankers
     Includes: Market stance, risk environment, IPO window, M&A activity
@@ -4222,7 +4222,7 @@ async def get_investment_executive_summary(user: dict = Depends(get_current_user
     return summary
 
 @api_router.post("/investment/portfolio-risk", tags=["Investment Banking"])
-async def analyze_portfolio_risk(request: PortfolioRequest = None, user: dict = Depends(get_current_user)):
+async def analyze_portfolio_risk(request: PortfolioRequest = None, user: dict = Depends(get_optional_user)):
     """
     Comprehensive Portfolio Risk Analysis
     - Value at Risk (VaR) calculations
@@ -4238,7 +4238,7 @@ async def analyze_portfolio_risk(request: PortfolioRequest = None, user: dict = 
     return analysis
 
 @api_router.get("/investment/ma-predictions", tags=["Investment Banking"])
-async def get_ma_predictions(sector: str = None, region: str = "global", user: dict = Depends(get_current_user)):
+async def get_ma_predictions(sector: str = None, region: str = "global", user: dict = Depends(get_optional_user)):
     """
     M&A Deal Predictions with Probability Scores
     Filter by sector: technology, healthcare, financials, energy, consumer, etc.
@@ -4247,7 +4247,7 @@ async def get_ma_predictions(sector: str = None, region: str = "global", user: d
     return predictions
 
 @api_router.get("/investment/ipo-timing", tags=["Investment Banking"])
-async def get_ipo_timing(sector: str = None, user: dict = Depends(get_current_user)):
+async def get_ipo_timing(sector: str = None, user: dict = Depends(get_optional_user)):
     """
     IPO Market Timing & Upcoming IPO Predictions
     - Market window assessment
@@ -4258,7 +4258,7 @@ async def get_ipo_timing(sector: str = None, user: dict = Depends(get_current_us
     return analysis
 
 @api_router.get("/investment/sector-rotation", tags=["Investment Banking"])
-async def get_sector_rotation(user: dict = Depends(get_current_user)):
+async def get_sector_rotation(user: dict = Depends(get_optional_user)):
     """
     Sector Rotation Signals & Recommendations
     - Economic cycle phase
@@ -4269,7 +4269,7 @@ async def get_sector_rotation(user: dict = Depends(get_current_user)):
     return analysis
 
 @api_router.get("/investment/dashboard", tags=["Investment Banking"])
-async def get_investment_dashboard(user: dict = Depends(get_current_user)):
+async def get_investment_dashboard(user: dict = Depends(get_optional_user)):
     """
     Complete Investment Banking Dashboard
     All metrics in one call for dashboard display
