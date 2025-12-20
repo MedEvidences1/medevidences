@@ -1599,7 +1599,7 @@ class VedicAstrologyEngine:
             {"video_id": "FW3aTsHxuWM", "title": "War Predictions and Global Conflict Analysis 2025", "channel": "Praajna Jyotisha (Abhigya Anand)", "published": "2024-11-15T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/FW3aTsHxuWM/mqdefault.jpg", "url": "https://youtube.com/watch?v=FW3aTsHxuWM"},
             # Other Vedic astrology channels
             {"video_id": "9Wfm6gy0LI8", "title": "Planetary Transits 2025 - Disaster Predictions | Vedic Astrology", "channel": "Astro Kapoor", "published": "2024-11-10T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/9Wfm6gy0LI8/mqdefault.jpg", "url": "https://youtube.com/watch?v=9Wfm6gy0LI8"},
-            {"video_id": "K8vHGJ4N3E0", "title": "Natural Disasters 2025 Based on Vedic Astrology", "channel": "Ashish Mehta Astro", "published": "2024-11-05T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/K8vHGJ4N3E0/mqdefault.jpg", "url": "https://youtube.com/watch?v=K8vHGJ4N3E0"},
+            {"video_id": "K8vHGJ4N3E0", "title": "Natural Disasters 2025 Based on Vedic Astrology", "channel": "Asishmehta astro", "published": "2024-11-05T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/K8vHGJ4N3E0/mqdefault.jpg", "url": "https://youtube.com/watch?v=K8vHGJ4N3E0"},
             {"video_id": "rP7JHt9I_4g", "title": "World Events Prediction 2025 - Economic & Political Forecast", "channel": "Vedic Astrology Insights", "published": "2024-10-28T00:00:00Z", "thumbnail": "https://i.ytimg.com/vi/rP7JHt9I_4g/mqdefault.jpg", "url": "https://youtube.com/watch?v=rP7JHt9I_4g"},
         ]
         
