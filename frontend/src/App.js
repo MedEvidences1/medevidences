@@ -633,11 +633,22 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
     }
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/forecast`, { question }, { headers: getHeaders() });
+      // Use Judgmental Forecasting Engine for enhanced predictions
+      const res = await axios.post(`${API}/judgmental-forecast`, { 
+        question,
+        include_factors: true
+      }, { headers: getHeaders() });
       setForecast(res.data);
-      toast.success("Forecast generated!");
+      toast.success("Judgmental forecast generated!");
     } catch (e) {
-      toast.error(e.response?.data?.detail || "Failed to generate forecast");
+      // Fallback to standard forecast
+      try {
+        const res = await axios.post(`${API}/forecast`, { question }, { headers: getHeaders() });
+        setForecast(res.data);
+        toast.success("Forecast generated!");
+      } catch (e2) {
+        toast.error(e2.response?.data?.detail || "Failed to generate forecast");
+      }
     }
     setLoading(false);
   };
