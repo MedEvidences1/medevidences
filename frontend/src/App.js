@@ -3032,6 +3032,7 @@ const MainApp = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showAuth, setShowAuth] = useState(false);
   const { user, token, login, register, logout, getHeaders, setUser } = useAuth();
+  const { language, setLanguage, t, isRTL } = useLanguage();
 
   // Check auth on load
   useEffect(() => {
@@ -3078,7 +3079,7 @@ const MainApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className={`min-h-screen bg-[#050505] ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       <Toaster position="top-right" theme="dark" />
       <Navigation
         activeTab={activeTab}
@@ -3086,6 +3087,8 @@ const MainApp = () => {
         user={user}
         setShowAuth={setShowAuth}
         logout={logout}
+        language={language}
+        setLanguage={setLanguage}
       />
       <main className="max-w-7xl mx-auto px-4 py-6">
         {renderContent()}
