@@ -699,8 +699,11 @@ class VedicAstrologyEngine:
         
         return False
     
-    async def fetch_channel_videos(self, channel_key: str, limit: int = 15) -> List[Dict]:
-        """Fetch recent videos from a specific tracked channel using yt-dlp"""
+    async def fetch_channel_videos(self, channel_key: str, limit: int = 30) -> List[Dict]:
+        """Fetch recent videos from a specific tracked channel using yt-dlp
+        FILTERS: Only war, disaster, metals, geopolitical content
+        EXCLUDES: Personal zodiac, religious content
+        """
         if channel_key not in self.channels:
             return []
         
@@ -709,7 +712,8 @@ class VedicAstrologyEngine:
         channel_url = f"https://www.youtube.com/channel/{channel.get('channel_id')}/videos"
         
         try:
-            opts = {**self.ydl_opts, 'playlistend': limit}
+            # Fetch more videos to filter from
+            opts = {**self.ydl_opts, 'playlistend': limit * 2}
             
             with yt_dlp.YoutubeDL(opts) as ydl:
                 result = await asyncio.get_event_loop().run_in_executor(
@@ -717,20 +721,13 @@ class VedicAstrologyEngine:
                 )
                 
                 videos = []
-                for entry in result.get('entries', [])[:limit]:
-                    if entry:
+                for entry in result.get('entries', []):
+                    if entry and len(videos) < limit:
                         video_id = entry.get('id', '')
                         title = entry.get('title', '')
                         
-                        # Filter for prediction-related videos
-                        title_lower = title.lower()
-                        is_prediction_video = any(kw in title_lower for kw in [
-                            'prediction', '2025', '2026', '2027', 'earthquake', 'war', 
-                            'disaster', 'forecast', 'future', 'world', 'india', 'pakistan',
-                            'conflict', 'tsunami', 'flood', 'economic'
-                        ])
-                        
-                        if is_prediction_video or len(videos) < 5:  # Always include at least 5 videos
+                        # Use the strict filter - ONLY relevant content
+                        if self._is_relevant_video(title):
                             videos.append({
                                 "video_id": video_id,
                                 "title": title,
@@ -743,7 +740,7 @@ class VedicAstrologyEngine:
                                 "duration": entry.get('duration', 0)
                             })
                 
-                logger.info(f"Fetched {len(videos)} videos from {channel['name']}")
+                logger.info(f"Fetched {len(videos)} RELEVANT videos from {channel['name']} (filtered from {len(result.get('entries', []))})")
                 return videos
                     
         except Exception as e:
