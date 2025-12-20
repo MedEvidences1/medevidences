@@ -5931,6 +5931,220 @@ async def get_judgmental_forecast(forecast_id: str):
     return forecast
 
 # =============================================================================
+# API ENDPOINTS - LIVE OSINT PIPELINE
+# =============================================================================
+
+@api_router.get("/osint/live", tags=["Live OSINT"])
+async def get_live_osint_data():
+    """Get real-time aggregated OSINT data from all sources"""
+    data = await live_osint_pipeline.aggregate_all_sources()
+    return data
+
+@api_router.get("/osint/status", tags=["Live OSINT"])
+async def get_osint_pipeline_status():
+    """Get OSINT pipeline health and statistics"""
+    return live_osint_pipeline.get_pipeline_status()
+
+@api_router.get("/osint/stream/{stream_name}", tags=["Live OSINT"])
+async def get_osint_stream(stream_name: str, limit: int = 100):
+    """Get specific OSINT data stream"""
+    valid_streams = ["gdelt", "earthquakes", "weather_alerts", "news", "financial", "geopolitical"]
+    if stream_name not in valid_streams:
+        raise HTTPException(400, f"Invalid stream. Valid streams: {valid_streams}")
+    return {
+        "stream": stream_name,
+        "data": live_osint_pipeline.get_stream_data(stream_name, limit),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/osint/earthquakes/live", tags=["Live OSINT"])
+async def get_live_earthquakes(min_magnitude: float = 2.5):
+    """Get real-time earthquake data from USGS"""
+    earthquakes = await live_osint_pipeline.fetch_usgs_earthquakes_live(min_magnitude)
+    return {"earthquakes": earthquakes, "count": len(earthquakes)}
+
+@api_router.get("/osint/weather-alerts", tags=["Live OSINT"])
+async def get_live_weather_alerts():
+    """Get real-time severe weather alerts from NOAA"""
+    alerts = await live_osint_pipeline.fetch_noaa_alerts()
+    return {"alerts": alerts, "count": len(alerts)}
+
+@api_router.get("/osint/news/{category}", tags=["Live OSINT"])
+async def get_live_news(category: str = "world"):
+    """Get real-time news from RSS feeds"""
+    valid_categories = ["world", "business", "technology"]
+    if category not in valid_categories:
+        category = "world"
+    articles = await live_osint_pipeline.fetch_rss_news(category)
+    return {"category": category, "articles": articles, "count": len(articles)}
+
+# =============================================================================
+# API ENDPOINTS - MULTI-AGENT FORECASTING
+# =============================================================================
+
+class MultiAgentForecastRequest(BaseModel):
+    question: str
+    context: Optional[str] = ""
+
+@api_router.post("/forecast/multi-agent", tags=["Multi-Agent Forecasting"])
+async def create_multi_agent_forecast(request: MultiAgentForecastRequest, user: dict = Depends(get_current_user)):
+    """
+    Generate forecast using the Multi-Agent Architecture.
+    
+    Uses 5 specialized agents:
+    - Research Agent: Gathers OSINT and context
+    - Scenario Agent: Models possible outcomes
+    - Analysis Agent: Deep probability analysis
+    - Calibration Agent: Adjusts for historical accuracy
+    - Aggregation Agent: Synthesizes final forecast
+    """
+    forecast = await multi_agent_forecaster.forecast(request.question, request.context)
+    
+    # Store in database
+    doc = {
+        "id": forecast["forecast_id"],
+        "user_id": user["id"],
+        "type": "multi_agent",
+        **forecast,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.multi_agent_forecasts.insert_one(doc)
+    doc.pop("_id", None)
+    
+    return doc
+
+@api_router.get("/forecast/multi-agent/methodology", tags=["Multi-Agent Forecasting"])
+async def get_multi_agent_methodology():
+    """Get detailed methodology for multi-agent forecasting"""
+    return {
+        "system": "Plutus Multi-Agent Forecasting Architecture",
+        "version": multi_agent_forecaster.version,
+        "inspired_by": "Mantic.com multi-agent approach",
+        "agents": [
+            {
+                "name": "ResearchAgent",
+                "role": "Information gathering and synthesis",
+                "data_sources": ["GDELT", "USGS", "NOAA", "RSS News Feeds"],
+                "output": "Research brief with relevant facts and indicators"
+            },
+            {
+                "name": "ScenarioAgent", 
+                "role": "Scenario modeling",
+                "methodology": "Generates optimistic, pessimistic, and base case scenarios",
+                "output": "Three distinct scenarios with probabilities"
+            },
+            {
+                "name": "AnalysisAgent",
+                "role": "Probability analysis",
+                "methodology": "Bayesian reasoning with factor weighting",
+                "output": "Base probability with factor breakdown"
+            },
+            {
+                "name": "CalibrationAgent",
+                "role": "Accuracy calibration",
+                "methodology": "Adjusts for overconfidence and historical biases",
+                "output": "Calibration adjustment based on track record"
+            },
+            {
+                "name": "AggregationAgent",
+                "role": "Final synthesis",
+                "methodology": "Ensemble weighting of all agent outputs",
+                "output": "Final probability with comprehensive rationale"
+            }
+        ],
+        "differentiators": [
+            "Live OSINT integration (not simulated)",
+            "Bayesian calibration with historical accuracy tracking",
+            "Transparent agent contributions visible in output",
+            "Processing time tracked for optimization"
+        ]
+    }
+
+# =============================================================================
+# API ENDPOINTS - TOURNAMENT SYSTEM
+# =============================================================================
+
+class TournamentQuestionCreate(BaseModel):
+    question: str
+    category: str
+    resolution_date: str
+
+class TournamentForecastSubmit(BaseModel):
+    question_id: str
+    probability: float
+    rationale: Optional[str] = ""
+
+class TournamentResolve(BaseModel):
+    question_id: str
+    outcome: bool
+
+@api_router.post("/tournament/question", tags=["Tournament System"])
+async def create_tournament_question(request: TournamentQuestionCreate, user: dict = Depends(get_current_user)):
+    """Create a new tournament question for public forecasting"""
+    question = await tournament_system.create_tournament_question(
+        request.question,
+        request.category,
+        request.resolution_date,
+        user["id"]
+    )
+    return question
+
+@api_router.get("/tournament/questions", tags=["Tournament System"])
+async def list_tournament_questions(status: str = "all", limit: int = 50):
+    """List tournament questions"""
+    query = {}
+    if status == "open":
+        query["status"] = "open"
+    elif status == "resolved":
+        query["resolved"] = True
+    
+    questions = await db.tournament_questions.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    return {"questions": questions, "total": len(questions)}
+
+@api_router.post("/tournament/forecast", tags=["Tournament System"])
+async def submit_tournament_forecast(request: TournamentForecastSubmit, user: dict = Depends(get_current_user)):
+    """Submit a forecast for a tournament question"""
+    forecast = await tournament_system.submit_forecast(
+        request.question_id,
+        user["id"],
+        request.probability,
+        request.rationale
+    )
+    return forecast
+
+@api_router.post("/tournament/resolve", tags=["Tournament System"])
+async def resolve_tournament_question(request: TournamentResolve, user: dict = Depends(get_current_user)):
+    """Resolve a tournament question (admin only)"""
+    if user.get("role") not in ["admin", "super_admin"]:
+        raise HTTPException(403, "Admin access required to resolve questions")
+    
+    result = await tournament_system.resolve_question(request.question_id, request.outcome)
+    return result
+
+@api_router.get("/tournament/leaderboard", tags=["Tournament System"])
+async def get_tournament_leaderboard(limit: int = 50):
+    """Get the forecaster leaderboard based on Brier scores"""
+    leaderboard = await tournament_system.get_leaderboard(limit)
+    return {"leaderboard": leaderboard, "scoring": "brier_score (lower is better)"}
+
+@api_router.get("/tournament/track-record/{user_id}", tags=["Tournament System"])
+async def get_user_track_record(user_id: str):
+    """Get detailed track record for a specific user"""
+    record = await tournament_system.get_user_track_record(user_id)
+    return record
+
+@api_router.get("/tournament/my-track-record", tags=["Tournament System"])
+async def get_my_track_record(user: dict = Depends(get_current_user)):
+    """Get your own forecasting track record"""
+    record = await tournament_system.get_user_track_record(user["id"])
+    return record
+
+@api_router.get("/tournament/platform-accuracy", tags=["Tournament System"])
+async def get_platform_accuracy():
+    """Get overall platform accuracy statistics"""
+    return await tournament_system.get_platform_accuracy()
+
+# =============================================================================
 # API ENDPOINTS - ENTERPRISE ADMIN
 # =============================================================================
 
