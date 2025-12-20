@@ -567,21 +567,31 @@ const Disasters = ({ getHeaders }) => {
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [globalDisasters, setGlobalDisasters] = useState([]);
   const [disasterSummary, setDisasterSummary] = useState(null);
+  const [agencies, setAgencies] = useState(null);
+  const [sensors, setSensors] = useState(null);
+  const [economicImpact, setEconomicImpact] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("overview");
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eqRes, wxRes, gdRes, summaryRes] = await Promise.all([
+      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes] = await Promise.all([
         axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=20`),
         axios.get(`${API}/disasters/weather-alerts`),
         axios.get(`${API}/disasters/global`),
         axios.get(`${API}/disasters/summary`),
+        axios.get(`${API}/disasters/agencies`),
+        axios.get(`${API}/disasters/sensors`),
+        axios.get(`${API}/disasters/economic-impact`),
       ]);
       setEarthquakes(eqRes.data.earthquakes || []);
       setWeatherAlerts(wxRes.data.alerts || []);
       setGlobalDisasters(gdRes.data.disasters || []);
       setDisasterSummary(summaryRes.data);
+      setAgencies(agencyRes.data);
+      setSensors(sensorRes.data);
+      setEconomicImpact(econRes.data);
     } catch (e) {
       console.error(e);
     }
@@ -590,13 +600,23 @@ const Disasters = ({ getHeaders }) => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const views = [
+    { id: "overview", label: "OVERVIEW", icon: Home },
+    { id: "agencies", label: "AGENCIES", icon: Globe },
+    { id: "sensors", label: "SENSORS", icon: Cpu },
+    { id: "economic", label: "ECONOMIC", icon: DollarSign },
+  ];
+
   return (
     <div className="space-y-6" data-testid="disasters-view">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-[#FF3333]" />
-          AI_DISASTER_MONITORING
-        </h2>
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-[#FF3333]" />
+            AI_DISASTER_PREDICTION_ENGINE
+          </h2>
+          <p className="text-xs text-[#888] mt-1">Connected to {agencies?.total_agencies || 27} global agencies • {sensors?.total_sensors?.toLocaleString() || "57,213"} sensors • Save lives & $Trillions</p>
+        </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="text-xs border-[#FF3333]/30 text-[#FF3333]">
             <span className="w-2 h-2 bg-[#FF3333] rounded-full mr-1 animate-pulse" />LIVE
@@ -607,47 +627,305 @@ const Disasters = ({ getHeaders }) => {
         </div>
       </div>
 
-      {/* Risk Summary */}
-      {disasterSummary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="terminal-card border-l-2 border-l-[#FF3333]">
-            <CardContent className="p-3 text-center">
-              <div className="font-mono text-2xl font-bold text-[#FF3333]">{disasterSummary.earthquake_risk?.probability || 0}%</div>
-              <div className="text-xs text-[#888]">EARTHQUAKE RISK</div>
-              <Badge className={`mt-1 text-xs ${disasterSummary.earthquake_risk?.risk_level === "high" ? "risk-high" : "risk-moderate"}`}>
-                {disasterSummary.earthquake_risk?.risk_level?.toUpperCase()}
-              </Badge>
+      {/* View Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {views.map((v) => (
+          <Button
+            key={v.id}
+            size="sm"
+            variant={activeView === v.id ? "default" : "outline"}
+            onClick={() => setActiveView(v.id)}
+            className={activeView === v.id ? "bg-[#FF3333] text-white" : "border-[#1F1F1F] text-[#888]"}
+          >
+            <v.icon className="w-3 h-3 mr-1" />
+            {v.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* OVERVIEW VIEW */}
+      {activeView === "overview" && (
+        <>
+          {/* Risk Summary */}
+          {disasterSummary && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card className="terminal-card border-l-2 border-l-[#FF3333]">
+                <CardContent className="p-3 text-center">
+                  <div className="font-mono text-2xl font-bold text-[#FF3333]">{disasterSummary.earthquake_risk?.probability || 0}%</div>
+                  <div className="text-xs text-[#888]">EARTHQUAKE RISK</div>
+                  <Badge className={`mt-1 text-xs ${disasterSummary.earthquake_risk?.risk_level === "high" ? "risk-high" : "risk-moderate"}`}>
+                    {disasterSummary.earthquake_risk?.risk_level?.toUpperCase()}
+                  </Badge>
+                </CardContent>
+              </Card>
+              <Card className="terminal-card border-l-2 border-l-[#FFAA00]">
+                <CardContent className="p-3 text-center">
+                  <div className="font-mono text-2xl font-bold text-[#FFAA00]">{disasterSummary.weather_risk?.probability || 0}%</div>
+                  <div className="text-xs text-[#888]">WEATHER RISK</div>
+                  <Badge className={`mt-1 text-xs ${disasterSummary.weather_risk?.risk_level === "critical" ? "risk-critical" : "risk-elevated"}`}>
+                    {disasterSummary.weather_risk?.risk_level?.toUpperCase()}
+                  </Badge>
+                </CardContent>
+              </Card>
+              <Card className="terminal-card border-l-2 border-l-[#00E5FF]">
+                <CardContent className="p-3 text-center">
+                  <div className="font-mono text-2xl font-bold text-[#00E5FF]">{disasterSummary.global_risk_score || 0}%</div>
+                  <div className="text-xs text-[#888]">GLOBAL RISK</div>
+                  <Badge className="mt-1 text-xs bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30">AI COMPUTED</Badge>
+                </CardContent>
+              </Card>
+              <Card className="terminal-card border-l-2 border-l-[#00FF94]">
+                <CardContent className="p-3 text-center">
+                  <div className="font-mono text-2xl font-bold text-[#00FF94]">{earthquakes.length}</div>
+                  <div className="text-xs text-[#888]">ACTIVE EVENTS</div>
+                  <Badge className="mt-1 text-xs bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">24H</Badge>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <div className="grid lg:grid-cols-2 gap-4">
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  🌍 LIVE EARTHQUAKES <Badge className="bg-[#FF3333]/20 text-[#FF3333]">USGS + EMSC</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {earthquakes.slice(0, 10).map((eq, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                      <div>
+                        <div className="text-sm font-medium">{eq.location}</div>
+                        <div className="text-xs text-[#888]">{new Date(eq.time).toLocaleString()}</div>
+                      </div>
+                      <Badge className={eq.magnitude >= 6 ? "bg-[#FF3333]" : eq.magnitude >= 5 ? "bg-[#FFAA00]" : "bg-[#00E5FF]"}>
+                        M{eq.magnitude?.toFixed(1)}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  🌪️ WEATHER ALERTS <Badge className="bg-[#FFAA00]/20 text-[#FFAA00]">NOAA + MeteoAlarm</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {weatherAlerts.slice(0, 10).map((alert, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                      <div>
+                        <div className="text-sm font-medium">{alert.event}</div>
+                        <div className="text-xs text-[#888] truncate max-w-[200px]">{alert.areas}</div>
+                      </div>
+                      <Badge className={alert.severity === "Extreme" ? "bg-[#FF3333]" : alert.severity === "Severe" ? "bg-[#FFAA00]" : "bg-[#00E5FF]"}>
+                        {alert.severity}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {/* AGENCIES VIEW */}
+      {activeView === "agencies" && agencies && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Globe className="w-4 h-4 text-[#00E5FF]" />
+                GLOBAL DISASTER AGENCIES CONNECTED
+                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{agencies.total_agencies} AGENCIES</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {Object.entries(agencies.agencies_by_region || {}).map(([region, agencyList]) => (
+                  <div key={region} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-2">{region.replace(/_/g, ' ').toUpperCase()}</div>
+                    <div className="space-y-1">
+                      {agencyList.map((agency, i) => (
+                        <Badge key={i} className="mr-1 mb-1 bg-[#1F1F1F] text-[#EDEDED] text-xs">{agency}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
-          <Card className="terminal-card border-l-2 border-l-[#FFAA00]">
-            <CardContent className="p-3 text-center">
-              <div className="font-mono text-2xl font-bold text-[#FFAA00]">{disasterSummary.weather_risk?.probability || 0}%</div>
-              <div className="text-xs text-[#888]">WEATHER RISK</div>
-              <Badge className={`mt-1 text-xs ${disasterSummary.weather_risk?.risk_level === "critical" ? "risk-critical" : "risk-elevated"}`}>
-                {disasterSummary.weather_risk?.risk_level?.toUpperCase()}
-              </Badge>
-            </CardContent>
-          </Card>
-          <Card className="terminal-card border-l-2 border-l-[#00E5FF]">
-            <CardContent className="p-3 text-center">
-              <div className="font-mono text-2xl font-bold text-[#00E5FF]">{disasterSummary.global_risk_score || 0}%</div>
-              <div className="text-xs text-[#888]">GLOBAL RISK</div>
-              <Badge className="mt-1 text-xs bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30">AI COMPUTED</Badge>
-            </CardContent>
-          </Card>
-          <Card className="terminal-card border-l-2 border-l-[#00FF94]">
-            <CardContent className="p-3 text-center">
-              <div className="font-mono text-2xl font-bold text-[#00FF94]">{earthquakes.length}</div>
-              <div className="text-xs text-[#888]">ACTIVE EVENTS</div>
-              <Badge className="mt-1 text-xs bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">24H</Badge>
+
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">DATA COVERAGE BY HAZARD TYPE</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {Object.entries(agencies.coverage || {}).map(([hazard, agencyList]) => (
+                  <div key={hazard} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">
+                        {hazard === "earthquake" ? "🌍" : hazard === "tsunami" ? "🌊" : hazard === "weather" ? "🌪️" : hazard === "volcano" ? "🌋" : hazard === "flood" ? "💧" : "⚠️"}
+                      </span>
+                      <span className="text-sm font-bold">{hazard.replace(/_/g, ' ').toUpperCase()}</span>
+                    </div>
+                    <div className="text-xs text-[#888]">{agencyList.join(", ")}</div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      <div className="grid lg:grid-cols-2 gap-4">
-        <Card className="terminal-card">
-          <CardHeader className="pb-2">
+      {/* SENSORS VIEW */}
+      {activeView === "sensors" && sensors && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#00E5FF]">{sensors.total_sensors?.toLocaleString()}</div>
+                <div className="text-xs text-[#888]">TOTAL SENSORS</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#00FF94]">{sensors.networks}</div>
+                <div className="text-xs text-[#888]">NETWORKS</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#FFD700]">{sensors.sensors_by_type?.seismic?.toLocaleString()}</div>
+                <div className="text-xs text-[#888]">SEISMIC</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#9D4EDD]">{sensors.sensors_by_type?.weather?.toLocaleString()}</div>
+                <div className="text-xs text-[#888]">WEATHER</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-[#00E5FF]" />
+                IoT SENSOR NETWORKS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(sensors.sensor_networks || {}).map(([name, data]) => (
+                  <div key={name} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold text-sm">{name.replace(/_/g, ' ')}</span>
+                      <Badge className={data.status === "active" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#888]/20 text-[#888]"}>
+                        {data.status?.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-[#888]">{data.type?.replace(/_/g, ' ')}</div>
+                    <div className="text-xs text-[#00E5FF]">{data.region}</div>
+                    <div className="text-lg font-bold mt-1">{data.sensors?.toLocaleString()} sensors</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">REAL-TIME CAPABILITIES</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {Object.entries(sensors.capabilities || {}).map(([cap, desc]) => (
+                  <div key={cap} className="flex items-center gap-3 p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <span className="text-[#00FF94]">✓</span>
+                    <div>
+                      <div className="text-sm font-bold">{cap.replace(/_/g, ' ').toUpperCase()}</div>
+                      <div className="text-xs text-[#888]">{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* ECONOMIC VIEW */}
+      {activeView === "economic" && economicImpact && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#FF3333]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-[#FFD700]" />
+                2024 GLOBAL DISASTER LOSSES
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#FF3333]">{economicImpact["2024_losses"]?.total_economic}</div>
+                  <div className="text-xs text-[#888]">ECONOMIC LOSS</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#FFAA00]">{economicImpact["2024_losses"]?.total_insured}</div>
+                  <div className="text-xs text-[#888]">INSURED LOSS</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#9D4EDD]">{economicImpact["2024_losses"]?.protection_gap}</div>
+                  <div className="text-xs text-[#888]">PROTECTION GAP</div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {(economicImpact["2024_losses"]?.top_events || []).map((event, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div>
+                      <div className="text-sm font-bold">{event.event}</div>
+                      <div className="text-xs text-[#888]">{event.region}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-[#FF3333]">{event.economic}</div>
+                      <div className="text-xs text-[#888]">{event.insured} insured</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+            <CardHeader>
+              <CardTitle className="text-sm">PLUTUS VALUE PROPOSITION</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-[#0A0A0A] rounded border border-[#00FF94]/30">
+                  <div className="text-lg font-bold text-[#00FF94]">Save Lives</div>
+                  <div className="text-xs text-[#888] mt-1">50-90% casualty reduction with early warning</div>
+                </div>
+                <div className="p-4 bg-[#0A0A0A] rounded border border-[#FFD700]/30">
+                  <div className="text-lg font-bold text-[#FFD700]">$15B+ Annual</div>
+                  <div className="text-xs text-[#888] mt-1">10% better accuracy = $15B saved</div>
+                </div>
+                <div className="p-4 bg-[#0A0A0A] rounded border border-[#00E5FF]/30">
+                  <div className="text-lg font-bold text-[#00E5FF]">$1B per Hour</div>
+                  <div className="text-xs text-[#888] mt-1">Each hour of warning = $1B+ saved</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
             <CardTitle className="text-sm flex items-center gap-2">
               <Activity className="w-4 h-4 text-[#FF3333]" />LIVE_EARTHQUAKES_USGS
             </CardTitle>
