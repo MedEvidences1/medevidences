@@ -5071,7 +5071,7 @@ class TabularPredictionsEngine:
         }
     
     async def generate_all_tables(self) -> Dict:
-        """Generate all tabular predictions (Mantic-style full coverage)"""
+        """Generate all tabular predictions with full coverage"""
         terror = await self.generate_terror_attack_table()
         ceos = await self.generate_ceo_departures_table()
         geopolitical = await self.generate_geopolitical_events_table()
@@ -5084,7 +5084,7 @@ class TabularPredictionsEngine:
         
         return {
             "generated_at": datetime.now(timezone.utc).isoformat(),
-            "source": "Mantic-style AI Ensemble (GPT-4, Claude, Gemini)",
+            "source": "Plutus AI Ensemble (GPT-4, Claude, Gemini)",
             "osint_sources": "1M+ (GDELT, SEC, USGS, NOAA, arXiv, News APIs)",
             "tables": {
                 "business_tech": business,
