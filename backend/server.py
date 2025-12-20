@@ -622,21 +622,44 @@ PREDICTION_CATEGORIES = {
     }
 }
 
-# Keywords for astrology videos (still disaster/war focused for reconciliation)
+# Keywords for astrology videos - ONLY war, disasters, metals, geopolitical
 PREDICTION_KEYWORDS = {
-    "earthquake": ["earthquake", "seismic", "bhukamp", "tremor", "magnitude", "richter"],
-    "war": ["war", "conflict", "military", "invasion", "yuddh", "attack", "battle", "troops"],
-    "tsunami": ["tsunami", "flood", "cyclone", "hurricane", "storm", "typhoon"],
-    "pandemic": ["pandemic", "disease", "virus", "outbreak", "epidemic", "plague"],
+    "earthquake": ["earthquake", "seismic", "bhukamp", "tremor", "magnitude", "richter", "fault"],
+    "war": ["war", "conflict", "military", "invasion", "yuddh", "attack", "battle", "troops", "army", "missile", "strike"],
+    "tsunami": ["tsunami", "flood", "cyclone", "hurricane", "storm", "typhoon", "disaster"],
+    "pandemic": ["pandemic", "disease", "virus", "outbreak", "epidemic", "plague", "covid"],
     "volcanic": ["volcano", "eruption", "lava", "volcanic"],
-    "nuclear": ["nuclear", "atomic", "radiation", "missile"],
+    "nuclear": ["nuclear", "atomic", "radiation", "missile", "bomb"],
+    "metals": ["gold", "silver", "metal", "commodity", "precious", "bullion"],
+    "geopolitical": ["india pakistan", "china taiwan", "russia ukraine", "middle east", "iran israel", "nato", "world war"],
 }
 
-# Search terms for astrology videos
+# Keywords to INCLUDE in video titles (must have at least one)
+INCLUDE_VIDEO_KEYWORDS = [
+    "prediction", "forecast", "2025", "2026", "2027", "2028",
+    "war", "conflict", "earthquake", "disaster", "tsunami", "flood",
+    "gold", "silver", "metal", "economic", "crash", "recession",
+    "india", "pakistan", "china", "taiwan", "russia", "ukraine", "iran", "israel",
+    "world", "global", "nuclear", "military", "attack", "invasion"
+]
+
+# Keywords to EXCLUDE from video titles (personal/religious content)
+EXCLUDE_VIDEO_KEYWORDS = [
+    "zodiac", "horoscope", "aries", "taurus", "gemini", "cancer", "leo", "virgo", 
+    "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
+    "rashi", "rashifal", "monthly", "weekly", "daily horoscope",
+    "love", "marriage", "career", "job", "relationship", "compatibility",
+    "sai baba", "saibaba", "satya sai", "religious", "spiritual journey", "devotional",
+    "remedy", "remedies", "mantra", "puja", "worship", "temple",
+    "personal", "birth chart", "kundali", "kundli", "natal chart"
+]
+
+# Search terms for astrology videos - focused on disasters/war/metals
 DISASTER_SEARCH_TERMS = [
     "earthquake prediction", "war prediction", "disaster prediction",
     "tsunami prediction", "nuclear war", "world war", "conflict prediction",
-    "natural disaster", "catastrophe", "calamity prediction"
+    "gold price prediction", "silver prediction", "economic crash prediction",
+    "india pakistan war", "china taiwan conflict", "russia ukraine"
 ]
 
 class VedicAstrologyEngine:
@@ -647,7 +670,8 @@ class VedicAstrologyEngine:
     3. Ashish Mehta (Astro Granth)
     4. Preetika Rao (Podcasts with various astrologers)
     
-    Imports transcripts and extracts disaster/war predictions for 2025-2030
+    FILTERS OUT: Personal zodiac predictions, religious content
+    FOCUSES ON: War, disasters, metal prices, geopolitical events
     """
     def __init__(self):
         self.channels = VEDIC_CHANNELS
@@ -658,6 +682,22 @@ class VedicAstrologyEngine:
             'extract_flat': True,
             'skip_download': True,
         }
+    
+    def _is_relevant_video(self, title: str) -> bool:
+        """Check if video title is relevant (war/disaster/metals, NOT personal/religious)"""
+        title_lower = title.lower()
+        
+        # Check for EXCLUDE keywords first - reject if found
+        for exclude_kw in EXCLUDE_VIDEO_KEYWORDS:
+            if exclude_kw in title_lower:
+                return False
+        
+        # Check for INCLUDE keywords - must have at least one
+        for include_kw in INCLUDE_VIDEO_KEYWORDS:
+            if include_kw in title_lower:
+                return True
+        
+        return False
     
     async def fetch_channel_videos(self, channel_key: str, limit: int = 15) -> List[Dict]:
         """Fetch recent videos from a specific tracked channel using yt-dlp"""
