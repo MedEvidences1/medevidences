@@ -2363,6 +2363,221 @@ const InvestmentBankerSuite = () => {
   );
 };
 
+// Pricing & Subscription Component
+const Pricing = ({ user, setShowAuth, getHeaders }) => {
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  useEffect(() => {
+    axios.get(`${API}/payments/plans`).then(res => {
+      const planList = Object.entries(res.data.plans || {}).map(([key, plan]) => ({
+        id: key,
+        ...plan
+      }));
+      setPlans(planList);
+    }).catch(console.error);
+  }, []);
+
+  const handleSubscribe = async (planId) => {
+    if (!user) {
+      setShowAuth(true);
+      return;
+    }
+    
+    setLoading(true);
+    setSelectedPlan(planId);
+    
+    try {
+      const res = await axios.post(`${API}/payments/checkout`, {
+        plan: planId,
+        origin_url: window.location.origin
+      }, getHeaders());
+      
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (e) {
+      toast.error("Failed to start checkout");
+      console.error(e);
+    }
+    setLoading(false);
+    setSelectedPlan(null);
+  };
+
+  const planColors = {
+    basic: { primary: "#00E5FF", gradient: "from-[#00E5FF]/20 to-[#00E5FF]/5" },
+    professional: { primary: "#FFD700", gradient: "from-[#FFD700]/20 to-[#FFD700]/5" },
+    enterprise: { primary: "#00FF94", gradient: "from-[#00FF94]/20 to-[#00FF94]/5" }
+  };
+
+  return (
+    <div className="space-y-8" data-testid="pricing-view">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center gap-3">
+          <CreditCard className="w-8 h-8 text-[#00E5FF]" />
+          SUBSCRIPTION_PLANS
+        </h1>
+        <p className="text-[#888] max-w-2xl mx-auto">
+          Choose the plan that fits your forecasting needs. All plans include access to our AI ensemble engine.
+        </p>
+      </div>
+
+      {user?.plan && (
+        <Card className="terminal-card border-[#00FF94]/30">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Check className="w-5 h-5 text-[#00FF94]" />
+              <span className="text-sm">Current Plan: <strong className="text-[#00FF94] uppercase">{user.plan}</strong></span>
+            </div>
+            <Badge className="bg-[#00FF94]/20 text-[#00FF94]">ACTIVE</Badge>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {plans.map((plan) => {
+          const colors = planColors[plan.id] || planColors.basic;
+          const isCurrentPlan = user?.plan === plan.id;
+          
+          return (
+            <Card 
+              key={plan.id} 
+              className={`terminal-card relative overflow-hidden transition-all hover:scale-105 ${
+                isCurrentPlan ? 'border-[#00FF94]' : ''
+              }`}
+            >
+              {plan.id === "professional" && (
+                <div className="absolute top-0 right-0 bg-[#FFD700] text-black text-xs px-3 py-1 font-bold">
+                  POPULAR
+                </div>
+              )}
+              
+              <div className={`absolute inset-0 bg-gradient-to-b ${colors.gradient} pointer-events-none`} />
+              
+              <CardHeader className="relative z-10">
+                <CardTitle className="text-lg" style={{ color: colors.primary }}>
+                  {plan.name}
+                </CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold text-[#EDEDED]">${plan.price.toLocaleString()}</span>
+                  <span className="text-sm text-[#888]">/year</span>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="relative z-10 space-y-4">
+                <ul className="space-y-3">
+                  {plan.features?.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm">
+                      <Check className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: colors.primary }} />
+                      <span className="text-[#EDEDED]">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Button
+                  className={`w-full mt-4 ${isCurrentPlan ? 'bg-[#1F1F1F] text-[#888]' : ''}`}
+                  style={{ 
+                    backgroundColor: isCurrentPlan ? undefined : colors.primary,
+                    color: isCurrentPlan ? undefined : '#000'
+                  }}
+                  disabled={loading || isCurrentPlan}
+                  onClick={() => handleSubscribe(plan.id)}
+                  data-testid={`subscribe-${plan.id}`}
+                >
+                  {loading && selectedPlan === plan.id ? (
+                    <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                  ) : isCurrentPlan ? (
+                    "Current Plan"
+                  ) : (
+                    "Subscribe Now"
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Features Comparison */}
+      <Card className="terminal-card">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-[#00E5FF]" />
+            FEATURES_COMPARISON
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#1F1F1F]">
+                  <th className="text-left py-3 px-2 text-[#888]">Feature</th>
+                  <th className="text-center py-3 px-2 text-[#00E5FF]">Basic</th>
+                  <th className="text-center py-3 px-2 text-[#FFD700]">Professional</th>
+                  <th className="text-center py-3 px-2 text-[#00FF94]">Enterprise</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature: "Monthly Forecasts", basic: "100", pro: "Unlimited", enterprise: "Unlimited" },
+                  { feature: "OSINT Access", basic: "Basic", pro: "Full", enterprise: "Full + Custom" },
+                  { feature: "API Access", basic: "-", pro: "✓", enterprise: "✓" },
+                  { feature: "Support", basic: "Email", pro: "Priority", enterprise: "Dedicated" },
+                  { feature: "Disaster Alerts", basic: "Basic", pro: "Real-time", enterprise: "Custom" },
+                  { feature: "IB Suite", basic: "-", pro: "✓", enterprise: "✓" },
+                  { feature: "Multi-Agent Forecasts", basic: "-", pro: "✓", enterprise: "✓" },
+                  { feature: "Custom Integrations", basic: "-", pro: "-", enterprise: "✓" },
+                  { feature: "White-label", basic: "-", pro: "-", enterprise: "✓" },
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-[#1F1F1F]">
+                    <td className="py-3 px-2 text-[#EDEDED]">{row.feature}</td>
+                    <td className="text-center py-3 px-2">
+                      {row.basic === "✓" ? <Check className="w-4 h-4 text-[#00FF94] mx-auto" /> : 
+                       row.basic === "-" ? <X className="w-4 h-4 text-[#FF4444] mx-auto" /> : 
+                       <span className="text-[#888]">{row.basic}</span>}
+                    </td>
+                    <td className="text-center py-3 px-2">
+                      {row.pro === "✓" ? <Check className="w-4 h-4 text-[#00FF94] mx-auto" /> : 
+                       row.pro === "-" ? <X className="w-4 h-4 text-[#FF4444] mx-auto" /> : 
+                       <span className="text-[#FFD700]">{row.pro}</span>}
+                    </td>
+                    <td className="text-center py-3 px-2">
+                      {row.enterprise === "✓" ? <Check className="w-4 h-4 text-[#00FF94] mx-auto" /> : 
+                       row.enterprise === "-" ? <X className="w-4 h-4 text-[#FF4444] mx-auto" /> : 
+                       <span className="text-[#00FF94]">{row.enterprise}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* FAQ */}
+      <Card className="terminal-card">
+        <CardHeader>
+          <CardTitle className="text-sm">FREQUENTLY_ASKED</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 gap-4">
+          {[
+            { q: "Can I upgrade my plan?", a: "Yes, you can upgrade anytime. You'll be prorated for the remaining period." },
+            { q: "Is there a free trial?", a: "New users get 7 days of Professional features for free." },
+            { q: "What payment methods?", a: "We accept all major credit cards via Stripe secure checkout." },
+            { q: "Can I cancel anytime?", a: "Yes, cancel anytime. Access continues until the end of your billing period." },
+          ].map((faq, i) => (
+            <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] rounded">
+              <h4 className="text-sm font-medium text-[#00E5FF] mb-1">{faq.q}</h4>
+              <p className="text-xs text-[#888]">{faq.a}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 // OSINT Search Component
 const OSINTSearch = () => {
   const [query, setQuery] = useState("");
