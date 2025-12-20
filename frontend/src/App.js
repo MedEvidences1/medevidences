@@ -2578,16 +2578,37 @@ const Pricing = ({ user, setShowAuth, getHeaders }) => {
   );
 };
 
-// OSINT Search Component
+// OSINT Search Component with Live Pipeline
 const OSINTSearch = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
+  const [pipelineData, setPipelineData] = useState(null);
+  const [activeStream, setActiveStream] = useState("all");
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
   useEffect(() => {
     axios.get(`${API}/osint/stats`).then((res) => setStats(res.data)).catch(console.error);
+    loadPipelineData();
   }, []);
+
+  useEffect(() => {
+    let interval;
+    if (autoRefresh) {
+      interval = setInterval(loadPipelineData, 30000); // Refresh every 30s
+    }
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
+  const loadPipelineData = async () => {
+    try {
+      const res = await axios.get(`${API}/osint/live-stream`);
+      setPipelineData(res.data);
+    } catch (e) {
+      console.error("Pipeline data fetch failed", e);
+    }
+  };
 
   const search = async () => {
     if (!query) return;
@@ -2601,8 +2622,178 @@ const OSINTSearch = () => {
     setLoading(false);
   };
 
+  const streamCategories = [
+    { id: "all", label: "All Streams", icon: Globe, color: "#00E5FF" },
+    { id: "gdelt", label: "GDELT News", icon: FileText, color: "#FFD700" },
+    { id: "earthquakes", label: "Earthquakes", icon: Activity, color: "#FF4444" },
+    { id: "weather", label: "Weather", icon: Cloud, color: "#9D4EDD" },
+    { id: "financial", label: "Financial", icon: TrendingUp, color: "#00FF94" },
+  ];
+
+  const getStreamData = () => {
+    if (!pipelineData?.streams) return [];
+    if (activeStream === "all") {
+      return Object.values(pipelineData.streams).flat().slice(0, 20);
+    }
+    return pipelineData.streams[activeStream]?.slice(0, 20) || [];
+  };
+
   return (
     <div className="space-y-6" data-testid="osint-view">
+      {/* Pipeline Status Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Globe className="w-6 h-6 text-[#00E5FF]" />
+            LIVE_OSINT_PIPELINE
+          </h2>
+          <p className="text-sm text-[#888] mt-1">
+            Real-time intelligence from {stats?.total_sources?.toLocaleString() || "1,000,000+"} sources
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Badge className={`${autoRefresh ? 'bg-[#00FF94]/20 text-[#00FF94]' : 'bg-[#1F1F1F] text-[#888]'}`}>
+            <div className={`w-2 h-2 rounded-full mr-2 ${autoRefresh ? 'bg-[#00FF94] animate-pulse' : 'bg-[#888]'}`} />
+            {autoRefresh ? 'LIVE' : 'PAUSED'}
+          </Badge>
+          <Button 
+            size="sm" 
+            variant={autoRefresh ? "default" : "outline"}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+          >
+            {autoRefresh ? 'Pause' : 'Start'} Live Feed
+          </Button>
+          <Button size="sm" variant="outline" onClick={loadPipelineData}>
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Pipeline Stats */}
+      {pipelineData && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <Card className="terminal-card">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-[#00E5FF] font-mono">
+                {pipelineData.stats?.total_events_processed?.toLocaleString() || 0}
+              </div>
+              <div className="text-xs text-[#888]">Events Processed</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-[#FFD700] font-mono">
+                {pipelineData.stats?.sources_active || 6}
+              </div>
+              <div className="text-xs text-[#888]">Active Sources</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-[#00FF94] font-mono">
+                {pipelineData.streams?.gdelt?.length || 0}
+              </div>
+              <div className="text-xs text-[#888]">GDELT Articles</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-[#FF4444] font-mono">
+                {pipelineData.streams?.earthquakes?.length || 0}
+              </div>
+              <div className="text-xs text-[#888]">Seismic Events</div>
+            </CardContent>
+          </Card>
+          <Card className="terminal-card">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-[#9D4EDD] font-mono">
+                {pipelineData.streams?.weather_alerts?.length || 0}
+              </div>
+              <div className="text-xs text-[#888]">Weather Alerts</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Stream Selector */}
+      <div className="flex gap-2 flex-wrap">
+        {streamCategories.map((cat) => (
+          <Button
+            key={cat.id}
+            size="sm"
+            variant={activeStream === cat.id ? "default" : "outline"}
+            onClick={() => setActiveStream(cat.id)}
+            style={{ 
+              backgroundColor: activeStream === cat.id ? cat.color : undefined,
+              color: activeStream === cat.id ? '#000' : cat.color,
+              borderColor: cat.color
+            }}
+          >
+            <cat.icon className="w-4 h-4 mr-2" />
+            {cat.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Live Stream Feed */}
+      <Card className="terminal-card">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[#00E5FF]" />
+              LIVE_FEED
+            </CardTitle>
+            <span className="text-xs text-[#888]">
+              Last update: {pipelineData?.stats?.last_fetch ? new Date(pipelineData.stats.last_fetch).toLocaleTimeString() : 'N/A'}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-2">
+              {getStreamData().length > 0 ? getStreamData().map((item, i) => (
+                <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#333] transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                          {item.source || item.type || 'OSINT'}
+                        </Badge>
+                        {item.category && (
+                          <Badge className="text-[10px] px-1.5 py-0 bg-[#00E5FF]/20 text-[#00E5FF]">
+                            {item.category}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-[#EDEDED]">
+                        {item.title || item.place || item.headline || item.event || 'Event data'}
+                      </p>
+                      {item.magnitude && (
+                        <span className="text-lg font-bold text-[#FF4444]">M{item.magnitude}</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-[#666] whitespace-nowrap">
+                      {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : ''}
+                    </span>
+                  </div>
+                  {item.url && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00E5FF] hover:underline mt-1 inline-flex items-center gap-1">
+                      View Source <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
+              )) : (
+                <div className="text-center text-[#888] py-8">
+                  <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>No live data yet. Click "Start Live Feed" to begin.</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Search Section */}
       <Card className="terminal-card">
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">
@@ -2610,7 +2801,7 @@ const OSINTSearch = () => {
             OSINT_SEARCH
           </CardTitle>
           <CardDescription className="text-[#888]">
-            Search across {stats?.total_sources?.toLocaleString() || "1,000,000+"} open-source intelligence sources
+            Search across all aggregated intelligence sources
           </CardDescription>
         </CardHeader>
         <CardContent>
