@@ -129,12 +129,16 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
     { id: "disasters", label: "DISASTERS", icon: AlertTriangle },
     { id: "astrology", label: "ASTROLOGY", icon: Moon },
     { id: "tabular", label: "TABULAR", icon: BarChart3 },
+    { id: "holographic", label: "3D_VISUAL", icon: Globe },
     { id: "accuracy", label: "ACCURACY", icon: Target },
     { id: "my-dashboards", label: "MY_DASHBOARDS", icon: Layers },
+    { id: "admin", label: "ADMIN", icon: Shield, adminOnly: true },
     { id: "osint", label: "OSINT", icon: Search },
-    { id: "grid", label: "RISK_GRID", icon: Globe },
     { id: "chat", label: "CHAT", icon: MessageSquare },
   ];
+
+  const filteredTabs = tabs.filter(tab => !tab.adminOnly || (user?.role === "admin" || user?.role === "enterprise"));
+
 
   return (
     <header className="border-b border-[#1F1F1F] bg-[#050505] sticky top-0 z-50">
