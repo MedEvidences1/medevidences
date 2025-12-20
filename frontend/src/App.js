@@ -2846,10 +2846,8 @@ const CompetitorComparison = () => {
           </div>
         </CardContent>
       </Card>
-      )}
 
       {/* Key Differentiators */}
-      {activeTab !== "mantic" && (
       <div className="grid md:grid-cols-3 gap-4">
         <Card className="terminal-card border-[#00FF94]/30">
           <CardContent className="p-4">
