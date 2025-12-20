@@ -465,6 +465,141 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const [question, setQuestion] = useState("");
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Mantic.com style prediction categories
+  const predictionCategories = [
+    {
+      id: "economics",
+      label: "ECONOMICS",
+      icon: "📈",
+      color: "#00FF94",
+      examples: [
+        "Will US Fed cut interest rates in Q1 2025?",
+        "Will inflation exceed 4% in the Eurozone by mid-2025?",
+        "Will China's GDP growth fall below 4% in 2025?",
+        "Will the US dollar strengthen against the Euro in 2025?"
+      ],
+      description: "Interest rates, inflation, GDP, currency, recession"
+    },
+    {
+      id: "geopolitical",
+      label: "GEOPOLITICAL",
+      icon: "🌍",
+      color: "#00E5FF",
+      examples: [
+        "Will Ukraine-Russia peace talks succeed in 2025?",
+        "Will China take military action against Taiwan by 2026?",
+        "Will Iran develop nuclear weapons by 2026?",
+        "Will NATO expand to include new members in 2025?"
+      ],
+      description: "Wars, conflicts, treaties, international relations"
+    },
+    {
+      id: "technology",
+      label: "TECHNOLOGY",
+      icon: "🤖",
+      color: "#9D4EDD",
+      examples: [
+        "Will AGI be achieved by any lab before 2027?",
+        "Will Apple release AR glasses in 2025?",
+        "Will quantum computers break RSA encryption by 2030?",
+        "Will self-driving cars be fully legal in the US by 2026?"
+      ],
+      description: "AI, quantum computing, autonomous systems, biotech"
+    },
+    {
+      id: "finance",
+      label: "FINANCE & MARKETS",
+      icon: "💰",
+      color: "#FFD700",
+      examples: [
+        "Will Bitcoin reach $150,000 by end of 2025?",
+        "Will S&P 500 have a 20%+ correction in 2025?",
+        "Will gold prices exceed $3,000/oz in 2025?",
+        "Will a major hedge fund collapse in 2025?"
+      ],
+      description: "Stocks, crypto, commodities, M&A, IPOs"
+    },
+    {
+      id: "disasters",
+      label: "NATURAL DISASTERS",
+      icon: "🌋",
+      color: "#FF3333",
+      examples: [
+        "Will a magnitude 8+ earthquake hit Japan by 2026?",
+        "Will a Category 5 hurricane make US landfall in 2025?",
+        "Will there be a major volcanic eruption affecting air travel in 2025?",
+        "Will global flooding events cause $100B+ damage in 2025?"
+      ],
+      description: "Earthquakes, hurricanes, tsunamis, volcanic activity"
+    },
+    {
+      id: "politics",
+      label: "POLITICS",
+      icon: "🗳️",
+      color: "#FF6B6B",
+      examples: [
+        "Will Republicans win the 2026 US midterms?",
+        "Will UK hold a general election before 2025 ends?",
+        "Will India's BJP retain power in 2024 elections?",
+        "Will France's National Rally gain significant seats in 2025?"
+      ],
+      description: "Elections, policy changes, government stability"
+    },
+    {
+      id: "corporate",
+      label: "CORPORATE",
+      icon: "🏢",
+      color: "#FFAA00",
+      examples: [
+        "Will Elon Musk step down as Tesla CEO by 2026?",
+        "Will Microsoft acquire a company for $50B+ in 2025?",
+        "Will OpenAI go public before 2026?",
+        "Will major tech layoffs continue through 2025?"
+      ],
+      description: "CEOs, acquisitions, IPOs, corporate strategy"
+    },
+    {
+      id: "health",
+      label: "HEALTH & PANDEMIC",
+      icon: "🏥",
+      color: "#00E5FF",
+      examples: [
+        "Will a new pandemic be declared by WHO before 2027?",
+        "Will an mRNA cancer vaccine be approved in 2025?",
+        "Will global life expectancy increase in 2025?",
+        "Will bird flu cause significant human outbreaks in 2025?"
+      ],
+      description: "Diseases, vaccines, healthcare breakthroughs"
+    },
+    {
+      id: "energy",
+      label: "ENERGY & CLIMATE",
+      icon: "⚡",
+      color: "#00FF94",
+      examples: [
+        "Will oil prices exceed $100/barrel in 2025?",
+        "Will renewable energy exceed 50% of global power by 2030?",
+        "Will a major nuclear plant be commissioned in 2025?",
+        "Will global carbon emissions decrease in 2025?"
+      ],
+      description: "Oil, renewables, nuclear, climate agreements"
+    },
+    {
+      id: "space",
+      label: "SPACE",
+      icon: "🚀",
+      color: "#9D4EDD",
+      examples: [
+        "Will SpaceX Starship reach orbit successfully in 2025?",
+        "Will humans return to the Moon by 2026?",
+        "Will evidence of extraterrestrial life be found by 2030?",
+        "Will space tourism reach 1000 customers by 2026?"
+      ],
+      description: "Space exploration, satellites, astronomy"
+    }
+  ];
 
   const generateForecast = async () => {
     if (!user) {
@@ -487,20 +622,91 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
     setLoading(false);
   };
 
+  const selectExample = (example) => {
+    setQuestion(example);
+    setSelectedCategory(null);
+  };
+
   return (
     <div className="space-y-6" data-testid="forecast-view">
-      <Card className="terminal-card">
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#00E5FF]" />
             AI_POWERED_FORECASTING_ENGINE
-          </CardTitle>
-          <CardDescription className="text-[#888]">
-            Uses 3-LLM ensemble (GPT-4, Claude, Gemini) with Bayesian aggregation and 1M+ OSINT sources
-          </CardDescription>
+          </h2>
+          <p className="text-xs text-[#888] mt-1">3-LLM Ensemble (GPT-4, Claude, Gemini) • 1M+ OSINT Sources • Bayesian Aggregation</p>
+        </div>
+        <div className="flex gap-2">
+          <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{predictionCategories.length} CATEGORIES</Badge>
+          <Badge variant="outline" className="border-[#FFD700] text-[#FFD700]">WORLD-CLASS</Badge>
+        </div>
+      </div>
+
+      {/* Category Selection Grid */}
+      <Card className="terminal-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">SELECT A PREDICTION CATEGORY</CardTitle>
+          <CardDescription className="text-[#888] text-xs">Choose a category to see example questions or type your own below</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {predictionCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                className={`p-3 rounded border transition-all text-center ${
+                  selectedCategory === cat.id 
+                    ? `border-2 bg-[${cat.color}]/10` 
+                    : "border-[#1F1F1F] hover:border-[#333]"
+                }`}
+                style={{borderColor: selectedCategory === cat.id ? cat.color : undefined}}
+              >
+                <div className="text-2xl mb-1">{cat.icon}</div>
+                <div className="text-xs font-bold" style={{color: cat.color}}>{cat.label}</div>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Selected Category Examples */}
+      {selectedCategory && (
+        <Card className="terminal-card border-l-4" style={{borderLeftColor: predictionCategories.find(c => c.id === selectedCategory)?.color}}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <span className="text-xl">{predictionCategories.find(c => c.id === selectedCategory)?.icon}</span>
+              {predictionCategories.find(c => c.id === selectedCategory)?.label} PREDICTIONS
+            </CardTitle>
+            <CardDescription className="text-[#888] text-xs">
+              {predictionCategories.find(c => c.id === selectedCategory)?.description}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-[#888] mb-2">Click an example question or type your own:</div>
+            <div className="grid md:grid-cols-2 gap-2">
+              {predictionCategories.find(c => c.id === selectedCategory)?.examples.map((ex, i) => (
+                <button
+                  key={i}
+                  onClick={() => selectExample(ex)}
+                  className="p-3 text-left text-sm bg-[#0A0A0A] border border-[#1F1F1F] rounded hover:border-[#00E5FF] hover:bg-[#0A0A0A]/80 transition-colors"
+                >
+                  <span className="text-[#EDEDED]">{ex}</span>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Forecast Input */}
+      <Card className="terminal-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">ASK YOUR PREDICTION QUESTION</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2 mb-4">
             <Input
               data-testid="forecast-input"
               placeholder="e.g., Will there be a major earthquake in Japan by 2025?"
@@ -520,43 +726,66 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
             </Button>
           </div>
 
-          {forecast && (
-            <div className="bg-[#0A0A0A] border border-[#00E5FF]/30 p-6 glow-primary" data-testid="forecast-result">
-              <div className="text-center mb-6">
-                <div className="font-mono text-6xl font-bold text-[#00E5FF]">{forecast.probability}%</div>
-                <div className="text-[#888] text-sm mt-2">PROBABILITY ESTIMATE</div>
-                <Badge className="mt-2 bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30">
-                  {forecast.confidence?.toUpperCase()} CONFIDENCE
-                </Badge>
-              </div>
-
-              <Separator className="bg-[#1F1F1F] my-6" />
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">RATIONALE</h4>
-                  <p className="text-sm text-[#EDEDED]">{forecast.rationale}</p>
-                </div>
-                <div>
-                  <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">INDIVIDUAL_LLM_FORECASTS</h4>
-                  <div className="space-y-2">
-                    {forecast.individual_forecasts?.map((f, i) => (
-                      <div key={i} className="flex justify-between items-center p-2 bg-[#141414] border border-[#1F1F1F]">
-                        <span className="text-sm text-[#888] uppercase">{f.provider}</span>
-                        <span className="font-mono font-bold text-[#00E5FF]">{f.probability}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 text-xs text-[#444]">
-                Sources analyzed: {forecast.sources_analyzed?.toLocaleString()} | Method: {forecast.aggregation_method}
-              </div>
-            </div>
-          )}
+          {/* Quick category badges */}
+          <div className="flex flex-wrap gap-1">
+            {predictionCategories.map((cat) => (
+              <Badge 
+                key={cat.id}
+                variant="outline" 
+                className="text-xs cursor-pointer hover:bg-[#1F1F1F]"
+                style={{borderColor: `${cat.color}50`, color: cat.color}}
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                {cat.icon} {cat.label}
+              </Badge>
+            ))}
+          </div>
         </CardContent>
       </Card>
+
+      {/* Forecast Result */}
+      {forecast && (
+        <Card className="terminal-card border-2 border-[#00E5FF]/30">
+          <CardContent className="p-6" data-testid="forecast-result">
+            <div className="text-center mb-6">
+              <div className="font-mono text-6xl font-bold text-[#00E5FF]">{forecast.probability}%</div>
+              <div className="text-[#888] text-sm mt-2">PROBABILITY ESTIMATE</div>
+              <Badge className="mt-2 bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30">
+                {forecast.confidence?.toUpperCase()} CONFIDENCE
+              </Badge>
+            </div>
+
+            <Separator className="bg-[#1F1F1F] my-6" />
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">RATIONALE</h4>
+                <p className="text-sm text-[#EDEDED]">{forecast.rationale}</p>
+              </div>
+              <div>
+                <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">INDIVIDUAL_LLM_FORECASTS</h4>
+                <div className="space-y-2">
+                  {forecast.individual_forecasts?.map((f, i) => (
+                    <div key={i} className="flex justify-between items-center p-2 bg-[#141414] border border-[#1F1F1F]">
+                      <span className="text-sm text-[#888] uppercase">{f.provider}</span>
+                      <span className="font-mono font-bold text-[#00E5FF]">{f.probability}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 text-xs text-[#444]">
+              Sources analyzed: {forecast.sources_analyzed?.toLocaleString()} | Method: {forecast.aggregation_method}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Category Summary Footer */}
+      <div className="text-xs text-[#444] text-center">
+        Prediction categories: Economics • Geopolitical • Technology • Finance • Disasters • Politics • Corporate • Health • Energy • Space
+      </div>
     </div>
   );
 };
