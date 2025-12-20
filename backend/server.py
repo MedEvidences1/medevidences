@@ -4891,6 +4891,113 @@ async def get_deep_forecast(report_id: str):
     return report
 
 # =============================================================================
+# API ENDPOINTS - JUDGMENTAL FORECASTING (Proprietary)
+# =============================================================================
+
+class JudgmentalForecastRequest(BaseModel):
+    question: str
+    context: Optional[str] = ""
+    include_factors: Optional[bool] = True
+
+class BacktestRequest(BaseModel):
+    question: str
+    reference_date: str
+    known_outcome: Optional[bool] = None
+
+@api_router.post("/judgmental-forecast", tags=["Judgmental Forecasting"])
+async def create_judgmental_forecast(request: JudgmentalForecastRequest, user: dict = Depends(get_current_user)):
+    """
+    Generate a judgmental forecast using Plutus's proprietary forecasting engine.
+    
+    This endpoint uses multi-factor analysis, Bayesian updating, and confidence calibration
+    to produce probability estimates with detailed rationale.
+    """
+    forecast = await judgmental_forecaster.forecast(
+        request.question,
+        request.context
+    )
+    
+    # Store in database
+    doc = {
+        "id": forecast["forecast_id"],
+        "user_id": user["id"],
+        "type": "judgmental",
+        **forecast,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.judgmental_forecasts.insert_one(doc)
+    doc.pop("_id", None)
+    
+    return doc
+
+@api_router.post("/judgmental-forecast/backtest", tags=["Judgmental Forecasting"])
+async def backtest_forecast(request: BacktestRequest, user: dict = Depends(get_current_user)):
+    """
+    Backtest a forecast by simulating prediction from a past date.
+    
+    This allows validation of the forecasting model against historical data.
+    If known_outcome is provided, calculates Brier score for accuracy measurement.
+    """
+    result = await judgmental_forecaster.backtest(
+        request.question,
+        request.reference_date,
+        request.known_outcome
+    )
+    return result
+
+@api_router.get("/judgmental-forecast/methodology", tags=["Judgmental Forecasting"])
+async def get_methodology():
+    """
+    Get detailed information about Plutus's judgmental forecasting methodology.
+    """
+    return {
+        "engine": "Plutus Judgmental Forecasting Engine",
+        "version": "1.0",
+        "methodology": {
+            "approach": "Superforecaster-inspired AI-enhanced judgmental forecasting",
+            "key_features": [
+                "Multi-factor analysis (historical, current, structural, wildcards)",
+                "Bayesian probability updating",
+                "Base rate adjustment for event types",
+                "Time horizon consideration",
+                "Confidence calibration with Brier scoring",
+                "Detailed rationale generation"
+            ],
+            "event_types_supported": list(judgmental_forecaster.base_rates.keys()),
+            "factor_weights": judgmental_forecaster.factor_weights,
+            "calibration_standard": {
+                "superforecaster": "< 0.10 Brier score",
+                "excellent": "< 0.15 Brier score",
+                "good": "< 0.25 Brier score",
+                "random_guessing": "0.25 Brier score"
+            }
+        },
+        "differentiators": [
+            "Combines 3 LLMs (GPT-4, Claude, Gemini) with proprietary scoring",
+            "Event-type specific base rates from historical data",
+            "Real-time OSINT integration from 1M+ sources",
+            "Backtesting capability for model validation",
+            "Transparent methodology with factor breakdown"
+        ]
+    }
+
+@api_router.get("/judgmental-forecasts", tags=["Judgmental Forecasting"])
+async def list_judgmental_forecasts(limit: int = 50, user_id: Optional[str] = None):
+    """List judgmental forecasts"""
+    query = {"user_id": user_id} if user_id else {}
+    cursor = db.judgmental_forecasts.find(query, {"_id": 0}).sort("created_at", -1).limit(limit)
+    forecasts = await cursor.to_list(length=limit)
+    return {"forecasts": forecasts, "total": len(forecasts)}
+
+@api_router.get("/judgmental-forecast/{forecast_id}", tags=["Judgmental Forecasting"])
+async def get_judgmental_forecast(forecast_id: str):
+    """Get a specific judgmental forecast with full factor analysis"""
+    forecast = await db.judgmental_forecasts.find_one({"id": forecast_id}, {"_id": 0})
+    if not forecast:
+        raise HTTPException(404, "Forecast not found")
+    return forecast
+
+# =============================================================================
 # API ENDPOINTS - ENTERPRISE ADMIN
 # =============================================================================
 
