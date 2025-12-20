@@ -1012,7 +1012,7 @@ const Astrology = ({ getHeaders, user }) => {
 
       {/* Info footer */}
       <div className="text-xs text-[#444] text-center p-2 border-t border-[#1F1F1F]">
-        Transcripts automatically fetched daily at 6 AM • Reconciliation runs daily at 7 AM • Matches with USGS, NOAA & GDACS data
+        Predictions auto-reconciled daily at 7 AM with USGS earthquake data, NOAA alerts & GDACS disaster reports • Sources: Abhigya Anand, Prashant Kapoor, Ashish Mehta, Preetika Rao
       </div>
     </div>
   );
