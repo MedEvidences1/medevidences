@@ -2396,6 +2396,26 @@ async def run_daily_prediction_fetch(user: dict = Depends(get_current_user)):
     result = await astrology_engine.daily_prediction_fetch()
     return result
 
+@api_router.post("/astrology/import-transcripts", tags=["Astrology"])
+async def import_transcripts(videos_per_channel: int = 10, user: dict = Depends(get_current_user)):
+    """
+    Import transcripts from all 4 tracked astrology channels:
+    - Abhigya Anand (Praajna Jyotisha)
+    - Prashant Kapoor (AstroKapoor)  
+    - Ashish Mehta (Astro Granth)
+    - Preetika Rao (Podcasts)
+    
+    Extracts disaster/war predictions for 2025-2030 from transcripts.
+    """
+    result = await astrology_engine.import_transcripts_from_channels(videos_per_channel)
+    return result
+
+@api_router.get("/astrology/imported-predictions", tags=["Astrology"])
+async def get_imported_predictions(channel: str = None, year: str = None, category: str = None, limit: int = 50):
+    """Get imported predictions with optional filters"""
+    predictions = await astrology_engine.get_imported_predictions(channel, year, category, limit)
+    return {"predictions": predictions, "count": len(predictions)}
+
 @api_router.post("/astrology/reconcile", tags=["Astrology"])
 async def reconcile_predictions(user: dict = Depends(get_current_user)):
     """Reconcile astrology predictions with actual disaster data"""
