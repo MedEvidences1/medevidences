@@ -2395,25 +2395,42 @@ async def get_deep_forecast(report_id: str):
 # API ENDPOINTS - ENTERPRISE ADMIN
 # =============================================================================
 
+@api_router.get("/admin/dashboard", tags=["Enterprise Admin"])
+async def get_admin_dashboard(user: dict = Depends(get_current_user)):
+    """Get comprehensive admin dashboard data"""
+    if user.get("role") not in ["admin", "super_admin", "enterprise_admin"]:
+        raise HTTPException(403, "Admin access required")
+    return await enterprise_admin.get_admin_dashboard(user)
+
+@api_router.get("/admin/analytics", tags=["Enterprise Admin"])
+async def get_enterprise_analytics(user: dict = Depends(get_current_user)):
+    """Get enterprise analytics data"""
+    if user.get("role") not in ["admin", "super_admin", "enterprise_admin"]:
+        raise HTTPException(403, "Admin access required")
+    return await enterprise_admin.get_enterprise_analytics()
+
 @api_router.get("/admin/users", tags=["Enterprise Admin"])
 async def get_all_users(user: dict = Depends(get_current_user)):
     """Get all users (admin only)"""
-    if not user.get("is_admin", False):
+    if user.get("role") not in ["admin", "super_admin"]:
         raise HTTPException(403, "Admin access required")
     
-    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
     return {"users": users, "total": len(users)}
 
 @api_router.get("/admin/predictions", tags=["Enterprise Admin"])
 async def get_all_predictions_admin(user: dict = Depends(get_current_user)):
     """Get all predictions with admin details"""
-    if not user.get("is_admin", False):
+    if user.get("role") not in ["admin", "super_admin", "enterprise_admin"]:
         raise HTTPException(403, "Admin access required")
     
     predictions = await db.predictions.find({}, {"_id": 0}).to_list(1000)
     return {"predictions": predictions, "total": len(predictions)}
 
-@api_router.post("/admin/users/{user_id}/promote", tags=["Enterprise Admin"])
+@api_router.post("/admin/users/{user_id}/manage", tags=["Enterprise Admin"])
+async def manage_user(user_id: str, action: str, data: Dict = None, admin_user: dict = Depends(get_current_user)):
+    """Manage user (upgrade plan, set role, disable)"""
+    return await enterprise_admin.manage_user(admin_user, user_id, action, data or {})
 async def promote_user_to_admin(user_id: str, admin_user: dict = Depends(get_current_user)):
     """Promote user to admin status"""
     if not admin_user.get("is_admin", False):
