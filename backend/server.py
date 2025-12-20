@@ -2048,14 +2048,15 @@ dashboard_manager = CustomDashboardManager()
 class EnterpriseAdminSystem:
     """
     Enterprise-level admin panel for:
-    - Platform owner (super admin)
-    - Enterprise customers
+    - Platform owner (super admin) - First 3 registrations with owner role
+    - Enterprise customers - 10 employee limit per organization
     - User management
     - Usage analytics
     - API key management
     """
     
     ROLES = {
+        "owner": {"level": 100, "permissions": ["all"], "max_users": 3},
         "super_admin": {"level": 100, "permissions": ["all"]},
         "enterprise_admin": {"level": 80, "permissions": ["manage_org", "view_analytics", "api_keys", "manage_users"]},
         "enterprise_user": {"level": 50, "permissions": ["forecasts", "dashboards", "alerts"]},
@@ -2063,11 +2064,14 @@ class EnterpriseAdminSystem:
         "free_user": {"level": 10, "permissions": ["basic_forecasts"]}
     }
     
+    ENTERPRISE_EMPLOYEE_LIMIT = 10
+    OWNER_LIMIT = 3
+    
     async def get_admin_dashboard(self, admin_user: Dict) -> Dict:
         """Get comprehensive admin dashboard data"""
         role = admin_user.get("role", "free_user")
         
-        if role not in ["admin", "super_admin", "enterprise_admin"]:
+        if role not in ["admin", "super_admin", "enterprise_admin", "owner"]:
             return {"error": "Insufficient permissions"}
         
         # Get platform stats
@@ -2089,13 +2093,19 @@ class EnterpriseAdminSystem:
         osint_jobs = await db.cron_jobs.find({"job_type": "daily_osint"}, {"_id": 0}).sort("completed_at", -1).limit(5).to_list(5)
         total_osint_articles = sum(job.get("articles_collected", 0) for job in osint_jobs)
         
+        # Owner-specific data
+        owner_count = await db.users.count_documents({"role": "owner"})
+        enterprise_orgs = await db.organizations.count_documents({})
+        
         return {
             "platform_stats": {
                 "total_users": total_users,
                 "total_forecasts": total_forecasts,
                 "total_predictions": total_predictions,
                 "total_deep_forecasts": total_deep_forecasts,
-                "osint_articles_processed": total_osint_articles
+                "osint_articles_processed": total_osint_articles,
+                "owner_accounts": owner_count,
+                "enterprise_organizations": enterprise_orgs
             },
             "users_by_plan": plan_stats,
             "recent_activity": {
@@ -2143,7 +2153,7 @@ class EnterpriseAdminSystem:
     
     async def manage_user(self, admin_user: Dict, target_user_id: str, action: str, data: Dict = None) -> Dict:
         """Admin user management"""
-        if admin_user.get("role") not in ["admin", "super_admin"]:
+        if admin_user.get("role") not in ["admin", "super_admin", "owner"]:
             return {"error": "Insufficient permissions"}
         
         if action == "upgrade_plan":
@@ -2170,6 +2180,397 @@ class EnterpriseAdminSystem:
             return {"success": True, "message": "User disabled"}
         
         return {"error": "Unknown action"}
+    
+    # =========================================================================
+    # ORGANIZATION & EMPLOYEE MANAGEMENT (10 employee limit)
+    # =========================================================================
+    
+    async def create_organization(self, owner_user: Dict, org_data: Dict) -> Dict:
+        """Create a new enterprise organization"""
+        org_id = str(uuid.uuid4())
+        org = {
+            "id": org_id,
+            "name": org_data.get("name", "New Organization"),
+            "owner_id": owner_user["id"],
+            "plan": "enterprise",
+            "employee_limit": self.ENTERPRISE_EMPLOYEE_LIMIT,
+            "employees": [owner_user["id"]],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "settings": {
+                "email_notifications": True,
+                "two_factor_required": False,
+                "api_access": True
+            }
+        }
+        await db.organizations.insert_one(org)
+        
+        # Update user with org_id
+        await db.users.update_one(
+            {"id": owner_user["id"]},
+            {"$set": {"organization_id": org_id, "role": "enterprise_admin"}}
+        )
+        
+        return {"success": True, "organization": {k: v for k, v in org.items() if k != "_id"}}
+    
+    async def add_employee(self, admin_user: Dict, org_id: str, employee_email: str) -> Dict:
+        """Add employee to organization (max 10)"""
+        org = await db.organizations.find_one({"id": org_id}, {"_id": 0})
+        if not org:
+            return {"error": "Organization not found"}
+        
+        if admin_user["id"] != org["owner_id"] and admin_user.get("role") != "owner":
+            return {"error": "Only organization owner can add employees"}
+        
+        current_employees = len(org.get("employees", []))
+        if current_employees >= self.ENTERPRISE_EMPLOYEE_LIMIT:
+            return {"error": f"Employee limit reached ({self.ENTERPRISE_EMPLOYEE_LIMIT} max)"}
+        
+        # Check if user exists
+        employee = await db.users.find_one({"email": employee_email}, {"_id": 0})
+        if not employee:
+            return {"error": "User not found. They must register first."}
+        
+        if employee["id"] in org.get("employees", []):
+            return {"error": "User already in organization"}
+        
+        # Add to organization
+        await db.organizations.update_one(
+            {"id": org_id},
+            {"$push": {"employees": employee["id"]}}
+        )
+        
+        # Update user
+        await db.users.update_one(
+            {"id": employee["id"]},
+            {"$set": {"organization_id": org_id, "role": "enterprise_user"}}
+        )
+        
+        return {
+            "success": True,
+            "message": f"Employee added. {current_employees + 1}/{self.ENTERPRISE_EMPLOYEE_LIMIT} slots used."
+        }
+    
+    async def remove_employee(self, admin_user: Dict, org_id: str, employee_id: str) -> Dict:
+        """Remove employee from organization"""
+        org = await db.organizations.find_one({"id": org_id}, {"_id": 0})
+        if not org:
+            return {"error": "Organization not found"}
+        
+        if admin_user["id"] != org["owner_id"] and admin_user.get("role") != "owner":
+            return {"error": "Only organization owner can remove employees"}
+        
+        if employee_id == org["owner_id"]:
+            return {"error": "Cannot remove organization owner"}
+        
+        await db.organizations.update_one(
+            {"id": org_id},
+            {"$pull": {"employees": employee_id}}
+        )
+        
+        await db.users.update_one(
+            {"id": employee_id},
+            {"$unset": {"organization_id": ""}, "$set": {"role": "free_user"}}
+        )
+        
+        return {"success": True, "message": "Employee removed"}
+    
+    async def get_organization_employees(self, org_id: str) -> Dict:
+        """Get all employees in organization"""
+        org = await db.organizations.find_one({"id": org_id}, {"_id": 0})
+        if not org:
+            return {"error": "Organization not found"}
+        
+        employees = await db.users.find(
+            {"id": {"$in": org.get("employees", [])}},
+            {"_id": 0, "password_hash": 0}
+        ).to_list(100)
+        
+        return {
+            "organization": org["name"],
+            "employee_limit": self.ENTERPRISE_EMPLOYEE_LIMIT,
+            "current_count": len(employees),
+            "slots_remaining": self.ENTERPRISE_EMPLOYEE_LIMIT - len(employees),
+            "employees": employees
+        }
+    
+    # =========================================================================
+    # DOCUMENT MANAGEMENT
+    # =========================================================================
+    
+    async def save_document(self, user: Dict, doc_data: Dict) -> Dict:
+        """Save a document/report"""
+        doc_id = str(uuid.uuid4())
+        doc = {
+            "id": doc_id,
+            "user_id": user["id"],
+            "organization_id": user.get("organization_id"),
+            "title": doc_data.get("title", "Untitled"),
+            "type": doc_data.get("type", "report"),  # report, forecast, analysis
+            "content": doc_data.get("content", {}),
+            "tags": doc_data.get("tags", []),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "shared_with": [],
+            "is_public": False
+        }
+        await db.documents.insert_one(doc)
+        return {"success": True, "document_id": doc_id}
+    
+    async def get_documents(self, user: Dict, filters: Dict = None) -> List[Dict]:
+        """Get user's documents"""
+        query = {"$or": [
+            {"user_id": user["id"]},
+            {"shared_with": user["id"]},
+            {"organization_id": user.get("organization_id"), "is_public": True}
+        ]}
+        
+        if filters:
+            if filters.get("type"):
+                query["type"] = filters["type"]
+            if filters.get("tags"):
+                query["tags"] = {"$in": filters["tags"]}
+        
+        docs = await db.documents.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+        return docs
+    
+    async def share_document(self, user: Dict, doc_id: str, share_with: List[str]) -> Dict:
+        """Share document with other users"""
+        doc = await db.documents.find_one({"id": doc_id}, {"_id": 0})
+        if not doc:
+            return {"error": "Document not found"}
+        
+        if doc["user_id"] != user["id"]:
+            return {"error": "Only document owner can share"}
+        
+        await db.documents.update_one(
+            {"id": doc_id},
+            {"$addToSet": {"shared_with": {"$each": share_with}}}
+        )
+        return {"success": True, "message": f"Document shared with {len(share_with)} users"}
+    
+    async def delete_document(self, user: Dict, doc_id: str) -> Dict:
+        """Delete a document"""
+        result = await db.documents.delete_one({"id": doc_id, "user_id": user["id"]})
+        if result.deleted_count == 0:
+            return {"error": "Document not found or access denied"}
+        return {"success": True, "message": "Document deleted"}
+    
+    # =========================================================================
+    # PASSWORD MANAGEMENT
+    # =========================================================================
+    
+    async def reset_user_password(self, admin_user: Dict, target_user_id: str) -> Dict:
+        """Admin reset user password"""
+        if admin_user.get("role") not in ["owner", "enterprise_admin", "admin"]:
+            return {"error": "Insufficient permissions"}
+        
+        # Generate temporary password
+        temp_password = secrets.token_urlsafe(12)
+        password_hash = hashlib.sha256(temp_password.encode()).hexdigest()
+        
+        await db.users.update_one(
+            {"id": target_user_id},
+            {"$set": {
+                "password_hash": password_hash,
+                "password_reset_required": True,
+                "password_reset_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {
+            "success": True,
+            "temporary_password": temp_password,
+            "message": "User must change password on next login"
+        }
+    
+    async def enforce_password_policy(self, org_id: str, policy: Dict) -> Dict:
+        """Set password policy for organization"""
+        await db.organizations.update_one(
+            {"id": org_id},
+            {"$set": {"password_policy": {
+                "min_length": policy.get("min_length", 8),
+                "require_uppercase": policy.get("require_uppercase", True),
+                "require_numbers": policy.get("require_numbers", True),
+                "require_special": policy.get("require_special", False),
+                "expiry_days": policy.get("expiry_days", 90)
+            }}}
+        )
+        return {"success": True, "message": "Password policy updated"}
+    
+    # =========================================================================
+    # EMAIL MANAGEMENT
+    # =========================================================================
+    
+    async def get_email_settings(self, user: Dict) -> Dict:
+        """Get user's email notification settings"""
+        settings = await db.email_settings.find_one({"user_id": user["id"]}, {"_id": 0})
+        if not settings:
+            settings = {
+                "user_id": user["id"],
+                "forecast_alerts": True,
+                "disaster_alerts": True,
+                "weekly_digest": True,
+                "marketing": False,
+                "reconciliation_matches": True
+            }
+            await db.email_settings.insert_one(settings)
+        return settings
+    
+    async def update_email_settings(self, user: Dict, settings: Dict) -> Dict:
+        """Update email notification settings"""
+        await db.email_settings.update_one(
+            {"user_id": user["id"]},
+            {"$set": settings},
+            upsert=True
+        )
+        return {"success": True, "message": "Email settings updated"}
+    
+    async def send_organization_email(self, admin_user: Dict, org_id: str, subject: str, message: str) -> Dict:
+        """Send email to all organization members"""
+        org = await db.organizations.find_one({"id": org_id}, {"_id": 0})
+        if not org:
+            return {"error": "Organization not found"}
+        
+        employees = await db.users.find(
+            {"id": {"$in": org.get("employees", [])}},
+            {"_id": 0, "email": 1}
+        ).to_list(100)
+        
+        emails_sent = 0
+        for emp in employees:
+            try:
+                if RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder':
+                    await email_alert_service.send_alert(emp["email"], subject, message)
+                    emails_sent += 1
+            except:
+                pass
+        
+        return {"success": True, "emails_sent": emails_sent, "total_employees": len(employees)}
+    
+    # =========================================================================
+    # PAYMENT MANAGEMENT
+    # =========================================================================
+    
+    async def get_payment_history(self, user: Dict, org_id: str = None) -> Dict:
+        """Get payment history for user or organization"""
+        query = {"user_id": user["id"]}
+        if org_id:
+            query = {"organization_id": org_id}
+        
+        payments = await db.payments.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+        
+        # Calculate totals
+        total_paid = sum(p.get("amount", 0) for p in payments if p.get("status") == "completed")
+        
+        return {
+            "payments": payments,
+            "total_paid": total_paid,
+            "currency": "USD",
+            "subscription": {
+                "plan": user.get("plan", "free"),
+                "status": "active",
+                "next_billing": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+            }
+        }
+    
+    async def get_invoices(self, user: Dict, org_id: str = None) -> List[Dict]:
+        """Get invoices"""
+        query = {"user_id": user["id"]}
+        if org_id:
+            query = {"organization_id": org_id}
+        
+        invoices = await db.invoices.find(query, {"_id": 0}).sort("created_at", -1).to_list(50)
+        return invoices
+    
+    async def create_invoice(self, org_id: str, amount: float, description: str) -> Dict:
+        """Create an invoice"""
+        invoice_id = f"INV-{datetime.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8].upper()}"
+        invoice = {
+            "id": invoice_id,
+            "organization_id": org_id,
+            "amount": amount,
+            "currency": "USD",
+            "description": description,
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "due_date": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        }
+        await db.invoices.insert_one(invoice)
+        return {"success": True, "invoice": {k: v for k, v in invoice.items() if k != "_id"}}
+    
+    # =========================================================================
+    # OWNER ADMIN (First 3 registrations only)
+    # =========================================================================
+    
+    async def check_owner_availability(self) -> Dict:
+        """Check if owner slots are available"""
+        owner_count = await db.users.count_documents({"role": "owner"})
+        return {
+            "owner_slots_total": self.OWNER_LIMIT,
+            "owner_slots_used": owner_count,
+            "owner_slots_available": self.OWNER_LIMIT - owner_count,
+            "can_register_as_owner": owner_count < self.OWNER_LIMIT
+        }
+    
+    async def register_as_owner(self, user_id: str) -> Dict:
+        """Register user as platform owner (first 3 only)"""
+        owner_count = await db.users.count_documents({"role": "owner"})
+        
+        if owner_count >= self.OWNER_LIMIT:
+            return {"error": f"Maximum owner limit ({self.OWNER_LIMIT}) reached"}
+        
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {"role": "owner", "owner_registered_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {
+            "success": True,
+            "message": f"User registered as owner ({owner_count + 1}/{self.OWNER_LIMIT})"
+        }
+    
+    async def get_all_organizations(self, owner_user: Dict) -> List[Dict]:
+        """Owner only: Get all organizations"""
+        if owner_user.get("role") != "owner":
+            return []
+        
+        orgs = await db.organizations.find({}, {"_id": 0}).to_list(100)
+        return orgs
+    
+    async def get_platform_revenue(self, owner_user: Dict) -> Dict:
+        """Owner only: Get platform revenue stats"""
+        if owner_user.get("role") != "owner":
+            return {"error": "Owner access required"}
+        
+        # Get all payments
+        payments = await db.payments.find({"status": "completed"}, {"_id": 0}).to_list(1000)
+        
+        total_revenue = sum(p.get("amount", 0) for p in payments)
+        monthly_revenue = sum(p.get("amount", 0) for p in payments 
+                            if p.get("created_at", "") > (datetime.now(timezone.utc) - timedelta(days=30)).isoformat())
+        
+        return {
+            "total_revenue": total_revenue,
+            "monthly_revenue": monthly_revenue,
+            "total_transactions": len(payments),
+            "currency": "USD"
+        }
+    
+    async def get_all_users(self, owner_user: Dict, page: int = 1, limit: int = 50) -> Dict:
+        """Owner only: Get all users with pagination"""
+        if owner_user.get("role") != "owner":
+            return {"error": "Owner access required"}
+        
+        skip = (page - 1) * limit
+        total = await db.users.count_documents({})
+        users = await db.users.find({}, {"_id": 0, "password_hash": 0}).skip(skip).limit(limit).to_list(limit)
+        
+        return {
+            "users": users,
+            "total": total,
+            "page": page,
+            "pages": math.ceil(total / limit)
+        }
 
 enterprise_admin = EnterpriseAdminSystem()
 
