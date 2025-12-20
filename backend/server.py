@@ -3474,7 +3474,7 @@ async def import_transcripts(videos_per_channel: int = 10, user: dict = Depends(
     Import transcripts from all 4 tracked astrology channels:
     - Abhigya Anand (Praajna Jyotisha)
     - Prashant Kapoor (AstroKapoor)  
-    - Ashish Mehta (Astro Granth)
+    - Ashish Mehta (Asishmehta astro)
     - Preetika Rao (Podcasts)
     
     Extracts disaster/war predictions for 2025-2030 from transcripts.
@@ -3513,7 +3513,7 @@ async def load_curated_predictions():
     loads manually curated predictions from:
     - Abhigya Anand (Praajna Jyotisha)
     - Prashant Kapoor (AstroKapoor)
-    - Ashish Mehta (Astro Granth)
+    - Ashish Mehta (Asishmehta astro)
     - Preetika Rao (Podcasts)
     
     Focus: War, Natural Disasters, Metal Prices (NO personal zodiac predictions)
