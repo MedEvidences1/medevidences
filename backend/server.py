@@ -2594,6 +2594,84 @@ class TabularPredictionsEngine:
             "data": events
         }
     
+    async def generate_finance_table(self) -> Dict:
+        """Generate finance/markets predictions"""
+        events = [
+            {"question": "Will Bitcoin reach $150,000 by end of 2025?", "probability": 28, "timeframe": "2025", "category": "crypto"},
+            {"question": "Will Ethereum flip Bitcoin by market cap in 2025?", "probability": 8, "timeframe": "2025", "category": "crypto"},
+            {"question": "Will gold reach $3,000/oz in 2025?", "probability": 45, "timeframe": "2025", "category": "commodities"},
+            {"question": "Will silver outperform gold in 2025?", "probability": 52, "timeframe": "2025", "category": "commodities"},
+            {"question": "Will S&P 500 have a 20%+ correction in 2025?", "probability": 35, "timeframe": "2025", "category": "equities"},
+            {"question": "Will a major hedge fund collapse in 2025?", "probability": 22, "timeframe": "2025", "category": "institutions"},
+            {"question": "Will global M&A activity exceed $4T in 2025?", "probability": 38, "timeframe": "2025", "category": "deals"},
+            {"question": "Will IPO market recover in 2025?", "probability": 62, "timeframe": "2025", "category": "equities"},
+            {"question": "Will stablecoin regulation pass in US by 2025?", "probability": 55, "timeframe": "2025", "category": "regulation"},
+            {"question": "Will major bank announce crypto custody in 2025?", "probability": 72, "timeframe": "2025", "category": "institutions"},
+        ]
+        
+        for e in events:
+            e["change_7d"] = random.randint(-6, 6)
+            e["confidence"] = "high" if e["probability"] > 65 or e["probability"] < 20 else "medium"
+        
+        return {
+            "category": "finance",
+            "title": "Finance & Markets Forecasts",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "data": events
+        }
+    
+    async def generate_energy_table(self) -> Dict:
+        """Generate energy sector predictions"""
+        events = [
+            {"question": "Will oil prices exceed $100/barrel in 2025?", "probability": 35, "timeframe": "2025", "category": "oil"},
+            {"question": "Will OPEC+ cut production further in 2025?", "probability": 48, "timeframe": "2025", "category": "oil"},
+            {"question": "Will US become net energy exporter by 2025?", "probability": 68, "timeframe": "2025", "category": "gas"},
+            {"question": "Will a major oil pipeline be attacked in 2025?", "probability": 25, "timeframe": "2025", "category": "geopolitical"},
+            {"question": "Will global solar capacity grow 30%+ in 2025?", "probability": 72, "timeframe": "2025", "category": "renewable"},
+            {"question": "Will nuclear power plant be commissioned in US in 2025?", "probability": 15, "timeframe": "2025", "category": "nuclear"},
+            {"question": "Will EV sales exceed 20M globally in 2025?", "probability": 65, "timeframe": "2025", "category": "ev"},
+            {"question": "Will natural gas prices spike 50%+ in 2025?", "probability": 28, "timeframe": "2025", "category": "gas"},
+            {"question": "Will major battery breakthrough be announced in 2025?", "probability": 42, "timeframe": "2025", "category": "technology"},
+            {"question": "Will carbon capture reach 100MT capacity in 2025?", "probability": 18, "timeframe": "2025", "category": "climate"},
+        ]
+        
+        for e in events:
+            e["change_7d"] = random.randint(-5, 5)
+            e["confidence"] = "high" if e["probability"] > 60 or e["probability"] < 25 else "medium"
+        
+        return {
+            "category": "energy",
+            "title": "Energy Sector Forecasts",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "data": events
+        }
+    
+    async def generate_technology_table(self) -> Dict:
+        """Generate technology sector predictions"""
+        events = [
+            {"question": "Will AGI be claimed by any lab in 2025?", "probability": 15, "timeframe": "2025", "category": "ai"},
+            {"question": "Will GPT-5 be released in 2025?", "probability": 78, "timeframe": "2025", "category": "ai"},
+            {"question": "Will Apple release AR glasses in 2025?", "probability": 45, "timeframe": "2025", "category": "hardware"},
+            {"question": "Will quantum computer break RSA encryption in 2025?", "probability": 5, "timeframe": "2025", "category": "quantum"},
+            {"question": "Will Neuralink get FDA approval for brain implant in 2025?", "probability": 35, "timeframe": "2025", "category": "biotech"},
+            {"question": "Will major social media platform shut down in 2025?", "probability": 18, "timeframe": "2025", "category": "social"},
+            {"question": "Will self-driving taxis launch in 5+ US cities in 2025?", "probability": 62, "timeframe": "2025", "category": "autonomous"},
+            {"question": "Will semiconductor shortage fully resolve in 2025?", "probability": 55, "timeframe": "2025", "category": "hardware"},
+            {"question": "Will humanoid robots be sold commercially in 2025?", "probability": 48, "timeframe": "2025", "category": "robotics"},
+            {"question": "Will major AI model be open-sourced by Big Tech in 2025?", "probability": 68, "timeframe": "2025", "category": "ai"},
+        ]
+        
+        for e in events:
+            e["change_7d"] = random.randint(-4, 4)
+            e["confidence"] = "high" if e["probability"] > 65 or e["probability"] < 20 else "medium"
+        
+        return {
+            "category": "technology",
+            "title": "Technology Forecasts",
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "data": events
+        }
+    
     async def generate_all_tables(self) -> Dict:
         """Generate all tabular predictions (Mantic-style full coverage)"""
         terror = await self.generate_terror_attack_table()
@@ -2602,6 +2680,9 @@ class TabularPredictionsEngine:
         business = await self.generate_business_predictions_table()
         economics = await self.generate_economics_table()
         global_affairs = await self.generate_global_affairs_table()
+        finance = await self.generate_finance_table()
+        energy = await self.generate_energy_table()
+        technology = await self.generate_technology_table()
         
         return {
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -2613,7 +2694,10 @@ class TabularPredictionsEngine:
                 "global_affairs": global_affairs,
                 "geopolitical": geopolitical,
                 "terror_attacks": terror,
-                "ceo_departures": ceos
+                "ceo_departures": ceos,
+                "finance": finance,
+                "energy": energy,
+                "technology": technology
             },
             "categories": list(PREDICTION_CATEGORIES.keys())
         }
