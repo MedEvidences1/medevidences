@@ -3502,6 +3502,137 @@ async def get_reconciled_predictions(limit: int = 50):
     predictions = await astrology_engine.get_reconciled_predictions(limit)
     return {"predictions": predictions, "count": len(predictions)}
 
+@api_router.post("/astrology/load-curated", tags=["Astrology"])
+async def load_curated_predictions():
+    """
+    Load curated predictions from all 4 tracked astrology channels into the database.
+    
+    Since YouTube transcript fetching is blocked from cloud IPs, this endpoint
+    loads manually curated predictions from:
+    - Abhigya Anand (Praajna Jyotisha)
+    - Prashant Kapoor (AstroKapoor)
+    - Ashish Mehta (Astro Granth)
+    - Preetika Rao (Podcasts)
+    
+    Focus: War, Natural Disasters, Metal Prices (NO personal zodiac predictions)
+    """
+    result = await astrology_engine.load_curated_to_db()
+    return {
+        "success": True,
+        "message": f"Loaded {result['loaded']} new predictions from {result['total_curated']} curated entries",
+        "details": result
+    }
+
+@api_router.get("/astrology/curated", tags=["Astrology"])
+async def get_curated_predictions_list():
+    """Get the full list of curated predictions (not from DB, directly from code)"""
+    curated = await astrology_engine.get_curated_predictions()
+    
+    # Group by channel
+    by_channel = {}
+    for pred in curated:
+        channel = pred["channel"]
+        if channel not in by_channel:
+            by_channel[channel] = []
+        by_channel[channel].append(pred)
+    
+    return {
+        "total": len(curated),
+        "predictions": curated,
+        "by_channel": by_channel,
+        "channels": list(by_channel.keys())
+    }
+
+# Pydantic model for admin adding predictions
+class AstrologyPredictionCreate(BaseModel):
+    astrologer: str = Field(..., min_length=2)
+    channel: str = Field(..., min_length=2)
+    prediction_type: str = Field(..., pattern="^(war|earthquake|natural_disaster|pandemic|metals|economic|geopolitical)$")
+    title: str = Field(..., min_length=5)
+    context: str = Field(..., min_length=20)
+    year_predicted: str = Field(..., pattern="^20[2-3][0-9](-20[2-3][0-9])?$")
+    confidence: str = Field(default="medium", pattern="^(low|medium|high)$")
+    source: str = ""
+
+@api_router.post("/astrology/admin/add-prediction", tags=["Astrology"])
+async def admin_add_astrology_prediction(prediction: AstrologyPredictionCreate, user: dict = Depends(get_current_user)):
+    """
+    Admin endpoint to manually add a new astrology prediction.
+    This is used when new predictions are found from the 4 tracked channels.
+    """
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Admin access required")
+    
+    pred_id = f"admin_{str(uuid.uuid4())[:8]}"
+    
+    doc = {
+        "id": pred_id,
+        "title": prediction.title,
+        "channel": prediction.channel,
+        "video_id": None,
+        "transcript_text": prediction.context,
+        "word_count": len(prediction.context.split()),
+        "predictions": [{
+            "category": prediction.prediction_type,
+            "prediction_text": prediction.title,
+            "context": prediction.context,
+            "year_predicted": prediction.year_predicted,
+            "confidence": prediction.confidence,
+            "source_title": prediction.source,
+            "astrologer": prediction.astrologer,
+            "type": "admin_added"
+        }],
+        "imported_at": datetime.now(timezone.utc).isoformat(),
+        "reconciled": False,
+        "source_type": "admin_added",
+        "added_by": user["id"]
+    }
+    
+    await db.astrology_predictions.insert_one(doc)
+    
+    return {
+        "success": True,
+        "message": f"Prediction added successfully",
+        "prediction_id": pred_id,
+        "prediction": {k: v for k, v in doc.items() if k != "_id"}
+    }
+
+@api_router.get("/astrology/admin/predictions", tags=["Astrology"])
+async def admin_list_all_predictions(user: dict = Depends(get_current_user), limit: int = 100):
+    """Admin endpoint to list all predictions for management"""
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Admin access required")
+    
+    predictions = await db.astrology_predictions.find({}, {"_id": 0}).sort("imported_at", -1).to_list(limit)
+    
+    # Group by source type
+    curated = [p for p in predictions if p.get("source_type") == "curated"]
+    admin_added = [p for p in predictions if p.get("source_type") == "admin_added"]
+    imported = [p for p in predictions if p.get("source_type") not in ["curated", "admin_added"]]
+    
+    return {
+        "total": len(predictions),
+        "predictions": predictions,
+        "by_source": {
+            "curated": len(curated),
+            "admin_added": len(admin_added),
+            "imported": len(imported)
+        }
+    }
+
+@api_router.delete("/astrology/admin/prediction/{prediction_id}", tags=["Astrology"])
+async def admin_delete_prediction(prediction_id: str, user: dict = Depends(get_current_user)):
+    """Admin endpoint to delete a prediction"""
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Admin access required")
+    
+    result = await db.astrology_predictions.delete_one({"id": prediction_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Prediction not found")
+    
+    return {"success": True, "message": f"Prediction {prediction_id} deleted"}
+
 @api_router.get("/astrology/combined-view", tags=["Astrology"])
 async def get_combined_disaster_astrology_view():
     """Get combined view of disasters and astrology predictions for side-by-side display"""
