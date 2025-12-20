@@ -31,6 +31,8 @@ import {
   ChevronRight,
   Cloud,
   CreditCard,
+  Cpu,
+  DollarSign,
   Globe,
   Home,
   Layers,
