@@ -4572,6 +4572,502 @@ class EnterpriseAdminSystem:
 enterprise_admin = EnterpriseAdminSystem()
 
 # =============================================================================
+# USAGE QUOTAS & LIMITS SYSTEM
+# =============================================================================
+
+class UsageQuotaSystem:
+    """
+    Track and enforce usage limits per plan
+    """
+    
+    PLAN_LIMITS = {
+        "free": {
+            "forecasts_per_month": 10,
+            "deep_forecasts_per_month": 2,
+            "api_calls_per_month": 100,
+            "chat_messages_per_month": 50,
+            "employees": 1
+        },
+        "basic": {
+            "forecasts_per_month": 100,
+            "deep_forecasts_per_month": 20,
+            "api_calls_per_month": 1000,
+            "chat_messages_per_month": 500,
+            "employees": 3
+        },
+        "professional": {
+            "forecasts_per_month": -1,  # Unlimited
+            "deep_forecasts_per_month": 100,
+            "api_calls_per_month": 10000,
+            "chat_messages_per_month": -1,
+            "employees": 5
+        },
+        "enterprise": {
+            "forecasts_per_month": -1,
+            "deep_forecasts_per_month": -1,
+            "api_calls_per_month": -1,
+            "chat_messages_per_month": -1,
+            "employees": 10
+        }
+    }
+    
+    async def get_usage(self, user_id: str, org_id: str = None) -> Dict:
+        """Get current usage for user/organization"""
+        # Get current month range
+        now = datetime.now(timezone.utc)
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Count usage this month
+        forecasts_used = await db.forecasts.count_documents({
+            "user_id": user_id,
+            "created_at": {"$gte": month_start.isoformat()}
+        })
+        
+        deep_forecasts_used = await db.deep_forecasts.count_documents({
+            "user_id": user_id,
+            "created_at": {"$gte": month_start.isoformat()}
+        })
+        
+        api_calls_used = await db.api_calls.count_documents({
+            "user_id": user_id,
+            "timestamp": {"$gte": month_start.isoformat()}
+        })
+        
+        chat_messages_used = await db.chat_history.count_documents({
+            "user_id": user_id,
+            "role": "user",
+            "timestamp": {"$gte": month_start.isoformat()}
+        })
+        
+        # Get employee count for org
+        employees_count = 1
+        if org_id:
+            employees_count = await db.users.count_documents({"organization_id": org_id})
+        
+        return {
+            "forecasts": forecasts_used,
+            "deep_forecasts": deep_forecasts_used,
+            "api_calls": api_calls_used,
+            "chat_messages": chat_messages_used,
+            "employees": employees_count,
+            "period_start": month_start.isoformat(),
+            "period_end": (month_start.replace(month=month_start.month % 12 + 1) if month_start.month < 12 else month_start.replace(year=month_start.year + 1, month=1)).isoformat()
+        }
+    
+    async def get_limits(self, plan: str) -> Dict:
+        """Get limits for a plan"""
+        return self.PLAN_LIMITS.get(plan, self.PLAN_LIMITS["free"])
+    
+    async def check_limit(self, user_id: str, plan: str, limit_type: str) -> Dict:
+        """Check if user is within limits"""
+        usage = await self.get_usage(user_id)
+        limits = self.PLAN_LIMITS.get(plan, self.PLAN_LIMITS["free"])
+        
+        limit_value = limits.get(limit_type, 0)
+        used_value = usage.get(limit_type.replace("_per_month", ""), 0)
+        
+        if limit_value == -1:  # Unlimited
+            return {"allowed": True, "used": used_value, "limit": "unlimited", "remaining": "unlimited"}
+        
+        remaining = limit_value - used_value
+        return {
+            "allowed": remaining > 0,
+            "used": used_value,
+            "limit": limit_value,
+            "remaining": max(0, remaining)
+        }
+    
+    async def get_full_quota_dashboard(self, user: Dict) -> Dict:
+        """Get comprehensive quota dashboard for user"""
+        user_id = user["id"]
+        plan = user.get("plan", "free")
+        org_id = user.get("organization_id")
+        
+        usage = await self.get_usage(user_id, org_id)
+        limits = self.PLAN_LIMITS.get(plan, self.PLAN_LIMITS["free"])
+        
+        quota_items = []
+        for key, limit in limits.items():
+            usage_key = key.replace("_per_month", "")
+            used = usage.get(usage_key, 0)
+            
+            if limit == -1:
+                percentage = 0
+                status = "unlimited"
+            else:
+                percentage = (used / limit * 100) if limit > 0 else 0
+                if percentage >= 100:
+                    status = "exceeded"
+                elif percentage >= 80:
+                    status = "warning"
+                else:
+                    status = "ok"
+            
+            quota_items.append({
+                "name": key.replace("_", " ").title(),
+                "used": used,
+                "limit": limit if limit != -1 else "Unlimited",
+                "percentage": round(percentage, 1) if limit != -1 else 0,
+                "status": status
+            })
+        
+        return {
+            "plan": plan,
+            "usage": usage,
+            "quotas": quota_items,
+            "billing_period": {
+                "start": usage["period_start"],
+                "end": usage["period_end"]
+            }
+        }
+
+usage_quota_system = UsageQuotaSystem()
+
+# =============================================================================
+# WHITE-LABEL SETTINGS SYSTEM
+# =============================================================================
+
+class WhiteLabelSystem:
+    """
+    White-label customization for Enterprise customers
+    - $10,000 add-on fee (configurable)
+    - Must be activated by Platform Owner after payment confirmed
+    """
+    
+    WHITE_LABEL_PRICE = 10000.00  # USD - Configurable
+    
+    async def get_white_label_status(self, org_id: str) -> Dict:
+        """Get white-label status for organization"""
+        org = await db.organizations.find_one({"id": org_id}, {"_id": 0})
+        if not org:
+            return {"status": "not_found", "error": "Organization not found"}
+        
+        white_label = org.get("white_label", {})
+        return {
+            "status": white_label.get("status", "inactive"),  # inactive, pending, active
+            "price": self.WHITE_LABEL_PRICE,
+            "requested_at": white_label.get("requested_at"),
+            "activated_at": white_label.get("activated_at"),
+            "activated_by": white_label.get("activated_by"),
+            "settings": white_label.get("settings", {}) if white_label.get("status") == "active" else None
+        }
+    
+    async def request_white_label(self, user: Dict, org_id: str) -> Dict:
+        """Enterprise customer requests white-label (sets to pending payment)"""
+        if user.get("role") not in ["enterprise_admin", "owner", "admin"]:
+            return {"success": False, "error": "Only enterprise admins can request white-label"}
+        
+        result = await db.organizations.update_one(
+            {"id": org_id},
+            {"$set": {
+                "white_label.status": "pending",
+                "white_label.requested_at": datetime.now(timezone.utc).isoformat(),
+                "white_label.requested_by": user["id"],
+                "white_label.price": self.WHITE_LABEL_PRICE
+            }}
+        )
+        
+        return {
+            "success": True,
+            "message": f"White-label requested. Please complete payment of ${self.WHITE_LABEL_PRICE:,.2f}. Platform admin will activate after payment confirmation.",
+            "status": "pending",
+            "price": self.WHITE_LABEL_PRICE
+        }
+    
+    async def activate_white_label(self, admin_user: Dict, org_id: str, payment_reference: str = None) -> Dict:
+        """Platform Owner activates white-label after payment confirmed"""
+        if admin_user.get("role") not in ["owner", "super_admin", "admin"]:
+            return {"success": False, "error": "Only platform owners can activate white-label"}
+        
+        result = await db.organizations.update_one(
+            {"id": org_id},
+            {"$set": {
+                "white_label.status": "active",
+                "white_label.activated_at": datetime.now(timezone.utc).isoformat(),
+                "white_label.activated_by": admin_user["id"],
+                "white_label.payment_reference": payment_reference,
+                "white_label.settings": {
+                    "logo_url": "",
+                    "company_name": "",
+                    "primary_color": "#00E5FF",
+                    "secondary_color": "#00FF94",
+                    "accent_color": "#FFD700",
+                    "hide_plutus_branding": False
+                }
+            }}
+        )
+        
+        # Record payment
+        await db.payments.insert_one({
+            "id": str(uuid.uuid4()),
+            "organization_id": org_id,
+            "type": "white_label_activation",
+            "amount": self.WHITE_LABEL_PRICE,
+            "currency": "USD",
+            "status": "completed",
+            "payment_reference": payment_reference,
+            "processed_by": admin_user["id"],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "success": True,
+            "message": "White-label activated successfully",
+            "status": "active"
+        }
+    
+    async def deactivate_white_label(self, admin_user: Dict, org_id: str) -> Dict:
+        """Platform Owner deactivates white-label"""
+        if admin_user.get("role") not in ["owner", "super_admin", "admin"]:
+            return {"success": False, "error": "Only platform owners can deactivate white-label"}
+        
+        await db.organizations.update_one(
+            {"id": org_id},
+            {"$set": {"white_label.status": "inactive"}}
+        )
+        
+        return {"success": True, "message": "White-label deactivated"}
+    
+    async def update_white_label_settings(self, user: Dict, org_id: str, settings: Dict) -> Dict:
+        """Enterprise admin updates their white-label settings"""
+        # Verify white-label is active
+        status = await self.get_white_label_status(org_id)
+        if status.get("status") != "active":
+            return {"success": False, "error": "White-label is not active for this organization"}
+        
+        if user.get("role") not in ["enterprise_admin", "owner", "admin"]:
+            return {"success": False, "error": "Only enterprise admins can update settings"}
+        
+        # Update settings
+        update_fields = {}
+        allowed_fields = ["logo_url", "company_name", "primary_color", "secondary_color", "accent_color", "hide_plutus_branding"]
+        for field in allowed_fields:
+            if field in settings:
+                update_fields[f"white_label.settings.{field}"] = settings[field]
+        
+        if update_fields:
+            await db.organizations.update_one(
+                {"id": org_id},
+                {"$set": update_fields}
+            )
+        
+        return {"success": True, "message": "White-label settings updated"}
+    
+    async def update_price(self, admin_user: Dict, new_price: float) -> Dict:
+        """Platform Owner updates white-label price"""
+        if admin_user.get("role") not in ["owner", "super_admin"]:
+            return {"success": False, "error": "Only platform owners can update pricing"}
+        
+        self.WHITE_LABEL_PRICE = new_price
+        
+        # Store in config
+        await db.config.update_one(
+            {"key": "white_label_price"},
+            {"$set": {"value": new_price, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True
+        )
+        
+        return {"success": True, "new_price": new_price}
+    
+    async def get_all_white_label_requests(self, admin_user: Dict) -> Dict:
+        """Platform Owner gets all white-label requests"""
+        if admin_user.get("role") not in ["owner", "super_admin", "admin"]:
+            return {"error": "Insufficient permissions"}
+        
+        orgs = await db.organizations.find(
+            {"white_label.status": {"$in": ["pending", "active"]}},
+            {"_id": 0}
+        ).to_list(100)
+        
+        return {
+            "pending": [o for o in orgs if o.get("white_label", {}).get("status") == "pending"],
+            "active": [o for o in orgs if o.get("white_label", {}).get("status") == "active"],
+            "current_price": self.WHITE_LABEL_PRICE
+        }
+
+white_label_system = WhiteLabelSystem()
+
+# =============================================================================
+# SUPPORT TICKETS SYSTEM
+# =============================================================================
+
+class SupportTicketSystem:
+    """
+    Support ticket management for Enterprise customers
+    """
+    
+    PRIORITY_LEVELS = ["low", "medium", "high", "critical"]
+    TICKET_STATUSES = ["open", "in_progress", "waiting_customer", "resolved", "closed"]
+    CATEGORIES = ["billing", "technical", "feature_request", "bug_report", "account", "other"]
+    
+    async def create_ticket(self, user: Dict, title: str, description: str, category: str = "other", priority: str = "medium") -> Dict:
+        """Create a new support ticket"""
+        ticket_id = str(uuid.uuid4())[:8].upper()
+        
+        ticket = {
+            "id": ticket_id,
+            "user_id": user["id"],
+            "user_email": user.get("email"),
+            "user_name": user.get("name"),
+            "organization_id": user.get("organization_id"),
+            "title": title,
+            "description": description,
+            "category": category if category in self.CATEGORIES else "other",
+            "priority": priority if priority in self.PRIORITY_LEVELS else "medium",
+            "status": "open",
+            "messages": [{
+                "id": str(uuid.uuid4()),
+                "sender": "customer",
+                "sender_id": user["id"],
+                "sender_name": user.get("name"),
+                "content": description,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.support_tickets.insert_one(ticket)
+        ticket.pop("_id", None)
+        
+        return {"success": True, "ticket": ticket, "ticket_id": ticket_id}
+    
+    async def get_user_tickets(self, user: Dict, status_filter: str = None) -> Dict:
+        """Get tickets for a user"""
+        query = {"user_id": user["id"]}
+        if status_filter and status_filter in self.TICKET_STATUSES:
+            query["status"] = status_filter
+        
+        tickets = await db.support_tickets.find(query, {"_id": 0}).sort("updated_at", -1).to_list(100)
+        
+        return {
+            "tickets": tickets,
+            "total": len(tickets),
+            "open_count": len([t for t in tickets if t["status"] == "open"]),
+            "resolved_count": len([t for t in tickets if t["status"] in ["resolved", "closed"]])
+        }
+    
+    async def get_all_tickets(self, admin_user: Dict, status_filter: str = None, priority_filter: str = None) -> Dict:
+        """Platform Owner gets all tickets"""
+        if admin_user.get("role") not in ["owner", "super_admin", "admin"]:
+            return {"error": "Insufficient permissions"}
+        
+        query = {}
+        if status_filter and status_filter in self.TICKET_STATUSES:
+            query["status"] = status_filter
+        if priority_filter and priority_filter in self.PRIORITY_LEVELS:
+            query["priority"] = priority_filter
+        
+        tickets = await db.support_tickets.find(query, {"_id": 0}).sort("updated_at", -1).to_list(500)
+        
+        # Stats
+        all_tickets = await db.support_tickets.find({}, {"_id": 0, "status": 1, "priority": 1}).to_list(1000)
+        
+        return {
+            "tickets": tickets,
+            "total": len(tickets),
+            "stats": {
+                "by_status": {s: len([t for t in all_tickets if t["status"] == s]) for s in self.TICKET_STATUSES},
+                "by_priority": {p: len([t for t in all_tickets if t["priority"] == p]) for p in self.PRIORITY_LEVELS}
+            }
+        }
+    
+    async def get_ticket(self, user: Dict, ticket_id: str) -> Dict:
+        """Get a specific ticket"""
+        ticket = await db.support_tickets.find_one({"id": ticket_id}, {"_id": 0})
+        
+        if not ticket:
+            return {"error": "Ticket not found"}
+        
+        # Check access
+        is_admin = user.get("role") in ["owner", "super_admin", "admin"]
+        is_owner = ticket["user_id"] == user["id"]
+        
+        if not is_admin and not is_owner:
+            return {"error": "Access denied"}
+        
+        return {"ticket": ticket}
+    
+    async def add_message(self, user: Dict, ticket_id: str, content: str) -> Dict:
+        """Add a message to a ticket"""
+        ticket = await db.support_tickets.find_one({"id": ticket_id}, {"_id": 0})
+        
+        if not ticket:
+            return {"success": False, "error": "Ticket not found"}
+        
+        is_admin = user.get("role") in ["owner", "super_admin", "admin"]
+        is_owner = ticket["user_id"] == user["id"]
+        
+        if not is_admin and not is_owner:
+            return {"success": False, "error": "Access denied"}
+        
+        message = {
+            "id": str(uuid.uuid4()),
+            "sender": "support" if is_admin else "customer",
+            "sender_id": user["id"],
+            "sender_name": user.get("name"),
+            "content": content,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Update status based on who replied
+        new_status = "waiting_customer" if is_admin else "open"
+        if ticket["status"] in ["resolved", "closed"]:
+            new_status = "open"  # Reopen if customer replies to closed ticket
+        
+        await db.support_tickets.update_one(
+            {"id": ticket_id},
+            {
+                "$push": {"messages": message},
+                "$set": {
+                    "status": new_status,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        return {"success": True, "message": message}
+    
+    async def update_ticket_status(self, admin_user: Dict, ticket_id: str, new_status: str, resolution_note: str = None) -> Dict:
+        """Admin updates ticket status"""
+        if admin_user.get("role") not in ["owner", "super_admin", "admin"]:
+            return {"success": False, "error": "Only admins can update ticket status"}
+        
+        if new_status not in self.TICKET_STATUSES:
+            return {"success": False, "error": f"Invalid status. Must be one of: {self.TICKET_STATUSES}"}
+        
+        update = {
+            "status": new_status,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if new_status == "resolved" and resolution_note:
+            update["resolution_note"] = resolution_note
+            update["resolved_at"] = datetime.now(timezone.utc).isoformat()
+            update["resolved_by"] = admin_user["id"]
+        
+        await db.support_tickets.update_one({"id": ticket_id}, {"$set": update})
+        
+        return {"success": True, "new_status": new_status}
+    
+    async def update_ticket_priority(self, admin_user: Dict, ticket_id: str, new_priority: str) -> Dict:
+        """Admin updates ticket priority"""
+        if admin_user.get("role") not in ["owner", "super_admin", "admin"]:
+            return {"success": False, "error": "Only admins can update priority"}
+        
+        if new_priority not in self.PRIORITY_LEVELS:
+            return {"success": False, "error": f"Invalid priority. Must be one of: {self.PRIORITY_LEVELS}"}
+        
+        await db.support_tickets.update_one(
+            {"id": ticket_id},
+            {"$set": {"priority": new_priority, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"success": True, "new_priority": new_priority}
+
+support_ticket_system = SupportTicketSystem()
+
+# =============================================================================
 # 3D VISUALIZATION DATA ENGINE
 # =============================================================================
 
