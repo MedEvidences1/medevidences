@@ -2618,63 +2618,63 @@ const CompetitorComparison = () => {
   // Investment Banking Suite Comparison
   const ibComparison = {
     title: "Investment Banking Tools",
-    subtitle: "Plutus IB Suite vs Bloomberg & Competitors",
+    subtitle: "Plutus IB Suite vs Dealroom, Bloomberg & Others",
     competitors: [
       {
         name: "Plutus IB Suite",
         isUs: true,
         features: {
-          "M&A Deal Predictions": { value: "AI-Powered", details: "Probability-based", highlight: true },
-          "IPO Window Analysis": { value: "✓", details: "Market timing AI", highlight: true },
-          "Sector Rotation": { value: "✓", details: "AI recommendations", highlight: true },
+          "M&A Deal Predictions": { value: "AI-Powered", details: "Probability-based forecasts", highlight: true },
+          "IPO Window Analysis": { value: "AI Timing", details: "Optimal window prediction", highlight: true },
+          "Startup Database": { value: "Growing", details: "Integrated OSINT" },
+          "Predictive Signals": { value: "✓", details: "AI-driven alerts", highlight: true },
+          "Sector Analysis": { value: "AI-Enhanced", details: "Rotation predictions", highlight: true },
           "Risk Analytics": { value: "Multi-factor", details: "VaR, stress tests" },
-          "Real-time Data": { value: "Simulated", details: "Demo environment" },
-          "Company Screening": { value: "AI-Enhanced", details: "Pattern recognition" },
-          "Price": { value: "$5K/yr", details: "Enterprise tier", highlight: true },
+          "Due Diligence": { value: "AI-Assisted", details: "Automated analysis", highlight: true },
+          "Price": { value: "~$5K/yr", details: "Enterprise tier", highlight: true },
           "API Access": { value: "✓", details: "Full API" },
-          "Custom Dashboards": { value: "✓", details: "Drag & drop" },
+        }
+      },
+      {
+        name: "Dealroom.co",
+        features: {
+          "M&A Deal Predictions": { value: "Deal Sourcing", details: "Pipeline tracking" },
+          "IPO Window Analysis": { value: "Market Data", details: "Historical trends" },
+          "Startup Database": { value: "3M+", details: "Companies tracked" },
+          "Predictive Signals": { value: "✓", details: "Fundraising signals" },
+          "Sector Analysis": { value: "600+", details: "Curated sectors" },
+          "Risk Analytics": { value: "Limited", details: "Growth metrics" },
+          "Due Diligence": { value: "Manual", details: "Data export" },
+          "Price": { value: "€12-40K/yr", details: "3-20 seats" },
+          "API Access": { value: "✓", details: "Premium plans" },
         }
       },
       {
         name: "Bloomberg Terminal",
         features: {
-          "M&A Deal Predictions": { value: "Historical", details: "Data-based analysis" },
+          "M&A Deal Predictions": { value: "Historical", details: "Data-based only" },
           "IPO Window Analysis": { value: "✓", details: "Market data" },
-          "Sector Rotation": { value: "Manual", details: "Research required" },
-          "Risk Analytics": { value: "Comprehensive", details: "Industry standard" },
-          "Real-time Data": { value: "✓", details: "Live feeds" },
-          "Company Screening": { value: "✓", details: "Extensive filters" },
+          "Startup Database": { value: "Limited", details: "Public companies" },
+          "Predictive Signals": { value: "Manual", details: "User research" },
+          "Sector Analysis": { value: "Comprehensive", details: "Industry standard" },
+          "Risk Analytics": { value: "Gold Standard", details: "Full suite" },
+          "Due Diligence": { value: "Manual", details: "Research tools" },
           "Price": { value: "$25K/yr", details: "Per seat" },
           "API Access": { value: "Limited", details: "Additional cost" },
-          "Custom Dashboards": { value: "✓", details: "Bloomberg functions" },
         }
       },
       {
-        name: "S&P Capital IQ",
+        name: "PitchBook",
         features: {
           "M&A Deal Predictions": { value: "Historical", details: "Transaction data" },
           "IPO Window Analysis": { value: "✓", details: "Pipeline data" },
-          "Sector Rotation": { value: "Manual", details: "Research tools" },
-          "Risk Analytics": { value: "Good", details: "Credit ratings" },
-          "Real-time Data": { value: "Delayed", details: "15-20 min" },
-          "Company Screening": { value: "✓", details: "Advanced screening" },
-          "Price": { value: "$15K/yr", details: "Per seat" },
-          "API Access": { value: "✓", details: "Full API" },
-          "Custom Dashboards": { value: "Limited", details: "Template-based" },
-        }
-      },
-      {
-        name: "Koyfin",
-        features: {
-          "M&A Deal Predictions": { value: "✗", details: "Not available" },
-          "IPO Window Analysis": { value: "Limited", details: "Market data only" },
-          "Sector Rotation": { value: "✓", details: "Analytics" },
-          "Risk Analytics": { value: "Basic", details: "Stock metrics" },
-          "Real-time Data": { value: "✓", details: "Live quotes" },
-          "Company Screening": { value: "✓", details: "Good screener" },
-          "Price": { value: "$840/yr", details: "Pro plan" },
-          "API Access": { value: "Limited", details: "Premium only" },
-          "Custom Dashboards": { value: "✓", details: "Flexible" },
+          "Startup Database": { value: "3.4M+", details: "VC/PE focused" },
+          "Predictive Signals": { value: "Limited", details: "Basic alerts" },
+          "Sector Analysis": { value: "Good", details: "Industry verticals" },
+          "Risk Analytics": { value: "Moderate", details: "Valuation comps" },
+          "Due Diligence": { value: "✓", details: "Company profiles" },
+          "Price": { value: "$15-25K/yr", details: "Per seat" },
+          "API Access": { value: "✓", details: "Enterprise" },
         }
       }
     ]
