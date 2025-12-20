@@ -4916,7 +4916,7 @@ class TabularPredictionsEngine:
         }
     
     async def generate_business_predictions_table(self) -> Dict:
-        """Generate Mantic-style business predictions"""
+        """Generate comprehensive business predictions"""
         predictions = [
             {"question": "Will Revolut obtain full UK banking license by July 2025?", "probability": 68, "category": "business", "region": "UK"},
             {"question": "Will Apple release an AI-powered device in 2025?", "probability": 85, "category": "technology", "region": "USA"},
@@ -4943,7 +4943,7 @@ class TabularPredictionsEngine:
         }
     
     async def generate_economics_table(self) -> Dict:
-        """Generate economic forecasts like Mantic"""
+        """Generate economic forecasts"""
         forecasts = [
             {"question": "Will US Fed cut interest rates 3+ times in 2025?", "probability": 45, "impact": "high"},
             {"question": "Will UK unemployment fall below 4% in 2025?", "probability": 38, "impact": "medium"},
@@ -4969,7 +4969,7 @@ class TabularPredictionsEngine:
         }
     
     async def generate_global_affairs_table(self) -> Dict:
-        """Generate global affairs predictions like Mantic"""
+        """Generate global affairs predictions"""
         events = [
             {"question": "Will a new country be invited to BRICS at 2025 summit?", "probability": 75, "timeframe": "2025", "region": "Global"},
             {"question": "Will Ukraine-Russia peace talks resume in 2025?", "probability": 42, "timeframe": "2025", "region": "Europe"},
