@@ -2787,6 +2787,15 @@ const CompetitorComparison = () => {
         </Button>
         <Button
           size="sm"
+          variant={activeTab === "mantic" ? "default" : "outline"}
+          onClick={() => setActiveTab("mantic")}
+          className={activeTab === "mantic" ? "bg-[#9D4EDD] text-white" : ""}
+        >
+          <Target className="w-4 h-4 mr-2" />
+          vs Mantic (Deep Dive)
+        </Button>
+        <Button
+          size="sm"
           variant={activeTab === "investment" ? "default" : "outline"}
           onClick={() => setActiveTab("investment")}
           className={activeTab === "investment" ? "bg-[#FFD700] text-black" : ""}
@@ -2796,7 +2805,237 @@ const CompetitorComparison = () => {
         </Button>
       </div>
 
-      {/* Comparison Table */}
+      {/* Mantic Deep Dive Comparison */}
+      {activeTab === "mantic" && (
+        <div className="space-y-6">
+          {/* Header */}
+          <Card className="terminal-card bg-gradient-to-r from-[#9D4EDD]/10 to-transparent border-[#9D4EDD]/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-[#9D4EDD]">Plutus Predict vs Mantic.com</h3>
+                  <p className="text-sm text-[#888] mt-1">Deep comparison with UK-based AI forecasting leader</p>
+                </div>
+                <div className="text-right text-xs text-[#888]">
+                  <div>Mantic: London, UK • Founded 2024</div>
+                  <div>£3M Pre-seed • DeepMind founders</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Detailed Feature Comparison */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">DETAILED_FEATURE_COMPARISON</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[#1F1F1F]">
+                      <th className="text-left py-3 px-3 text-[#888] w-1/3">Feature Category</th>
+                      <th className="text-center py-3 px-3 text-[#00FF94]">Plutus Predict ⭐</th>
+                      <th className="text-center py-3 px-3 text-[#9D4EDD]">Mantic.com</th>
+                      <th className="text-center py-3 px-3 text-[#888]">Gap Analysis</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { category: "CORE AI ENGINE", plutus: "Proprietary Judgmental Forecasting + 3 LLMs (GPT-4, Claude, Gemini)", mantic: "Proprietary AI with multi-agent architecture (DeepMind founders)", gap: "✅ Plutus has more LLMs, Mantic has DeepMind pedigree", gapColor: "#00FF94" },
+                      { category: "Forecasting Approach", plutus: "Multi-factor Bayesian analysis with 5 factor weights", mantic: "Hybrid agent/LLM approach - research, scenario modeling, aggregation", gap: "🔄 Similar approach, different implementation", gapColor: "#FFD700" },
+                      { category: "Time Horizons", plutus: "Short/Medium/Long (adjustable)", mantic: "1 week to 1 year (medium-term focus)", gap: "✅ Plutus more flexible", gapColor: "#00FF94" },
+                      { category: "Backtesting", plutus: "✓ Built-in with Brier scoring", mantic: "✓ Historical replay backtesting", gap: "🔄 Both have backtesting", gapColor: "#FFD700" },
+                      { category: "PREDICTION CATEGORIES", plutus: "10+ (Economics, Geopolitical, Tech, Finance, Disasters, Politics, Corporate, Health, Energy, Space)", mantic: "5+ (Geopolitics, Business, Policy, Technology, Culture)", gap: "✅ Plutus has more categories", gapColor: "#00FF94" },
+                      { category: "OSINT SOURCES", plutus: "1M+ sources + 27 disaster agencies + 57K IoT sensors", mantic: "1M+ sources (OSINT aggregation)", gap: "✅ Plutus adds disaster-specific data", gapColor: "#00FF94" },
+                      { category: "OUTPUT FORMATS", plutus: "Probability %, Rationale, Factor breakdown, Confidence score", mantic: "Probability %, Rationale (historical + recent + arguments)", gap: "✅ Plutus adds factor breakdown", gapColor: "#00FF94" },
+                      { category: "Tabular Streams", plutus: "✓ Probability Streams (9 categories)", mantic: "✓ Structured tabular feeds", gap: "🔄 Both have tabular feeds", gapColor: "#FFD700" },
+                      { category: "Deep Reports", plutus: "✓ On-demand Deep Forecast reports", mantic: "✓ On-demand Deep reports with explanations", gap: "🔄 Both offer deep reports", gapColor: "#FFD700" },
+                      { category: "Custom Dashboards", plutus: "✓ My Dashboards feature", mantic: "✓ Bespoke dashboards for clients", gap: "🔄 Both have dashboards", gapColor: "#FFD700" },
+                      { category: "DISASTER PREDICTION", plutus: "✓ Dedicated module (27 agencies, 57K+ IoT sensors, remediation plans)", mantic: "Limited (not primary focus)", gap: "✅ MAJOR Plutus advantage", gapColor: "#00FF94" },
+                      { category: "INVESTMENT BANKING", plutus: "✓ Full IB Suite (M&A, IPO timing, sector rotation, risk)", mantic: "✗ Not available", gap: "✅ MAJOR Plutus advantage", gapColor: "#00FF94" },
+                      { category: "VEDIC ASTROLOGY", plutus: "✓ Curated predictions from Asishmehta astro", mantic: "✗ Not available", gap: "✅ Unique Plutus feature", gapColor: "#00FF94" },
+                      { category: "ALERTS", plutus: "✓ Email alerts (Resend integration)", mantic: "✓ Notifications when probabilities change", gap: "🔄 Both have alerts", gapColor: "#FFD700" },
+                      { category: "MULTI-LANGUAGE", plutus: "6 languages (EN, ES, FR, AR, ID, SW)", mantic: "1 language (English only)", gap: "✅ Plutus advantage", gapColor: "#00FF94" },
+                      { category: "3D VISUALIZATION", plutus: "✓ Globe view with Three.js", mantic: "✗ Not mentioned", gap: "✅ Plutus advantage", gapColor: "#00FF94" },
+                      { category: "ADMIN PANEL", plutus: "✓ Enterprise + Owner admin (Stripe-like)", mantic: "✓ Client dashboards", gap: "🔄 Both have admin features", gapColor: "#FFD700" },
+                      { category: "API ACCESS", plutus: "✓ Full REST API", mantic: "Contact for custom integrations", gap: "✅ Plutus more accessible", gapColor: "#00FF94" },
+                      { category: "TARGET CLIENTS", plutus: "Enterprise + Pro users", mantic: "Enterprise only (govts, businesses)", gap: "✅ Plutus broader market", gapColor: "#00FF94" },
+                      { category: "PRICING MODEL", plutus: "Tiered (Free, Pro, Enterprise)", mantic: "Custom enterprise pricing", gap: "✅ Plutus more accessible", gapColor: "#00FF94" },
+                    ].map((row, i) => (
+                      <tr key={i} className={`border-b border-[#1F1F1F] ${row.category === row.category.toUpperCase() ? "bg-[#0A0A0A]" : ""}`}>
+                        <td className={`py-3 px-3 ${row.category === row.category.toUpperCase() ? "font-bold text-[#FFD700]" : "text-[#EDEDED] pl-6"}`}>{row.category}</td>
+                        <td className="py-3 px-3 text-center text-xs text-[#00FF94]">{row.plutus}</td>
+                        <td className="py-3 px-3 text-center text-xs text-[#9D4EDD]">{row.mantic}</td>
+                        <td className="py-3 px-3 text-center text-xs" style={{color: row.gapColor}}>{row.gap}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Technology Stack Comparison */}
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card className="terminal-card border-[#00FF94]/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-[#00FF94]">PLUTUS_TECHNOLOGY_STACK</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>Backend:</strong> FastAPI (Python)</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>Frontend:</strong> React + TailwindCSS + Shadcn</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>Database:</strong> MongoDB</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>AI:</strong> OpenAI GPT-4, Anthropic Claude, Google Gemini</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>3D:</strong> Three.js / React-Three-Fiber</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>Email:</strong> Resend</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>Payments:</strong> Stripe</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00FF94]" /> <strong>Auth:</strong> JWT + Role-based</li>
+                </ul>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-[#9D4EDD]/30">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-[#9D4EDD]">MANTIC_TECHNOLOGY_STACK</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#9D4EDD]" /> <strong>AI Engine:</strong> Proprietary (not disclosed)</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#9D4EDD]" /> <strong>Architecture:</strong> Multi-agent LLM system</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#9D4EDD]" /> <strong>Agents:</strong> Research, Scenario, Aggregation</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#9D4EDD]" /> <strong>Validation:</strong> Backtesting on historical data</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#9D4EDD]" /> <strong>Team:</strong> DeepMind, UK university researchers</li>
+                  <li className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-[#FFD700]" /> <strong>API:</strong> Not publicly documented</li>
+                  <li className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-[#FFD700]" /> <strong>Tech details:</strong> Closed source</li>
+                  <li className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-[#FFD700]" /> <strong>Funding:</strong> £3M pre-seed (2025)</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* What's Missing from Plutus */}
+          <Card className="terminal-card border-[#FF6B6B]/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-[#FF6B6B]">⚠️ GAPS_TO_ADDRESS (What Mantic Has That Plutus Needs)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="text-sm font-bold text-[#FFD700] mb-2">High Priority</h4>
+                  <ul className="space-y-2 text-sm text-[#888]">
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FF6B6B] mt-0.5" />
+                      <div>
+                        <strong className="text-[#EDEDED]">Contest/Benchmark Performance</strong>
+                        <p className="text-xs">Mantic placed top-10 in Metaculus 2025. Plutus needs public accuracy validation.</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FF6B6B] mt-0.5" />
+                      <div>
+                        <strong className="text-[#EDEDED]">Superforecaster Pedigree</strong>
+                        <p className="text-xs">Mantic founded by DeepMind researchers. Build credibility through results.</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FF6B6B] mt-0.5" />
+                      <div>
+                        <strong className="text-[#EDEDED]">Live OSINT Pipeline</strong>
+                        <p className="text-xs">Current OSINT is simulated. Need real-time data integration.</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#FFD700] mb-2">Medium Priority</h4>
+                  <ul className="space-y-2 text-sm text-[#888]">
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FFD700] mt-0.5" />
+                      <div>
+                        <strong className="text-[#EDEDED]">Multi-Agent Architecture</strong>
+                        <p className="text-xs">Mantic uses specialized agents (research, scenario, aggregation). Consider similar approach.</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FFD700] mt-0.5" />
+                      <div>
+                        <strong className="text-[#EDEDED]">Probability Change Notifications</strong>
+                        <p className="text-xs">Mantic notifies when tracked probabilities change significantly. Add to alerts.</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FFD700] mt-0.5" />
+                      <div>
+                        <strong className="text-[#EDEDED]">Domain Specialization</strong>
+                        <p className="text-xs">Mantic validates on client domains. Add domain-specific fine-tuning.</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Plutus Advantages */}
+          <Card className="terminal-card border-[#00FF94]/30 bg-gradient-to-r from-[#00FF94]/5 to-transparent">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-[#00FF94]">✅ PLUTUS_UNIQUE_ADVANTAGES (What Mantic Doesn't Have)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { title: "Disaster Prediction", desc: "27 agencies, 57K+ IoT sensors, remediation planning - Marcus Segal 16z vision", icon: AlertTriangle, color: "#FF6B6B" },
+                  { title: "Investment Banking Suite", desc: "AI-powered M&A, IPO timing, sector rotation, risk analytics", icon: TrendingUp, color: "#00FF94" },
+                  { title: "Vedic Astrology", desc: "Unique alternative data source - curated predictions", icon: Moon, color: "#9D4EDD" },
+                  { title: "Multi-Language (6)", desc: "English, Spanish, French, Arabic, Indonesian, Swahili", icon: Globe, color: "#00E5FF" },
+                  { title: "3D Globe Visualization", desc: "Interactive Three.js visualization of global risks", icon: Globe, color: "#FFD700" },
+                  { title: "Accessible Pricing", desc: "Free + Pro + Enterprise tiers vs Enterprise-only", icon: DollarSign, color: "#00FF94" },
+                ].map((adv, i) => (
+                  <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="flex items-center gap-2 mb-1">
+                      <adv.icon className="w-4 h-4" style={{color: adv.color}} />
+                      <span className="text-sm font-medium" style={{color: adv.color}}>{adv.title}</span>
+                    </div>
+                    <p className="text-xs text-[#888]">{adv.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Summary Score */}
+          <Card className="terminal-card">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-[#FFD700] mb-4">COMPETITIVE SCORE SUMMARY</h3>
+                <div className="flex justify-center gap-12">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-[#00FF94]">14</div>
+                    <div className="text-sm text-[#888]">Plutus Advantages</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-[#FFD700]">6</div>
+                    <div className="text-sm text-[#888]">Feature Parity</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-[#FF6B6B]">3</div>
+                    <div className="text-sm text-[#888]">Gaps to Address</div>
+                  </div>
+                </div>
+                <p className="text-sm text-[#888] mt-4 max-w-2xl mx-auto">
+                  <strong className="text-[#00FF94]">Verdict:</strong> Plutus Predict has more features than Mantic but needs to build credibility through 
+                  public benchmark participation and live OSINT integration. The combination of forecasting + disasters + IB suite 
+                  creates a unique market position that Mantic cannot match.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Comparison Table (for forecasting and investment tabs) */}
+      {activeTab !== "mantic" && (
       <Card className="terminal-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">{currentData.title}</CardTitle>
