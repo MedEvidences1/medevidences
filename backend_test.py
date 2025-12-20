@@ -351,8 +351,15 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
-        # NEW FEATURES - Priority tests from review request
-        print("\n🆕 Testing NEW Features:")
+        # NEW B2B FEATURES - Priority tests from review request
+        print("\n🆕 Testing NEW B2B Features:")
+        if login_success:
+            self.test_usage_quotas()  # NEW: Usage & Quotas dashboard
+            self.test_white_label_status()  # NEW: White-Label Status ($10,000 price)
+            self.test_support_tickets_crud()  # NEW: Support Tickets CRUD
+        
+        # Previous NEW features
+        print("\n📊 Testing Previous NEW Features:")
         self.test_pricing_plans()  # NEW: Should return 3 plans
         self.test_osint_live_stream()  # NEW: Should return pipeline data
         
