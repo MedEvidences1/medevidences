@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 
 class PlutusAPITester:
-    def __init__(self, base_url="https://plutuspredict.preview.emergentagent.com"):
+    def __init__(self, base_url="https://disaster-forecast.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
