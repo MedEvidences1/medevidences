@@ -2392,6 +2392,190 @@ async def get_deep_forecast(report_id: str):
     return report
 
 # =============================================================================
+# API ENDPOINTS - ENTERPRISE ADMIN
+# =============================================================================
+
+@api_router.get("/admin/users", tags=["Enterprise Admin"])
+async def get_all_users(user: dict = Depends(get_current_user)):
+    """Get all users (admin only)"""
+    if not user.get("is_admin", False):
+        raise HTTPException(403, "Admin access required")
+    
+    users = await db.users.find({}, {"_id": 0, "password": 0}).to_list(1000)
+    return {"users": users, "total": len(users)}
+
+@api_router.get("/admin/predictions", tags=["Enterprise Admin"])
+async def get_all_predictions_admin(user: dict = Depends(get_current_user)):
+    """Get all predictions with admin details"""
+    if not user.get("is_admin", False):
+        raise HTTPException(403, "Admin access required")
+    
+    predictions = await db.predictions.find({}, {"_id": 0}).to_list(1000)
+    return {"predictions": predictions, "total": len(predictions)}
+
+@api_router.post("/admin/users/{user_id}/promote", tags=["Enterprise Admin"])
+async def promote_user_to_admin(user_id: str, admin_user: dict = Depends(get_current_user)):
+    """Promote user to admin status"""
+    if not admin_user.get("is_admin", False):
+        raise HTTPException(403, "Admin access required")
+    
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_admin": True, "promoted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(404, "User not found")
+    
+    return {"success": True, "message": f"User {user_id} promoted to admin"}
+
+# =============================================================================
+# API ENDPOINTS - 3D VISUALIZATION
+# =============================================================================
+
+@api_router.get("/visualization/globe-data", tags=["3D Visualization"])
+async def get_globe_visualization_data():
+    """Get data for 3D globe visualization of global risks"""
+    # Get recent earthquake data
+    earthquakes = await osint_aggregator.fetch_usgs_earthquakes(4.0, 100)
+    
+    # Get weather alerts
+    weather_alerts = await osint_aggregator.fetch_noaa_alerts()
+    
+    # Get global disasters
+    global_disasters = await osint_aggregator.fetch_gdacs()
+    
+    # Format for 3D globe
+    globe_data = {
+        "earthquakes": [
+            {
+                "lat": eq.get("latitude", 0),
+                "lng": eq.get("longitude", 0),
+                "magnitude": eq.get("magnitude", 0),
+                "location": eq.get("location", "Unknown"),
+                "depth": eq.get("depth_km", 0),
+                "type": "earthquake",
+                "color": "#FF4444",
+                "size": min(eq.get("magnitude", 0) * 2, 20)
+            }
+            for eq in earthquakes if eq.get("latitude") and eq.get("longitude")
+        ],
+        "weather_events": [
+            {
+                "lat": 39.8283,  # Default US center
+                "lng": -98.5795,
+                "severity": alert.get("severity", "Unknown"),
+                "event": alert.get("event", "Weather Alert"),
+                "type": "weather",
+                "color": "#FFD700",
+                "size": 10
+            }
+            for alert in weather_alerts[:20]
+        ],
+        "global_events": [
+            {
+                "lat": 0,  # Default coordinates for global events
+                "lng": 0,
+                "title": disaster.get("title", "Global Event"),
+                "type": "disaster",
+                "color": "#9D4EDD",
+                "size": 15
+            }
+            for disaster in global_disasters[:10]
+        ]
+    }
+    
+    return {
+        "globe_data": globe_data,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "total_events": len(globe_data["earthquakes"]) + len(globe_data["weather_events"]) + len(globe_data["global_events"])
+    }
+
+@api_router.get("/visualization/risk-heatmap", tags=["3D Visualization"])
+async def get_risk_heatmap_data():
+    """Get risk heatmap data for global visualization"""
+    # Generate risk scores for major regions
+    regions = [
+        {"name": "North America", "lat": 45.0, "lng": -100.0, "risk_score": random.randint(20, 80)},
+        {"name": "South America", "lat": -15.0, "lng": -60.0, "risk_score": random.randint(30, 70)},
+        {"name": "Europe", "lat": 50.0, "lng": 10.0, "risk_score": random.randint(15, 60)},
+        {"name": "Africa", "lat": 0.0, "lng": 20.0, "risk_score": random.randint(40, 85)},
+        {"name": "Asia", "lat": 30.0, "lng": 100.0, "risk_score": random.randint(35, 90)},
+        {"name": "Oceania", "lat": -25.0, "lng": 140.0, "risk_score": random.randint(25, 65)},
+    ]
+    
+    return {
+        "heatmap_data": regions,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "legend": {
+            "low": {"range": "0-30", "color": "#00FF94"},
+            "medium": {"range": "31-60", "color": "#FFD700"},
+            "high": {"range": "61-80", "color": "#FF8C00"},
+            "critical": {"range": "81-100", "color": "#FF4444"}
+        }
+    }
+
+@api_router.get("/visualization/prediction-network", tags=["3D Visualization"])
+async def get_prediction_network_data():
+    """Get network visualization data showing prediction relationships"""
+    # Get recent predictions
+    predictions = await db.predictions.find({}, {"_id": 0}).limit(50).to_list(50)
+    
+    # Create network nodes and edges
+    nodes = []
+    edges = []
+    
+    categories = {}
+    for pred in predictions:
+        category = pred.get("category", "other")
+        if category not in categories:
+            categories[category] = []
+        categories[category].append(pred)
+    
+    # Create nodes for categories
+    for i, (category, preds) in enumerate(categories.items()):
+        nodes.append({
+            "id": category,
+            "label": category.title(),
+            "type": "category",
+            "size": len(preds) * 2,
+            "color": ["#FF4444", "#00FF94", "#FFD700", "#9D4EDD", "#FF8C00"][i % 5],
+            "predictions_count": len(preds)
+        })
+        
+        # Create nodes for individual predictions
+        for pred in preds[:10]:  # Limit to 10 per category
+            nodes.append({
+                "id": pred.get("id"),
+                "label": pred.get("title", "Unknown")[:30],
+                "type": "prediction",
+                "size": pred.get("probability", 50) / 10,
+                "color": "#EDEDED",
+                "probability": pred.get("probability", 50),
+                "category": category
+            })
+            
+            # Create edge between category and prediction
+            edges.append({
+                "from": category,
+                "to": pred.get("id"),
+                "weight": pred.get("probability", 50) / 100
+            })
+    
+    return {
+        "network_data": {
+            "nodes": nodes,
+            "edges": edges
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "stats": {
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+            "categories": len(categories)
+        }
+    }
+
+# =============================================================================
 # API ENDPOINTS - TABULAR PREDICTIONS
 # =============================================================================
 
