@@ -860,24 +860,64 @@ class VedicAstrologyEngine:
         return predictions
     
     def extract_future_predictions(self, transcript: str, video_title: str = "") -> List[Dict]:
-        """Extract ONLY WAR & DISASTER predictions (2025-2030) from transcript"""
+        """Extract ONLY WAR, DISASTER & METALS predictions (2025-2030) from transcript
+        EXCLUDES: Personal zodiac, religious content
+        """
         predictions = []
         transcript_lower = transcript.lower()
+        
+        # Skip if transcript contains too much personal/zodiac content
+        personal_keywords = ['your sign', 'your zodiac', 'for aries', 'for taurus', 'for gemini', 
+                           'for cancer', 'for leo', 'for virgo', 'for libra', 'for scorpio',
+                           'for sagittarius', 'for capricorn', 'for aquarius', 'for pisces',
+                           'your horoscope', 'birth chart', 'natal chart', 'love life', 'career advice']
+        
+        personal_count = sum(1 for kw in personal_keywords if kw in transcript_lower)
+        if personal_count > 3:
+            logger.info(f"Skipping transcript - too much personal content ({personal_count} matches)")
+            return []
         
         # Future years to look for
         future_years = ['2025', '2026', '2027', '2028', '2029', '2030']
         
-        # ONLY disaster/war prediction patterns (no economic/political)
+        # Prediction patterns - WAR, DISASTERS, METALS, GEOPOLITICAL ONLY
         prediction_patterns = [
             # Earthquake predictions
-            (r'(earthquake|bhukamp|seismic|tremor|richter).{0,150}(202[5-9]|203[0-9])', 'earthquake'),
+            (r'(earthquake|bhukamp|seismic|tremor|richter|fault line).{0,150}(202[5-9]|203[0-9])', 'earthquake'),
             (r'(202[5-9]|203[0-9]).{0,150}(earthquake|bhukamp|seismic)', 'earthquake'),
+            
             # War/Conflict predictions
-            (r'(war|conflict|military|attack|invasion|yuddh|battle|troops).{0,150}(202[5-9]|203[0-9])', 'war'),
+            (r'(war|conflict|military|attack|invasion|yuddh|battle|troops|army).{0,150}(202[5-9]|203[0-9])', 'war'),
             (r'(202[5-9]|203[0-9]).{0,150}(war|conflict|military|invasion|attack)', 'war'),
-            # India-Pakistan-China war
-            (r'(india|pakistan|china).{0,100}(war|conflict|attack|tension|military)', 'war'),
+            
+            # Specific geopolitical conflicts
+            (r'(india).{0,50}(pakistan).{0,100}(war|conflict|attack|tension|military)', 'war'),
+            (r'(china).{0,50}(taiwan).{0,100}(war|conflict|attack|invasion)', 'war'),
+            (r'(russia).{0,50}(ukraine|nato).{0,100}(war|conflict|escalat)', 'war'),
+            (r'(iran).{0,50}(israel).{0,100}(war|attack|strike|conflict)', 'war'),
+            (r'(world war|nuclear war|ww3|wwiii)', 'war'),
+            
             # Natural disasters
+            (r'(tsunami|flood|cyclone|hurricane|typhoon|storm).{0,150}(202[5-9]|203[0-9])', 'natural_disaster'),
+            (r'(202[5-9]|203[0-9]).{0,150}(tsunami|flood|cyclone|hurricane)', 'natural_disaster'),
+            
+            # Volcanic eruptions
+            (r'(volcano|eruption|volcanic|lava).{0,150}(202[5-9]|203[0-9])', 'volcanic'),
+            
+            # Pandemic
+            (r'(pandemic|disease|virus|outbreak|epidemic).{0,150}(202[5-9]|203[0-9])', 'pandemic'),
+            
+            # Nuclear threats
+            (r'(nuclear|atomic|radiation|missile|bomb).{0,150}(202[5-9]|203[0-9]|war|attack)', 'nuclear'),
+            
+            # METALS & COMMODITIES
+            (r'(gold|silver|precious metal).{0,150}(price|crash|rise|increase|decrease|202[5-9])', 'metals'),
+            (r'(202[5-9]|203[0-9]).{0,150}(gold|silver).{0,50}(price|crash|rise)', 'metals'),
+            (r'(gold).{0,100}(will|going to|predict).{0,50}(rise|fall|crash|increase)', 'metals'),
+            
+            # Economic crash
+            (r'(economic|economy|market).{0,100}(crash|collapse|recession).{0,100}(202[5-9]|203[0-9])', 'economic'),
+        ]
             (r'(tsunami|flood|cyclone|hurricane|typhoon|storm).{0,150}(202[5-9]|203[0-9])', 'natural_disaster'),
             (r'(202[5-9]|203[0-9]).{0,150}(tsunami|flood|cyclone|hurricane)', 'natural_disaster'),
             # Volcanic eruptions
