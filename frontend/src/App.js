@@ -885,23 +885,29 @@ const Astrology = ({ getHeaders, user }) => {
                         {/* Show extracted predictions with context text */}
                         <div className="space-y-3">
                           {(item.predictions || []).map((pred, i) => (
-                            <div key={i} className="p-3 bg-[#0A0A0A] border-l-2 rounded" style={{borderColor: getCategoryColor(pred.category)}}>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-lg">{getCategoryIcon(pred.category)}</span>
-                                <Badge style={{backgroundColor: `${getCategoryColor(pred.category)}30`, color: getCategoryColor(pred.category)}}>
-                                  {pred.category?.toUpperCase()}
+                            <div key={i} className="p-4 bg-[#0A0A0A] border-l-4 rounded-lg" style={{borderColor: getCategoryColor(pred.category)}}>
+                              <div className="flex items-center flex-wrap gap-2 mb-3">
+                                <span className="text-2xl">{getCategoryIcon(pred.category)}</span>
+                                <Badge className="text-sm px-3 py-1 font-bold" style={{backgroundColor: getCategoryColor(pred.category), color: '#000'}}>
+                                  {pred.category?.toUpperCase().replace('_', ' ')}
                                 </Badge>
-                                <Badge variant="outline" className="border-[#FFD700] text-[#FFD700]">
-                                  {pred.year_predicted}
+                                <Badge variant="outline" className="border-[#FFD700] text-[#FFD700] px-2 py-1">
+                                  📅 {pred.year_predicted}
                                 </Badge>
-                                <Badge variant="outline" className={pred.confidence === "high" ? "border-[#00FF94] text-[#00FF94]" : "border-[#888] text-[#888]"}>
-                                  {pred.confidence}
+                                <Badge variant="outline" className={`px-2 py-1 ${pred.confidence === "high" ? "border-[#00FF94] text-[#00FF94] bg-[#00FF94]/10" : "border-[#888] text-[#888]"}`}>
+                                  {pred.confidence === "high" ? "⭐ HIGH CONFIDENCE" : pred.confidence?.toUpperCase()}
                                 </Badge>
                               </div>
                               {/* ACTUAL TRANSCRIPT TEXT */}
-                              <div className="text-sm text-[#EDEDED] bg-[#141414] p-2 rounded border border-[#1F1F1F] italic">
+                              <div className="text-sm text-[#EDEDED] bg-[#141414] p-3 rounded border border-[#1F1F1F] italic leading-relaxed">
                                 "{pred.context}"
                               </div>
+                              {/* Astrologer attribution */}
+                              {pred.astrologer && (
+                                <div className="mt-2 text-xs text-[#9D4EDD]">
+                                  — {pred.astrologer}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
