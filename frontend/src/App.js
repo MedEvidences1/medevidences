@@ -157,7 +157,7 @@ const useAuth = () => {
 };
 
 // Navigation Component
-const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
+const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout, language, setLanguage }) => {
   const tabs = [
     { id: "dashboard", label: "DASHBOARD", icon: Home },
     { id: "forecast", label: "AI_FORECAST", icon: Brain },
@@ -174,7 +174,7 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
     { id: "chat", label: "CHAT", icon: MessageSquare },
   ];
 
-  const filteredTabs = tabs.filter(tab => !tab.adminOnly || (user?.role === "admin" || user?.role === "enterprise"));
+  const filteredTabs = tabs.filter(tab => !tab.adminOnly || (user?.role === "admin" || user?.role === "enterprise" || user?.role === "owner"));
 
 
   return (
@@ -207,6 +207,26 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* Language Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-xs border border-[#1F1F1F]">
+                {SUPPORTED_LANGUAGES[language]?.flag} {language.toUpperCase()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-[#0A0A0A] border-[#1F1F1F]">
+              {Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => (
+                <DropdownMenuItem 
+                  key={code}
+                  onClick={() => setLanguage(code)}
+                  className={`cursor-pointer ${language === code ? "bg-[#1F1F1F]" : ""}`}
+                >
+                  {info.flag} {info.native}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
