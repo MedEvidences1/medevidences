@@ -114,7 +114,7 @@ class PaymentRequest(BaseModel):
     plan: str
     origin_url: str
 
-# Mantic-style Deep Forecast Request
+# Deep Forecast Request
 class DeepForecastRequest(BaseModel):
     topic: str = Field(..., min_length=5, max_length=200)
     num_questions: int = Field(default=5, ge=1, le=10)
@@ -126,7 +126,7 @@ class DashboardRequest(BaseModel):
     predictions: List[str]  # List of prediction IDs to track
     notify_on_change: bool = True
 
-# Tabular Prediction Categories (Mantic-style)
+# Tabular Prediction Categories
 TABULAR_CATEGORIES = {
     "terror_attacks": {"name": "Terror Attack Probability", "refresh_hours": 24},
     "ceo_departures": {"name": "CEO Departure Probability", "refresh_hours": 168},
@@ -1325,12 +1325,12 @@ class CustomDashboardManager:
 dashboard_manager = CustomDashboardManager()
 
 # =============================================================================
-# MANTIC-STYLE DEEP FORECAST ENGINE
+# DEEP FORECAST ENGINE
 # =============================================================================
 
 class DeepForecastEngine:
     """
-    Mantic.com-style deep forecast reports
+    Comprehensive deep forecast reports
     - Generates multiple related prediction questions
     - Provides comprehensive analysis with rationale
     - Historical context and key arguments
