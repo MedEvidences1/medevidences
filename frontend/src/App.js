@@ -926,72 +926,10 @@ const Disasters = ({ getHeaders }) => {
           </Card>
         </div>
       )}
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="w-4 h-4 text-[#FF3333]" />LIVE_EARTHQUAKES_USGS
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[350px]">
-              <div className="space-y-2">
-                {earthquakes.map((eq, i) => (
-                  <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] border-l-2 border-l-[#FF3333] hover:border-[#FF3333]">
-                    <div className="flex justify-between">
-                      <span className="font-mono font-bold text-[#FF3333]">M{eq.magnitude}</span>
-                      <span className="text-xs text-[#888]">{new Date(eq.time).toLocaleString()}</span>
-                    </div>
-                    <p className="text-xs text-[#EDEDED] mt-1">{eq.location}</p>
-                    <div className="text-xs text-[#444] mt-1">Depth: {eq.depth_km}km</div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
 
-        <Card className="terminal-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Cloud className="w-4 h-4 text-[#FFAA00]" />WEATHER_ALERTS_NOAA
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[350px]">
-              <div className="space-y-2">
-                {weatherAlerts.map((alert, i) => (
-                  <div key={i} className={`p-2 bg-[#0A0A0A] border border-[#1F1F1F] border-l-2 ${alert.severity === "Extreme" ? "border-l-[#FF3333]" : "border-l-[#FFAA00]"}`}>
-                    <div className="font-medium text-xs">{alert.event}</div>
-                    <div className="text-xs text-[#888] mt-1 truncate">{alert.areas}</div>
-                    <Badge className={`mt-1 text-xs ${alert.severity === "Extreme" ? "risk-critical" : "risk-elevated"}`}>{alert.severity}</Badge>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="terminal-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[#00E5FF]" />GLOBAL_DISASTERS_GDACS
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {globalDisasters.slice(0, 8).map((d, i) => (
-              <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#00E5FF]">
-                <div className="font-medium text-xs text-[#EDEDED] line-clamp-2">{d.title}</div>
-                <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#00E5FF] mt-1 flex items-center gap-1">
-                  <ExternalLink className="w-3 h-3" /> Details
-                </a>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* Footer */}
       <div className="text-xs text-[#444] text-center">
-        Data reconciled with Astrology predictions for accuracy enhancement. View ASTROLOGY tab for predictions.
+        Connected to {agencies?.total_agencies || 27} disaster agencies worldwide • {sensors?.total_sensors?.toLocaleString() || "57,213"} IoT sensors • Save lives & $trillions
       </div>
     </div>
   );
