@@ -3878,6 +3878,201 @@ async def manage_user(user_id: str, action: str, data: Dict = None, admin_user: 
     return await enterprise_admin.manage_user(admin_user, user_id, action, data or {})
 
 # =============================================================================
+# API ENDPOINTS - ORGANIZATION MANAGEMENT
+# =============================================================================
+
+class OrganizationCreate(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+
+class EmployeeAdd(BaseModel):
+    email: EmailStr
+
+@api_router.post("/admin/organization/create", tags=["Organization"])
+async def create_organization(org_data: OrganizationCreate, user: dict = Depends(get_current_user)):
+    """Create a new enterprise organization"""
+    result = await enterprise_admin.create_organization(user, org_data.dict())
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+@api_router.get("/admin/organization/{org_id}/employees", tags=["Organization"])
+async def get_organization_employees(org_id: str, user: dict = Depends(get_current_user)):
+    """Get all employees in organization (max 10)"""
+    result = await enterprise_admin.get_organization_employees(org_id)
+    if "error" in result:
+        raise HTTPException(404, result["error"])
+    return result
+
+@api_router.post("/admin/organization/{org_id}/employees", tags=["Organization"])
+async def add_employee(org_id: str, employee: EmployeeAdd, user: dict = Depends(get_current_user)):
+    """Add employee to organization (max 10 employees)"""
+    result = await enterprise_admin.add_employee(user, org_id, employee.email)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+@api_router.delete("/admin/organization/{org_id}/employees/{employee_id}", tags=["Organization"])
+async def remove_employee(org_id: str, employee_id: str, user: dict = Depends(get_current_user)):
+    """Remove employee from organization"""
+    result = await enterprise_admin.remove_employee(user, org_id, employee_id)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+# =============================================================================
+# API ENDPOINTS - DOCUMENT MANAGEMENT
+# =============================================================================
+
+class DocumentCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    type: str = "report"
+    content: Dict = {}
+    tags: List[str] = []
+
+class DocumentShare(BaseModel):
+    user_ids: List[str]
+
+@api_router.post("/admin/documents", tags=["Documents"])
+async def save_document(doc_data: DocumentCreate, user: dict = Depends(get_current_user)):
+    """Save a document/report"""
+    return await enterprise_admin.save_document(user, doc_data.dict())
+
+@api_router.get("/admin/documents", tags=["Documents"])
+async def get_documents(doc_type: str = None, user: dict = Depends(get_current_user)):
+    """Get user's documents"""
+    filters = {"type": doc_type} if doc_type else None
+    docs = await enterprise_admin.get_documents(user, filters)
+    return {"documents": docs, "total": len(docs)}
+
+@api_router.post("/admin/documents/{doc_id}/share", tags=["Documents"])
+async def share_document(doc_id: str, share_data: DocumentShare, user: dict = Depends(get_current_user)):
+    """Share document with other users"""
+    result = await enterprise_admin.share_document(user, doc_id, share_data.user_ids)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+@api_router.delete("/admin/documents/{doc_id}", tags=["Documents"])
+async def delete_document(doc_id: str, user: dict = Depends(get_current_user)):
+    """Delete a document"""
+    result = await enterprise_admin.delete_document(user, doc_id)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+# =============================================================================
+# API ENDPOINTS - PASSWORD MANAGEMENT
+# =============================================================================
+
+class PasswordPolicy(BaseModel):
+    min_length: int = 8
+    require_uppercase: bool = True
+    require_numbers: bool = True
+    require_special: bool = False
+    expiry_days: int = 90
+
+@api_router.post("/admin/users/{user_id}/reset-password", tags=["Password Management"])
+async def reset_user_password(user_id: str, admin_user: dict = Depends(get_current_user)):
+    """Admin reset user password"""
+    result = await enterprise_admin.reset_user_password(admin_user, user_id)
+    if "error" in result:
+        raise HTTPException(403, result["error"])
+    return result
+
+@api_router.post("/admin/organization/{org_id}/password-policy", tags=["Password Management"])
+async def set_password_policy(org_id: str, policy: PasswordPolicy, user: dict = Depends(get_current_user)):
+    """Set password policy for organization"""
+    return await enterprise_admin.enforce_password_policy(org_id, policy.dict())
+
+# =============================================================================
+# API ENDPOINTS - EMAIL MANAGEMENT
+# =============================================================================
+
+class EmailSettings(BaseModel):
+    forecast_alerts: bool = True
+    disaster_alerts: bool = True
+    weekly_digest: bool = True
+    marketing: bool = False
+    reconciliation_matches: bool = True
+
+class OrgEmail(BaseModel):
+    subject: str = Field(..., min_length=1, max_length=200)
+    message: str = Field(..., min_length=1)
+
+@api_router.get("/admin/email-settings", tags=["Email Management"])
+async def get_email_settings(user: dict = Depends(get_current_user)):
+    """Get email notification settings"""
+    return await enterprise_admin.get_email_settings(user)
+
+@api_router.put("/admin/email-settings", tags=["Email Management"])
+async def update_email_settings(settings: EmailSettings, user: dict = Depends(get_current_user)):
+    """Update email notification settings"""
+    return await enterprise_admin.update_email_settings(user, settings.dict())
+
+@api_router.post("/admin/organization/{org_id}/send-email", tags=["Email Management"])
+async def send_organization_email(org_id: str, email: OrgEmail, user: dict = Depends(get_current_user)):
+    """Send email to all organization members"""
+    if user.get("role") not in ["owner", "enterprise_admin", "admin"]:
+        raise HTTPException(403, "Admin access required")
+    return await enterprise_admin.send_organization_email(user, org_id, email.subject, email.message)
+
+# =============================================================================
+# API ENDPOINTS - PAYMENT MANAGEMENT
+# =============================================================================
+
+@api_router.get("/admin/payments/history", tags=["Payment Management"])
+async def get_payment_history(user: dict = Depends(get_current_user)):
+    """Get payment history"""
+    return await enterprise_admin.get_payment_history(user, user.get("organization_id"))
+
+@api_router.get("/admin/invoices", tags=["Payment Management"])
+async def get_invoices(user: dict = Depends(get_current_user)):
+    """Get invoices"""
+    invoices = await enterprise_admin.get_invoices(user, user.get("organization_id"))
+    return {"invoices": invoices, "total": len(invoices)}
+
+# =============================================================================
+# API ENDPOINTS - OWNER ADMIN (First 3 only)
+# =============================================================================
+
+@api_router.get("/owner/availability", tags=["Owner Admin"])
+async def check_owner_availability():
+    """Check if owner registration slots are available"""
+    return await enterprise_admin.check_owner_availability()
+
+@api_router.post("/owner/register", tags=["Owner Admin"])
+async def register_as_owner(user: dict = Depends(get_current_user)):
+    """Register as platform owner (first 3 only)"""
+    result = await enterprise_admin.register_as_owner(user["id"])
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+@api_router.get("/owner/organizations", tags=["Owner Admin"])
+async def get_all_organizations(user: dict = Depends(get_current_user)):
+    """Owner only: Get all organizations"""
+    if user.get("role") != "owner":
+        raise HTTPException(403, "Owner access required")
+    orgs = await enterprise_admin.get_all_organizations(user)
+    return {"organizations": orgs, "total": len(orgs)}
+
+@api_router.get("/owner/revenue", tags=["Owner Admin"])
+async def get_platform_revenue(user: dict = Depends(get_current_user)):
+    """Owner only: Get platform revenue stats"""
+    result = await enterprise_admin.get_platform_revenue(user)
+    if "error" in result:
+        raise HTTPException(403, result["error"])
+    return result
+
+@api_router.get("/owner/users", tags=["Owner Admin"])
+async def get_all_users_owner(page: int = 1, limit: int = 50, user: dict = Depends(get_current_user)):
+    """Owner only: Get all users with pagination"""
+    result = await enterprise_admin.get_all_users(user, page, limit)
+    if "error" in result:
+        raise HTTPException(403, result["error"])
+    return result
+
+# =============================================================================
 # API ENDPOINTS - 3D VISUALIZATION & HOLOGRAPHIC
 # =============================================================================
 
