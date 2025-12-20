@@ -3192,18 +3192,67 @@ const HolographicVisualization = ({ getHeaders }) => {
   );
 };
 
-// Enterprise Admin Component
+// Enterprise Admin Component - Stripe-like Admin Panel
 const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
   const [adminData, setAdminData] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeSection, setActiveSection] = useState("overview");
+  
+  // Team Management State
+  const [employees, setEmployees] = useState([]);
+  const [newEmployeeEmail, setNewEmployeeEmail] = useState("");
+  const [addingEmployee, setAddingEmployee] = useState(false);
+  
+  // Document Management State
+  const [documents, setDocuments] = useState([]);
+  const [showNewDocModal, setShowNewDocModal] = useState(false);
+  const [newDoc, setNewDoc] = useState({ title: "", type: "report", content: "", tags: "" });
+  const [shareDocId, setShareDocId] = useState(null);
+  const [shareEmails, setShareEmails] = useState("");
+  
+  // Payment State
+  const [payments, setPayments] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  
+  // Email State
+  const [emailSettings, setEmailSettings] = useState(null);
+  const [orgEmailSubject, setOrgEmailSubject] = useState("");
+  const [orgEmailMessage, setOrgEmailMessage] = useState("");
+  
+  // Password Management State
+  const [passwordPolicy, setPasswordPolicy] = useState({
+    min_length: 8,
+    require_uppercase: true,
+    require_numbers: true,
+    require_special: false,
+    expiry_days: 90
+  });
+  const [resetPasswordUserId, setResetPasswordUserId] = useState(null);
+  const [tempPassword, setTempPassword] = useState("");
+  
+  // Organization State
+  const [organizations, setOrganizations] = useState([]);
+  const [showNewOrgModal, setShowNewOrgModal] = useState(false);
+  const [newOrgName, setNewOrgName] = useState("");
+
+  const isOwner = user?.role === "owner" || user?.role === "super_admin" || user?.role === "admin";
+  const isEnterpriseAdmin = user?.role === "enterprise_admin" || user?.role === "enterprise";
+  const orgId = user?.organization_id || "default-org";
 
   useEffect(() => {
-    if (user?.role === "admin" || user?.role === "enterprise") {
+    if (user && (isOwner || isEnterpriseAdmin)) {
       loadAdminData();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (activeSection === "team") loadEmployees();
+    if (activeSection === "documents") loadDocuments();
+    if (activeSection === "payments") loadPayments();
+    if (activeSection === "emails") loadEmailSettings();
+    if (activeSection === "organizations" && isOwner) loadOrganizations();
+  }, [activeSection]);
 
   const loadAdminData = async () => {
     setLoading(true);
@@ -3220,6 +3269,195 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
     setLoading(false);
   };
 
+  const loadEmployees = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/organization/${orgId}/employees`, { headers: getHeaders() });
+      setEmployees(res.data.employees || []);
+    } catch (e) {
+      console.error("Error loading employees:", e);
+    }
+  };
+
+  const loadDocuments = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/documents`, { headers: getHeaders() });
+      setDocuments(res.data || []);
+    } catch (e) {
+      console.error("Error loading documents:", e);
+    }
+  };
+
+  const loadPayments = async () => {
+    try {
+      const [paymentsRes, invoicesRes] = await Promise.all([
+        axios.get(`${API}/admin/payments/history`, { headers: getHeaders() }),
+        axios.get(`${API}/admin/invoices`, { headers: getHeaders() })
+      ]);
+      setPayments(paymentsRes.data.payments || []);
+      setInvoices(invoicesRes.data.invoices || []);
+    } catch (e) {
+      console.error("Error loading payments:", e);
+    }
+  };
+
+  const loadEmailSettings = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/email-settings`, { headers: getHeaders() });
+      setEmailSettings(res.data);
+    } catch (e) {
+      console.error("Error loading email settings:", e);
+    }
+  };
+
+  const loadOrganizations = async () => {
+    try {
+      const res = await axios.get(`${API}/admin/users`, { headers: getHeaders() });
+      setOrganizations(res.data || []);
+    } catch (e) {
+      console.error("Error loading organizations:", e);
+    }
+  };
+
+  // Employee Management
+  const addEmployee = async () => {
+    if (!newEmployeeEmail || employees.length >= 10) return;
+    setAddingEmployee(true);
+    try {
+      await axios.post(`${API}/admin/organization/${orgId}/employees`, 
+        { email: newEmployeeEmail }, 
+        { headers: getHeaders() }
+      );
+      toast.success("Employee added successfully");
+      setNewEmployeeEmail("");
+      loadEmployees();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to add employee");
+    }
+    setAddingEmployee(false);
+  };
+
+  const removeEmployee = async (employeeId) => {
+    try {
+      await axios.delete(`${API}/admin/organization/${orgId}/employees/${employeeId}`, { headers: getHeaders() });
+      toast.success("Employee removed");
+      loadEmployees();
+    } catch (e) {
+      toast.error("Failed to remove employee");
+    }
+  };
+
+  // Document Management
+  const saveDocument = async () => {
+    try {
+      await axios.post(`${API}/admin/documents`, {
+        title: newDoc.title,
+        type: newDoc.type,
+        content: { text: newDoc.content },
+        tags: newDoc.tags.split(",").map(t => t.trim()).filter(Boolean)
+      }, { headers: getHeaders() });
+      toast.success("Document saved");
+      setShowNewDocModal(false);
+      setNewDoc({ title: "", type: "report", content: "", tags: "" });
+      loadDocuments();
+    } catch (e) {
+      toast.error("Failed to save document");
+    }
+  };
+
+  const deleteDocument = async (docId) => {
+    try {
+      await axios.delete(`${API}/admin/documents/${docId}`, { headers: getHeaders() });
+      toast.success("Document deleted");
+      loadDocuments();
+    } catch (e) {
+      toast.error("Failed to delete document");
+    }
+  };
+
+  const shareDocument = async (docId) => {
+    try {
+      const userIds = shareEmails.split(",").map(e => e.trim()).filter(Boolean);
+      await axios.post(`${API}/admin/documents/${docId}/share`, { user_ids: userIds }, { headers: getHeaders() });
+      toast.success("Document shared");
+      setShareDocId(null);
+      setShareEmails("");
+    } catch (e) {
+      toast.error("Failed to share document");
+    }
+  };
+
+  // Password Management
+  const resetUserPassword = async (userId) => {
+    try {
+      const res = await axios.post(`${API}/admin/users/${userId}/reset-password`, {}, { headers: getHeaders() });
+      setTempPassword(res.data.temporary_password);
+      setResetPasswordUserId(userId);
+      toast.success("Password reset successful");
+    } catch (e) {
+      toast.error("Failed to reset password");
+    }
+  };
+
+  const updatePasswordPolicy = async () => {
+    try {
+      await axios.post(`${API}/admin/organization/${orgId}/password-policy`, passwordPolicy, { headers: getHeaders() });
+      toast.success("Password policy updated");
+    } catch (e) {
+      toast.error("Failed to update password policy");
+    }
+  };
+
+  // Email Management
+  const updateEmailSettings = async (key, value) => {
+    try {
+      const updatedSettings = { ...emailSettings, [key]: value };
+      await axios.put(`${API}/admin/email-settings`, updatedSettings, { headers: getHeaders() });
+      setEmailSettings(updatedSettings);
+      toast.success("Settings updated");
+    } catch (e) {
+      toast.error("Failed to update settings");
+    }
+  };
+
+  const sendOrgEmail = async () => {
+    try {
+      await axios.post(`${API}/admin/organization/${orgId}/send-email`, {
+        subject: orgEmailSubject,
+        message: orgEmailMessage
+      }, { headers: getHeaders() });
+      toast.success("Email sent to organization");
+      setOrgEmailSubject("");
+      setOrgEmailMessage("");
+    } catch (e) {
+      toast.error("Failed to send email");
+    }
+  };
+
+  // Organization Management
+  const createOrganization = async () => {
+    try {
+      await axios.post(`${API}/admin/organization/create`, { name: newOrgName }, { headers: getHeaders() });
+      toast.success("Organization created");
+      setShowNewOrgModal(false);
+      setNewOrgName("");
+      loadOrganizations();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to create organization");
+    }
+  };
+
+  // Admin Sidebar Menu Items
+  const sidebarItems = [
+    { id: "overview", label: "Overview", icon: Home, color: "#00FF94" },
+    { id: "team", label: "Team", icon: Users, color: "#00E5FF", badge: employees.length > 0 ? `${employees.length}/10` : null },
+    { id: "documents", label: "Documents", icon: FolderOpen, color: "#FFD700" },
+    { id: "security", label: "Security", icon: Shield, color: "#9D4EDD" },
+    { id: "emails", label: "Emails", icon: Mail, color: "#FF6B6B" },
+    { id: "payments", label: "Payments", icon: CreditCard, color: "#00FF94" },
+    ...(isOwner ? [{ id: "organizations", label: "Organizations", icon: Building2, color: "#FFD700" }] : []),
+    { id: "analytics", label: "Analytics", icon: BarChart3, color: "#00E5FF" },
+  ];
+
   if (!user) {
     return (
       <div className="text-center py-12">
@@ -3232,192 +3470,871 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
     );
   }
 
-  if (user.role !== "admin" && user.role !== "enterprise") {
+  if (!isOwner && !isEnterpriseAdmin) {
     return (
       <div className="text-center py-12">
         <Shield className="w-12 h-12 text-[#FF4444] mx-auto mb-4" />
         <h3 className="text-lg text-[#888]">Insufficient permissions</h3>
-        <p className="text-sm text-[#666] mt-2">Enterprise admin access required</p>
+        <p className="text-sm text-[#666] mt-2">Enterprise or Owner access required</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6" data-testid="admin-dashboard">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <Shield className="w-6 h-6 text-[#FFD700]" />ENTERPRISE_ADMIN_PANEL
-        </h2>
-        <Badge className="bg-[#FFD700] text-black">{user.role?.toUpperCase()}</Badge>
+    <div className="flex gap-6" data-testid="admin-dashboard">
+      {/* Sidebar Navigation - Stripe Style */}
+      <div className="w-56 flex-shrink-0">
+        <Card className="terminal-card sticky top-4">
+          <CardContent className="p-2">
+            <div className="p-3 border-b border-[#1F1F1F] mb-2">
+              <div className="text-xs text-[#888] uppercase tracking-wide">Admin Panel</div>
+              <div className="text-sm font-medium text-[#FFD700] mt-1">{user.role?.toUpperCase()}</div>
+            </div>
+            <nav className="space-y-1">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSection(item.id)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded text-sm transition-all ${
+                    activeSection === item.id 
+                      ? "bg-[#1F1F1F] text-white" 
+                      : "text-[#888] hover:text-white hover:bg-[#1A1A1A]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <item.icon className="w-4 h-4" style={{ color: activeSection === item.id ? item.color : undefined }} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">{item.badge}</Badge>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Admin Tabs */}
-      <div className="flex gap-2 border-b border-[#1F1F1F] pb-2">
-        {["overview", "users", "analytics", "osint"].map(tab => (
-          <Button
-            key={tab}
-            size="sm"
-            variant={activeTab === tab ? "default" : "ghost"}
-            onClick={() => setActiveTab(tab)}
-            className={activeTab === tab ? "bg-[#FFD700] text-black" : ""}
-          >
-            {tab.toUpperCase()}
-          </Button>
-        ))}
-      </div>
+      {/* Main Content */}
+      <div className="flex-1 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Shield className="w-5 h-5 text-[#FFD700]" />
+              {sidebarItems.find(i => i.id === activeSection)?.label || "Overview"}
+            </h2>
+            <p className="text-sm text-[#888] mt-1">
+              {activeSection === "overview" && "Platform statistics and system health"}
+              {activeSection === "team" && "Manage team members (max 10 for enterprise)"}
+              {activeSection === "documents" && "Create, share, and manage documents"}
+              {activeSection === "security" && "Password policies and user security"}
+              {activeSection === "emails" && "Email notifications and organization communications"}
+              {activeSection === "payments" && "Payment history and invoices"}
+              {activeSection === "organizations" && "Manage platform organizations"}
+              {activeSection === "analytics" && "Prediction and usage analytics"}
+            </p>
+          </div>
+          <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">
+            <div className="w-2 h-2 rounded-full bg-[#00FF94] mr-2 animate-pulse" />
+            LIVE
+          </Badge>
+        </div>
 
-      {loading ? (
-        <div className="text-center py-12 text-[#888]">Loading admin data...</div>
-      ) : (
-        <>
-          {activeTab === "overview" && adminData && (
-            <>
-              {/* Platform Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {loading && activeSection === "overview" ? (
+          <div className="text-center py-12 text-[#888]">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" />
+            Loading admin data...
+          </div>
+        ) : (
+          <>
+            {/* OVERVIEW SECTION */}
+            {activeSection === "overview" && adminData && (
+              <div className="space-y-6">
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {[
+                    { label: "Total Users", value: adminData.platform_stats?.total_users || 0, color: "#00FF94", icon: Users },
+                    { label: "Forecasts", value: adminData.platform_stats?.total_forecasts || 0, color: "#00E5FF", icon: Brain },
+                    { label: "Predictions", value: adminData.platform_stats?.total_predictions || 0, color: "#FFD700", icon: Target },
+                    { label: "Deep Forecasts", value: adminData.platform_stats?.total_deep_forecasts || 0, color: "#9D4EDD", icon: Layers },
+                    { label: "OSINT Articles", value: (adminData.platform_stats?.osint_articles_processed || 0).toLocaleString(), color: "#FF6B6B", icon: Globe },
+                  ].map((stat, i) => (
+                    <Card key={i} className="terminal-card hover:border-[#333] transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
+                          <span className="text-[10px] text-[#888] uppercase">{stat.label}</span>
+                        </div>
+                        <div className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* System Status */}
                 <Card className="terminal-card">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-[#00FF94]">{adminData.platform_stats?.total_users || 0}</div>
-                    <div className="text-xs text-[#888]">TOTAL_USERS</div>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#00FF94]" />
+                      System Status
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        { label: "Cron Jobs", active: adminData.system_status?.cron_jobs_active },
+                        { label: "Email Alerts", active: adminData.system_status?.email_alerts_active },
+                        { label: "LLM Integration", active: adminData.system_status?.llm_integration },
+                        { label: "OSINT Pipeline", active: true },
+                      ].map((status, i) => (
+                        <div key={i} className="flex items-center gap-2 p-3 bg-[#0A0A0A] rounded">
+                          <div className={`w-2.5 h-2.5 rounded-full ${status.active ? "bg-[#00FF94]" : "bg-[#FF4444]"}`} />
+                          <span className="text-sm">{status.label}</span>
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
+
+                {/* Users by Plan */}
                 <Card className="terminal-card">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-[#00E5FF]">{adminData.platform_stats?.total_forecasts || 0}</div>
-                    <div className="text-xs text-[#888]">FORECASTS</div>
-                  </CardContent>
-                </Card>
-                <Card className="terminal-card">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-[#FFD700]">{adminData.platform_stats?.total_predictions || 0}</div>
-                    <div className="text-xs text-[#888]">PREDICTIONS</div>
-                  </CardContent>
-                </Card>
-                <Card className="terminal-card">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-[#9D4EDD]">{adminData.platform_stats?.total_deep_forecasts || 0}</div>
-                    <div className="text-xs text-[#888]">DEEP_FORECASTS</div>
-                  </CardContent>
-                </Card>
-                <Card className="terminal-card">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-[#FF4444]">{(adminData.platform_stats?.osint_articles_processed || 0).toLocaleString()}</div>
-                    <div className="text-xs text-[#888]">OSINT_ARTICLES</div>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#00E5FF]" />
+                      Users by Plan
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-4 gap-4">
+                      {Object.entries(adminData.users_by_plan || { free: 0, pro: 0, enterprise: 0 }).map(([plan, count]) => (
+                        <div key={plan} className="p-4 bg-[#0A0A0A] rounded text-center">
+                          <div className="text-2xl font-bold text-white">{count}</div>
+                          <div className="text-xs text-[#888] uppercase mt-1">{plan}</div>
+                        </div>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               </div>
+            )}
 
-              {/* System Status */}
-              <Card className="terminal-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">SYSTEM_STATUS</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${adminData.system_status?.cron_jobs_active ? "bg-[#00FF94]" : "bg-[#FF4444]"}`} />
-                      <span className="text-sm">CRON_JOBS</span>
+            {/* TEAM SECTION */}
+            {activeSection === "team" && (
+              <div className="space-y-6">
+                {/* Add Employee */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-[#00FF94]" />
+                      Add Team Member
+                    </CardTitle>
+                    <CardDescription>Add employees to your organization (max 10)</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter employee email..."
+                        value={newEmployeeEmail}
+                        onChange={(e) => setNewEmployeeEmail(e.target.value)}
+                        className="terminal-input flex-1"
+                        disabled={employees.length >= 10}
+                      />
+                      <Button 
+                        onClick={addEmployee} 
+                        disabled={!newEmployeeEmail || addingEmployee || employees.length >= 10}
+                        className="btn-primary"
+                      >
+                        {addingEmployee ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        Add
+                      </Button>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${adminData.system_status?.email_alerts_active ? "bg-[#00FF94]" : "bg-[#FFD700]"}`} />
-                      <span className="text-sm">EMAIL_ALERTS</span>
+                    {employees.length >= 10 && (
+                      <p className="text-xs text-[#FF6B6B] mt-2">Maximum team size reached (10 members)</p>
+                    )}
+                    <div className="mt-2 flex items-center gap-2">
+                      <Progress value={(employees.length / 10) * 100} className="h-2 flex-1" />
+                      <span className="text-xs text-[#888]">{employees.length}/10</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${adminData.system_status?.llm_integration ? "bg-[#00FF94]" : "bg-[#FF4444]"}`} />
-                      <span className="text-sm">LLM_INTEGRATION</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Users by Plan */}
-              <Card className="terminal-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">USERS_BY_PLAN</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4">
-                    {Object.entries(adminData.users_by_plan || {}).map(([plan, count]) => (
-                      <div key={plan} className="flex-1 p-3 bg-[#0A0A0A] rounded text-center">
-                        <div className="text-xl font-bold text-[#EDEDED]">{count}</div>
-                        <div className="text-xs text-[#888] uppercase">{plan}</div>
+                {/* Employee List */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#00E5FF]" />
+                      Team Members ({employees.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {employees.length === 0 ? (
+                      <div className="text-center py-8 text-[#888]">
+                        <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                        <p>No team members yet</p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-
-          {activeTab === "analytics" && analytics && (
-            <Card className="terminal-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">PREDICTION_ANALYTICS</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="text-sm text-[#888] mb-2">BY_CATEGORY</h4>
-                    {Object.entries(analytics.predictions_by_category || {}).map(([cat, count]) => (
-                      <div key={cat} className="flex justify-between py-1 border-b border-[#1F1F1F]">
-                        <span className="text-sm uppercase">{cat}</span>
-                        <span className="text-sm text-[#00FF94]">{count}</span>
+                    ) : (
+                      <div className="space-y-2">
+                        {employees.map((emp, i) => (
+                          <div key={emp.id || i} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded hover:bg-[#1A1A1A] transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-[#1F1F1F] flex items-center justify-center">
+                                <User className="w-4 h-4 text-[#888]" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">{emp.name || emp.email}</div>
+                                <div className="text-xs text-[#888]">{emp.email}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-[10px]">{emp.role || "member"}</Badge>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => resetUserPassword(emp.id)}
+                                className="text-[#FFD700] hover:text-[#FFD700] hover:bg-[#FFD700]/10"
+                              >
+                                <Key className="w-3 h-3" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => removeEmployee(emp.id)}
+                                className="text-[#FF4444] hover:text-[#FF4444] hover:bg-[#FF4444]/10"
+                              >
+                                <UserMinus className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div>
-                    <h4 className="text-sm text-[#888] mb-2">RECONCILIATION</h4>
-                    <div className="text-center py-4">
-                      <div className="text-4xl font-bold text-[#00FF94]">{analytics.reconciliation?.success_rate || 0}%</div>
-                      <div className="text-xs text-[#888]">SUCCESS_RATE</div>
-                      <div className="text-sm mt-2">{analytics.reconciliation?.reconciled || 0} / {analytics.reconciliation?.total || 0}</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    )}
+                  </CardContent>
+                </Card>
 
-          {activeTab === "osint" && (
-            <Card className="terminal-card">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">OSINT_AGGREGATION_STATUS</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="text-5xl font-bold text-[#00E5FF]">1M+</div>
-                  <div className="text-sm text-[#888] mt-2">SOURCES_CONFIGURED</div>
-                  <div className="grid grid-cols-3 gap-4 mt-6 text-left">
-                    <div className="p-3 bg-[#0A0A0A] rounded">
-                      <div className="text-sm text-[#00FF94]">✓ GDELT</div>
-                      <div className="text-xs text-[#888]">Global Events</div>
+                {/* Password Reset Modal */}
+                {tempPassword && (
+                  <Dialog open={!!tempPassword} onOpenChange={() => setTempPassword("")}>
+                    <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F]">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <Key className="w-5 h-5 text-[#FFD700]" />
+                          Password Reset
+                        </DialogTitle>
+                        <DialogDescription>Share this temporary password with the user</DialogDescription>
+                      </DialogHeader>
+                      <div className="p-4 bg-[#1A1A1A] rounded border border-[#333]">
+                        <div className="flex items-center justify-between">
+                          <code className="text-lg text-[#00FF94]">{tempPassword}</code>
+                          <Button size="sm" variant="ghost" onClick={() => {
+                            navigator.clipboard.writeText(tempPassword);
+                            toast.success("Copied to clipboard");
+                          }}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-[#888]">User will be prompted to change password on next login</p>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
+            )}
+
+            {/* DOCUMENTS SECTION */}
+            {activeSection === "documents" && (
+              <div className="space-y-6">
+                {/* Create Document */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <FolderOpen className="w-4 h-4 text-[#FFD700]" />
+                        Documents
+                      </CardTitle>
+                      <CardDescription>Create and manage documents, reports, and analyses</CardDescription>
                     </div>
-                    <div className="p-3 bg-[#0A0A0A] rounded">
-                      <div className="text-sm text-[#00FF94]">✓ USGS</div>
-                      <div className="text-xs text-[#888]">Earthquakes</div>
+                    <Button size="sm" onClick={() => setShowNewDocModal(true)} className="btn-primary">
+                      <Plus className="w-4 h-4 mr-1" />New Document
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {documents.length === 0 ? (
+                      <div className="text-center py-8 text-[#888]">
+                        <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                        <p>No documents yet</p>
+                        <Button size="sm" variant="ghost" onClick={() => setShowNewDocModal(true)} className="mt-2">
+                          Create your first document
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {documents.map((doc) => (
+                          <div key={doc.id} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded hover:bg-[#1A1A1A] transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded bg-[#1F1F1F] flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-[#FFD700]" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">{doc.title}</div>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <Badge variant="outline" className="text-[10px] px-1.5">{doc.type}</Badge>
+                                  {doc.tags?.map(tag => (
+                                    <span key={tag} className="text-[10px] text-[#888]">#{tag}</span>
+                                  ))}
+                                  <span className="text-[10px] text-[#666]">
+                                    <Clock className="w-3 h-3 inline mr-1" />
+                                    {new Date(doc.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => setShareDocId(doc.id)}>
+                                <Share2 className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => {
+                                const blob = new Blob([JSON.stringify(doc.content, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${doc.title}.json`;
+                                a.click();
+                              }}>
+                                <Download className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => deleteDocument(doc.id)} className="text-[#FF4444] hover:text-[#FF4444]">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* New Document Modal */}
+                <Dialog open={showNewDocModal} onOpenChange={setShowNewDocModal}>
+                  <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-[#FFD700]" />
+                        New Document
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="Document title..."
+                        value={newDoc.title}
+                        onChange={(e) => setNewDoc({...newDoc, title: e.target.value})}
+                        className="terminal-input"
+                      />
+                      <div className="flex gap-2">
+                        {["report", "forecast", "analysis"].map(type => (
+                          <Button
+                            key={type}
+                            size="sm"
+                            variant={newDoc.type === type ? "default" : "outline"}
+                            onClick={() => setNewDoc({...newDoc, type})}
+                            className={newDoc.type === type ? "bg-[#FFD700] text-black" : ""}
+                          >
+                            {type}
+                          </Button>
+                        ))}
+                      </div>
+                      <textarea
+                        placeholder="Document content..."
+                        value={newDoc.content}
+                        onChange={(e) => setNewDoc({...newDoc, content: e.target.value})}
+                        className="w-full h-32 bg-[#0A0A0A] border border-[#1F1F1F] rounded p-3 text-sm resize-none focus:outline-none focus:border-[#FFD700]"
+                      />
+                      <Input
+                        placeholder="Tags (comma separated)..."
+                        value={newDoc.tags}
+                        onChange={(e) => setNewDoc({...newDoc, tags: e.target.value})}
+                        className="terminal-input"
+                      />
+                      <Button onClick={saveDocument} disabled={!newDoc.title} className="btn-primary w-full">
+                        <Check className="w-4 h-4 mr-2" />Save Document
+                      </Button>
                     </div>
-                    <div className="p-3 bg-[#0A0A0A] rounded">
-                      <div className="text-sm text-[#00FF94]">✓ NOAA</div>
-                      <div className="text-xs text-[#888]">Weather Alerts</div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Share Document Modal */}
+                <Dialog open={!!shareDocId} onOpenChange={() => setShareDocId(null)}>
+                  <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F]">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Share2 className="w-5 h-5 text-[#00E5FF]" />
+                        Share Document
+                      </DialogTitle>
+                      <DialogDescription>Enter user IDs to share with (comma separated)</DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      placeholder="user-id-1, user-id-2..."
+                      value={shareEmails}
+                      onChange={(e) => setShareEmails(e.target.value)}
+                      className="terminal-input"
+                    />
+                    <Button onClick={() => shareDocument(shareDocId)} className="btn-primary">
+                      <Share2 className="w-4 h-4 mr-2" />Share
+                    </Button>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+
+            {/* SECURITY SECTION */}
+            {activeSection === "security" && (
+              <div className="space-y-6">
+                {/* Password Policy */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-[#9D4EDD]" />
+                      Password Policy
+                    </CardTitle>
+                    <CardDescription>Configure password requirements for your organization</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                        <div>
+                          <div className="text-sm">Minimum Length</div>
+                          <div className="text-xs text-[#888]">Required password length</div>
+                        </div>
+                        <Input
+                          type="number"
+                          min="6"
+                          max="32"
+                          value={passwordPolicy.min_length}
+                          onChange={(e) => setPasswordPolicy({...passwordPolicy, min_length: parseInt(e.target.value)})}
+                          className="terminal-input w-20 text-center"
+                        />
+                      </div>
+                      {[
+                        { key: "require_uppercase", label: "Require Uppercase", desc: "At least one uppercase letter" },
+                        { key: "require_numbers", label: "Require Numbers", desc: "At least one number" },
+                        { key: "require_special", label: "Require Special Characters", desc: "At least one special character" },
+                      ].map(item => (
+                        <div key={item.key} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                          <div>
+                            <div className="text-sm">{item.label}</div>
+                            <div className="text-xs text-[#888]">{item.desc}</div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant={passwordPolicy[item.key] ? "default" : "outline"}
+                            onClick={() => setPasswordPolicy({...passwordPolicy, [item.key]: !passwordPolicy[item.key]})}
+                            className={passwordPolicy[item.key] ? "bg-[#00FF94] text-black hover:bg-[#00FF94]/80" : ""}
+                          >
+                            {passwordPolicy[item.key] ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      ))}
+                      <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                        <div>
+                          <div className="text-sm">Password Expiry</div>
+                          <div className="text-xs text-[#888]">Days until password must be changed</div>
+                        </div>
+                        <Input
+                          type="number"
+                          min="30"
+                          max="365"
+                          value={passwordPolicy.expiry_days}
+                          onChange={(e) => setPasswordPolicy({...passwordPolicy, expiry_days: parseInt(e.target.value)})}
+                          className="terminal-input w-20 text-center"
+                        />
+                      </div>
+                      <Button onClick={updatePasswordPolicy} className="btn-primary w-full">
+                        <Check className="w-4 h-4 mr-2" />Save Password Policy
+                      </Button>
                     </div>
-                    <div className="p-3 bg-[#0A0A0A] rounded">
-                      <div className="text-sm text-[#00FF94]">✓ GDACS</div>
-                      <div className="text-xs text-[#888]">Disasters</div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Actions */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Key className="w-4 h-4 text-[#FFD700]" />
+                      Security Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+                        <Shield className="w-5 h-5" />
+                        <span className="text-xs">Force Password Reset</span>
+                      </Button>
+                      <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+                        <Lock className="w-5 h-5" />
+                        <span className="text-xs">Enable 2FA (Coming Soon)</span>
+                      </Button>
                     </div>
-                    <div className="p-3 bg-[#0A0A0A] rounded">
-                      <div className="text-sm text-[#00FF94]">✓ SEC EDGAR</div>
-                      <div className="text-xs text-[#888]">Financial</div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* EMAILS SECTION */}
+            {activeSection === "emails" && (
+              <div className="space-y-6">
+                {/* Email Settings */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-[#FF6B6B]" />
+                      Notification Settings
+                    </CardTitle>
+                    <CardDescription>Configure which email notifications you receive</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {emailSettings ? (
+                      <div className="space-y-3">
+                        {[
+                          { key: "forecast_alerts", label: "Forecast Alerts", desc: "Get notified when forecasts are ready" },
+                          { key: "disaster_alerts", label: "Disaster Alerts", desc: "Urgent notifications for disaster predictions" },
+                          { key: "weekly_digest", label: "Weekly Digest", desc: "Summary of platform activity" },
+                          { key: "reconciliation_matches", label: "Reconciliation Matches", desc: "When predictions match real-world events" },
+                          { key: "marketing", label: "Marketing Emails", desc: "Product updates and news" },
+                        ].map(item => (
+                          <div key={item.key} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                            <div>
+                              <div className="text-sm">{item.label}</div>
+                              <div className="text-xs text-[#888]">{item.desc}</div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant={emailSettings[item.key] ? "default" : "outline"}
+                              onClick={() => updateEmailSettings(item.key, !emailSettings[item.key])}
+                              className={emailSettings[item.key] ? "bg-[#00FF94] text-black hover:bg-[#00FF94]/80" : ""}
+                            >
+                              {emailSettings[item.key] ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-[#888]">
+                        <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+                        Loading settings...
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Send Organization Email */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Send className="w-4 h-4 text-[#00E5FF]" />
+                      Send Organization Email
+                    </CardTitle>
+                    <CardDescription>Broadcast a message to all organization members</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="Email subject..."
+                        value={orgEmailSubject}
+                        onChange={(e) => setOrgEmailSubject(e.target.value)}
+                        className="terminal-input"
+                      />
+                      <textarea
+                        placeholder="Email message..."
+                        value={orgEmailMessage}
+                        onChange={(e) => setOrgEmailMessage(e.target.value)}
+                        className="w-full h-32 bg-[#0A0A0A] border border-[#1F1F1F] rounded p-3 text-sm resize-none focus:outline-none focus:border-[#00E5FF]"
+                      />
+                      <Button 
+                        onClick={sendOrgEmail} 
+                        disabled={!orgEmailSubject || !orgEmailMessage}
+                        className="btn-primary"
+                      >
+                        <Send className="w-4 h-4 mr-2" />Send Email
+                      </Button>
                     </div>
-                    <div className="p-3 bg-[#0A0A0A] rounded">
-                      <div className="text-sm text-[#00FF94]">✓ arXiv</div>
-                      <div className="text-xs text-[#888]">Academic</div>
-                    </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* PAYMENTS SECTION */}
+            {activeSection === "payments" && (
+              <div className="space-y-6">
+                {/* Payment Summary */}
+                <div className="grid grid-cols-3 gap-4">
+                  <Card className="terminal-card">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <Receipt className="w-4 h-4 text-[#00FF94]" />
+                        <span className="text-[10px] text-[#888]">TOTAL SPENT</span>
+                      </div>
+                      <div className="text-2xl font-bold text-[#00FF94]">
+                        ${payments.reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card className="terminal-card">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <CreditCard className="w-4 h-4 text-[#00E5FF]" />
+                        <span className="text-[10px] text-[#888]">TRANSACTIONS</span>
+                      </div>
+                      <div className="text-2xl font-bold text-[#00E5FF]">{payments.length}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="terminal-card">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <FileText className="w-4 h-4 text-[#FFD700]" />
+                        <span className="text-[10px] text-[#888]">INVOICES</span>
+                      </div>
+                      <div className="text-2xl font-bold text-[#FFD700]">{invoices.length}</div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </>
-      )}
+
+                {/* Payment History */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Receipt className="w-4 h-4 text-[#00FF94]" />
+                      Payment History
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {payments.length === 0 ? (
+                      <div className="text-center py-8 text-[#888]">
+                        <CreditCard className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                        <p>No payments yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {payments.map((payment, i) => (
+                          <div key={payment.id || i} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded flex items-center justify-center ${
+                                payment.status === "succeeded" ? "bg-[#00FF94]/20" : "bg-[#FFD700]/20"
+                              }`}>
+                                {payment.status === "succeeded" ? (
+                                  <Check className="w-4 h-4 text-[#00FF94]" />
+                                ) : (
+                                  <Clock className="w-4 h-4 text-[#FFD700]" />
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-sm">{payment.description || "Payment"}</div>
+                                <div className="text-xs text-[#888]">{new Date(payment.date).toLocaleDateString()}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-medium text-[#00FF94]">${payment.amount?.toFixed(2)}</div>
+                              <div className="text-[10px] text-[#888] uppercase">{payment.status}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Invoices */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-[#FFD700]" />
+                      Invoices
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {invoices.length === 0 ? (
+                      <div className="text-center py-8 text-[#888]">
+                        <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                        <p>No invoices yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {invoices.map((invoice, i) => (
+                          <div key={invoice.id || i} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded">
+                            <div>
+                              <div className="text-sm">{invoice.number || `INV-${i + 1}`}</div>
+                              <div className="text-xs text-[#888]">{new Date(invoice.date).toLocaleDateString()}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-[#00FF94]">${invoice.amount?.toFixed(2)}</span>
+                              <Button size="sm" variant="ghost">
+                                <Download className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* ORGANIZATIONS SECTION (Owner Only) */}
+            {activeSection === "organizations" && isOwner && (
+              <div className="space-y-6">
+                {/* Create Organization */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-[#FFD700]" />
+                        Organizations
+                      </CardTitle>
+                      <CardDescription>Manage enterprise organizations on the platform</CardDescription>
+                    </div>
+                    <Button size="sm" onClick={() => setShowNewOrgModal(true)} className="btn-primary">
+                      <Plus className="w-4 h-4 mr-1" />New Organization
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {organizations.length === 0 ? (
+                      <div className="text-center py-8 text-[#888]">
+                        <Building2 className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                        <p>No organizations yet</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4">
+                        {organizations.filter(u => u.organization_id).map((org, i) => (
+                          <div key={org.id || i} className="p-4 bg-[#0A0A0A] rounded hover:bg-[#1A1A1A] transition-colors">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 rounded bg-[#FFD700]/20 flex items-center justify-center">
+                                <Building2 className="w-5 h-5 text-[#FFD700]" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">{org.name || "Organization"}</div>
+                                <div className="text-xs text-[#888]">{org.organization_id}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-[#888]">
+                              <span>Role: {org.role}</span>
+                              <span>Plan: {org.plan}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* New Organization Modal */}
+                <Dialog open={showNewOrgModal} onOpenChange={setShowNewOrgModal}>
+                  <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F]">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-[#FFD700]" />
+                        Create Organization
+                      </DialogTitle>
+                      <DialogDescription>Create a new enterprise organization</DialogDescription>
+                    </DialogHeader>
+                    <Input
+                      placeholder="Organization name..."
+                      value={newOrgName}
+                      onChange={(e) => setNewOrgName(e.target.value)}
+                      className="terminal-input"
+                    />
+                    <Button onClick={createOrganization} disabled={!newOrgName} className="btn-primary">
+                      <Check className="w-4 h-4 mr-2" />Create Organization
+                    </Button>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
+
+            {/* ANALYTICS SECTION */}
+            {activeSection === "analytics" && analytics && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* By Category */}
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-[#00E5FF]" />
+                        Predictions by Category
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {Object.entries(analytics.predictions_by_category || {}).map(([cat, count]) => (
+                          <div key={cat} className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="uppercase">{cat}</span>
+                                <span className="text-[#00FF94]">{count}</span>
+                              </div>
+                              <Progress value={Math.min((count / 50) * 100, 100)} className="h-1.5" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Reconciliation */}
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Target className="w-4 h-4 text-[#00FF94]" />
+                        Reconciliation Stats
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-4">
+                        <div className="text-5xl font-bold text-[#00FF94]">
+                          {analytics.reconciliation?.success_rate || 0}%
+                        </div>
+                        <div className="text-sm text-[#888] mt-2">Success Rate</div>
+                        <div className="flex justify-center gap-8 mt-4">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-[#00E5FF]">{analytics.reconciliation?.reconciled || 0}</div>
+                            <div className="text-xs text-[#888]">Matched</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-[#FFD700]">{analytics.reconciliation?.total || 0}</div>
+                            <div className="text-xs text-[#888]">Total</div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* OSINT Sources */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-[#9D4EDD]" />
+                      OSINT Data Sources
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center mb-4">
+                      <div className="text-4xl font-bold text-[#00E5FF]">1M+</div>
+                      <div className="text-sm text-[#888]">Sources Configured</div>
+                    </div>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {["GDELT", "USGS", "NOAA", "GDACS", "SEC EDGAR", "arXiv"].map(source => (
+                        <div key={source} className="p-2 bg-[#0A0A0A] rounded text-center">
+                          <div className="text-xs text-[#00FF94]">✓ {source}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };
