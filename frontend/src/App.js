@@ -4035,6 +4035,147 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
     }
   };
 
+  // Usage & Quotas Functions
+  const loadUsageData = async () => {
+    try {
+      const res = await axios.get(`${API}/usage/quotas`, { headers: getHeaders() });
+      setUsageData(res.data);
+    } catch (e) {
+      console.error("Error loading usage data:", e);
+    }
+  };
+
+  // White-Label Functions
+  const loadWhiteLabelStatus = async () => {
+    try {
+      const res = await axios.get(`${API}/white-label/status`, { headers: getHeaders() });
+      setWhiteLabelStatus(res.data);
+      if (res.data.settings) {
+        setWhiteLabelSettings(res.data.settings);
+      }
+    } catch (e) {
+      console.error("Error loading white-label status:", e);
+    }
+  };
+
+  const loadWhiteLabelRequests = async () => {
+    try {
+      const res = await axios.get(`${API}/white-label/requests`, { headers: getHeaders() });
+      setWhiteLabelRequests(res.data);
+      setWhiteLabelPrice(res.data.current_price || 10000);
+    } catch (e) {
+      console.error("Error loading white-label requests:", e);
+    }
+  };
+
+  const requestWhiteLabel = async () => {
+    try {
+      const res = await axios.post(`${API}/white-label/request`, {}, { headers: getHeaders() });
+      toast.success(res.data.message);
+      loadWhiteLabelStatus();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to request white-label");
+    }
+  };
+
+  const activateWhiteLabel = async (orgId, paymentRef) => {
+    try {
+      await axios.post(`${API}/white-label/activate/${orgId}?payment_reference=${paymentRef}`, {}, { headers: getHeaders() });
+      toast.success("White-label activated!");
+      loadWhiteLabelRequests();
+    } catch (e) {
+      toast.error(e.response?.data?.error || "Failed to activate");
+    }
+  };
+
+  const updateWhiteLabelSettings = async () => {
+    try {
+      await axios.put(`${API}/white-label/settings`, whiteLabelSettings, { headers: getHeaders() });
+      toast.success("Settings updated!");
+    } catch (e) {
+      toast.error(e.response?.data?.error || "Failed to update settings");
+    }
+  };
+
+  const updateWhiteLabelPrice = async (newPrice) => {
+    try {
+      await axios.put(`${API}/white-label/price`, { new_price: newPrice }, { headers: getHeaders() });
+      toast.success("Price updated!");
+      setWhiteLabelPrice(newPrice);
+    } catch (e) {
+      toast.error(e.response?.data?.error || "Failed to update price");
+    }
+  };
+
+  // Support Ticket Functions
+  const loadMyTickets = async () => {
+    try {
+      const res = await axios.get(`${API}/support/tickets`, { headers: getHeaders() });
+      setMyTickets(res.data.tickets || []);
+    } catch (e) {
+      console.error("Error loading tickets:", e);
+    }
+  };
+
+  const loadAllTickets = async () => {
+    try {
+      const res = await axios.get(`${API}/support/tickets/all`, { headers: getHeaders() });
+      setAllTickets(res.data);
+    } catch (e) {
+      console.error("Error loading all tickets:", e);
+    }
+  };
+
+  const createTicket = async () => {
+    if (!newTicket.title || !newTicket.description) {
+      toast.error("Title and description required");
+      return;
+    }
+    try {
+      const res = await axios.post(`${API}/support/tickets`, newTicket, { headers: getHeaders() });
+      toast.success(`Ticket #${res.data.ticket_id} created!`);
+      setShowNewTicketModal(false);
+      setNewTicket({ title: "", description: "", category: "other", priority: "medium" });
+      loadMyTickets();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to create ticket");
+    }
+  };
+
+  const loadTicketDetails = async (ticketId) => {
+    try {
+      const res = await axios.get(`${API}/support/tickets/${ticketId}`, { headers: getHeaders() });
+      setSelectedTicket(res.data.ticket);
+    } catch (e) {
+      toast.error("Failed to load ticket");
+    }
+  };
+
+  const sendTicketReply = async () => {
+    if (!ticketReply.trim() || !selectedTicket) return;
+    try {
+      await axios.post(`${API}/support/tickets/${selectedTicket.id}/message`, { content: ticketReply }, { headers: getHeaders() });
+      toast.success("Reply sent!");
+      setTicketReply("");
+      loadTicketDetails(selectedTicket.id);
+      loadMyTickets();
+      if (isOwner) loadAllTickets();
+    } catch (e) {
+      toast.error("Failed to send reply");
+    }
+  };
+
+  const updateTicketStatus = async (ticketId, newStatus) => {
+    try {
+      await axios.put(`${API}/support/tickets/${ticketId}/status`, { status: newStatus }, { headers: getHeaders() });
+      toast.success("Status updated!");
+      if (selectedTicket?.id === ticketId) loadTicketDetails(ticketId);
+      loadAllTickets();
+    } catch (e) {
+      toast.error("Failed to update status");
+    }
+  };
+
   // Employee Management
   const addEmployee = async () => {
     if (!newEmployeeEmail || employees.length >= 10) return;
