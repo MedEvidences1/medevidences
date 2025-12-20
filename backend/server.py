@@ -2431,24 +2431,30 @@ async def get_all_predictions_admin(user: dict = Depends(get_current_user)):
 async def manage_user(user_id: str, action: str, data: Dict = None, admin_user: dict = Depends(get_current_user)):
     """Manage user (upgrade plan, set role, disable)"""
     return await enterprise_admin.manage_user(admin_user, user_id, action, data or {})
-async def promote_user_to_admin(user_id: str, admin_user: dict = Depends(get_current_user)):
-    """Promote user to admin status"""
-    if not admin_user.get("is_admin", False):
-        raise HTTPException(403, "Admin access required")
-    
-    result = await db.users.update_one(
-        {"id": user_id},
-        {"$set": {"is_admin": True, "promoted_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(404, "User not found")
-    
-    return {"success": True, "message": f"User {user_id} promoted to admin"}
 
 # =============================================================================
-# API ENDPOINTS - 3D VISUALIZATION
+# API ENDPOINTS - 3D VISUALIZATION & HOLOGRAPHIC
 # =============================================================================
+
+@api_router.get("/visualization/holographic-dashboard", tags=["3D Visualization"])
+async def get_holographic_dashboard():
+    """Get all data for holographic/3D dashboard display"""
+    return await visualization_engine.get_holographic_dashboard_data()
+
+@api_router.get("/visualization/risk-globe", tags=["3D Visualization"])
+async def get_risk_globe():
+    """Get global risk heatmap for 3D globe"""
+    return await visualization_engine.get_global_risk_heatmap()
+
+@api_router.get("/visualization/probability-distribution", tags=["3D Visualization"])
+async def get_probability_dist(category: str = "all"):
+    """Get probability distributions for 3D charts"""
+    return await visualization_engine.get_probability_distribution(category)
+
+@api_router.get("/visualization/forecast-animation", tags=["3D Visualization"])
+async def get_forecast_animation(metric: str = "global_risk", days: int = 30):
+    """Get time-series data for animated forecasts"""
+    return await visualization_engine.get_time_series_forecast(metric, days)
 
 @api_router.get("/visualization/globe-data", tags=["3D Visualization"])
 async def get_globe_visualization_data():
