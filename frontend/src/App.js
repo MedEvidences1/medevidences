@@ -3923,6 +3923,30 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
   const [showNewOrgModal, setShowNewOrgModal] = useState(false);
   const [newOrgName, setNewOrgName] = useState("");
 
+  // Usage & Quotas State
+  const [usageData, setUsageData] = useState(null);
+  
+  // White-Label State
+  const [whiteLabelStatus, setWhiteLabelStatus] = useState(null);
+  const [whiteLabelRequests, setWhiteLabelRequests] = useState({ pending: [], active: [] });
+  const [whiteLabelSettings, setWhiteLabelSettings] = useState({
+    logo_url: "",
+    company_name: "",
+    primary_color: "#00E5FF",
+    secondary_color: "#00FF94",
+    accent_color: "#FFD700",
+    hide_plutus_branding: false
+  });
+  const [whiteLabelPrice, setWhiteLabelPrice] = useState(10000);
+  
+  // Support Tickets State
+  const [myTickets, setMyTickets] = useState([]);
+  const [allTickets, setAllTickets] = useState({ tickets: [], stats: {} });
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [newTicket, setNewTicket] = useState({ title: "", description: "", category: "other", priority: "medium" });
+  const [ticketReply, setTicketReply] = useState("");
+  const [showNewTicketModal, setShowNewTicketModal] = useState(false);
+
   const isOwner = user?.role === "owner" || user?.role === "super_admin" || user?.role === "admin";
   const isEnterpriseAdmin = user?.role === "enterprise_admin" || user?.role === "enterprise";
   const orgId = user?.organization_id || "default-org";
@@ -3939,6 +3963,11 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
     if (activeSection === "payments") loadPayments();
     if (activeSection === "emails") loadEmailSettings();
     if (activeSection === "organizations" && isOwner) loadOrganizations();
+    if (activeSection === "usage") loadUsageData();
+    if (activeSection === "white-label") loadWhiteLabelStatus();
+    if (activeSection === "support") loadMyTickets();
+    if (activeSection === "all-tickets" && isOwner) loadAllTickets();
+    if (activeSection === "white-label-admin" && isOwner) loadWhiteLabelRequests();
   }, [activeSection]);
 
   const loadAdminData = async () => {
