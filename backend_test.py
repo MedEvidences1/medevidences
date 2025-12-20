@@ -316,7 +316,7 @@ class PlutusAPITester:
             # Test 2: Create a new ticket
             create_response = requests.post(f"{self.api_url}/support/tickets", 
                                           json={
-                                              "subject": "Test API Ticket",
+                                              "title": "Test API Ticket",
                                               "description": "This is a test ticket created by automated testing",
                                               "priority": "medium",
                                               "category": "technical"
