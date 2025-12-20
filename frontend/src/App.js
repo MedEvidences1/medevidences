@@ -486,7 +486,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // Mantic.com style prediction categories
+  // Prediction categories with comprehensive coverage
   const predictionCategories = [
     {
       id: "economics",
@@ -1636,7 +1636,7 @@ const TabularPredictions = () => {
     return "text-[#00FF94]";
   };
 
-  // Mantic-style categories (full coverage)
+  // Full prediction categories with comprehensive coverage
   const tableOptions = [
     { id: "business_tech", label: "BUSINESS", icon: TrendingUp },
     { id: "economics", label: "ECONOMICS", icon: BarChart3 },
