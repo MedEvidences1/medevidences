@@ -523,7 +523,106 @@ VEDIC_CHANNELS = {
     }
 }
 
-# Keywords to identify ONLY disaster/war predictions in videos (filtered for relevance)
+# =============================================================================
+# MANTIC-STYLE PREDICTION CATEGORIES (Full Scope)
+# =============================================================================
+
+# Full prediction categories covering all domains like Mantic.com
+PREDICTION_CATEGORIES = {
+    # BUSINESS & FINANCE
+    "business": {
+        "keywords": ["company", "corporation", "startup", "ipo", "merger", "acquisition", "bankruptcy", "revenue", "profit", "market share", "stock", "shares"],
+        "icon": "building",
+        "color": "#00E5FF"
+    },
+    "economics": {
+        "keywords": ["gdp", "inflation", "interest rate", "recession", "unemployment", "jobs", "growth", "fed", "central bank", "currency", "dollar", "euro", "rupee"],
+        "icon": "trending-up",
+        "color": "#00FF94"
+    },
+    "finance": {
+        "keywords": ["banking", "investment", "hedge fund", "crypto", "bitcoin", "market crash", "stock market", "bonds", "commodity", "gold", "oil price"],
+        "icon": "dollar-sign",
+        "color": "#FFD700"
+    },
+    
+    # GEOPOLITICS & GLOBAL AFFAIRS
+    "global_affairs": {
+        "keywords": ["brics", "g7", "g20", "un", "nato", "summit", "treaty", "sanctions", "diplomacy", "international", "alliance", "bloc"],
+        "icon": "globe",
+        "color": "#9D4EDD"
+    },
+    "politics": {
+        "keywords": ["election", "vote", "president", "prime minister", "parliament", "congress", "referendum", "government", "policy", "legislation", "bill", "law"],
+        "icon": "landmark",
+        "color": "#FF6B6B"
+    },
+    "conflict": {
+        "keywords": ["war", "military", "invasion", "attack", "troops", "conflict", "tension", "ceasefire", "missile", "strike", "defense", "armed"],
+        "icon": "shield",
+        "color": "#FF4444"
+    },
+    
+    # TECHNOLOGY
+    "technology": {
+        "keywords": ["ai", "artificial intelligence", "machine learning", "gpt", "llm", "quantum", "chip", "semiconductor", "tech", "innovation", "software", "hardware"],
+        "icon": "cpu",
+        "color": "#00E5FF"
+    },
+    "space": {
+        "keywords": ["nasa", "spacex", "rocket", "satellite", "mars", "moon", "asteroid", "space station", "orbit", "launch"],
+        "icon": "rocket",
+        "color": "#9D4EDD"
+    },
+    
+    # DISASTERS & ENVIRONMENT
+    "earthquake": {
+        "keywords": ["earthquake", "seismic", "tremor", "magnitude", "richter", "fault line", "aftershock"],
+        "icon": "activity",
+        "color": "#FF4444"
+    },
+    "weather": {
+        "keywords": ["hurricane", "cyclone", "typhoon", "flood", "drought", "tornado", "storm", "climate", "weather", "monsoon"],
+        "icon": "cloud-rain",
+        "color": "#00E5FF"
+    },
+    "pandemic": {
+        "keywords": ["pandemic", "virus", "disease", "outbreak", "epidemic", "vaccine", "covid", "health crisis", "who"],
+        "icon": "alert-triangle",
+        "color": "#FF6B6B"
+    },
+    
+    # ENERGY & COMMODITIES
+    "energy": {
+        "keywords": ["oil", "gas", "opec", "renewable", "solar", "wind", "nuclear power", "energy crisis", "electricity", "pipeline"],
+        "icon": "zap",
+        "color": "#FFD700"
+    },
+    
+    # REGIONAL
+    "india": {
+        "keywords": ["india", "modi", "bjp", "congress", "delhi", "mumbai", "rupee", "sensex", "nifty"],
+        "icon": "map-pin",
+        "color": "#FF6B00"
+    },
+    "china": {
+        "keywords": ["china", "beijing", "xi jinping", "ccp", "taiwan", "yuan", "shanghai"],
+        "icon": "map-pin",
+        "color": "#FF4444"
+    },
+    "usa": {
+        "keywords": ["usa", "america", "biden", "trump", "congress", "fed", "washington", "white house"],
+        "icon": "map-pin",
+        "color": "#3B82F6"
+    },
+    "europe": {
+        "keywords": ["europe", "eu", "european union", "brexit", "germany", "france", "uk", "ecb"],
+        "icon": "map-pin",
+        "color": "#00E5FF"
+    }
+}
+
+# Keywords for astrology videos (still disaster/war focused for reconciliation)
 PREDICTION_KEYWORDS = {
     "earthquake": ["earthquake", "seismic", "bhukamp", "tremor", "magnitude", "richter"],
     "war": ["war", "conflict", "military", "invasion", "yuddh", "attack", "battle", "troops"],
@@ -533,7 +632,7 @@ PREDICTION_KEYWORDS = {
     "nuclear": ["nuclear", "atomic", "radiation", "missile"],
 }
 
-# Disaster-specific search terms for astrology videos
+# Search terms for astrology videos
 DISASTER_SEARCH_TERMS = [
     "earthquake prediction", "war prediction", "disaster prediction",
     "tsunami prediction", "nuclear war", "world war", "conflict prediction",
