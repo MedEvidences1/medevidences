@@ -778,36 +778,94 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       {forecast && (
         <Card className="terminal-card border-2 border-[#00E5FF]/30">
           <CardContent className="p-6" data-testid="forecast-result">
+            {/* Main Probability */}
             <div className="text-center mb-6">
               <div className="font-mono text-6xl font-bold text-[#00E5FF]">{forecast.probability}%</div>
               <div className="text-[#888] text-sm mt-2">PROBABILITY ESTIMATE</div>
-              <Badge className="mt-2 bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30">
-                {forecast.confidence?.toUpperCase()} CONFIDENCE
-              </Badge>
+              <div className="flex justify-center gap-2 mt-2">
+                <Badge className="bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30">
+                  {forecast.confidence?.level || forecast.confidence || "MEDIUM"} CONFIDENCE
+                </Badge>
+                {forecast.methodology?.engine && (
+                  <Badge variant="outline" className="text-[#FFD700] border-[#FFD700]/30">
+                    JUDGMENTAL AI
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <Separator className="bg-[#1F1F1F] my-6" />
 
             <div className="grid md:grid-cols-2 gap-6">
+              {/* Rationale */}
               <div>
                 <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">RATIONALE</h4>
                 <p className="text-sm text-[#EDEDED]">{forecast.rationale}</p>
-              </div>
-              <div>
-                <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">INDIVIDUAL_LLM_FORECASTS</h4>
-                <div className="space-y-2">
-                  {forecast.individual_forecasts?.map((f, i) => (
-                    <div key={i} className="flex justify-between items-center p-2 bg-[#141414] border border-[#1F1F1F]">
-                      <span className="text-sm text-[#888] uppercase">{f.provider}</span>
-                      <span className="font-mono font-bold text-[#00E5FF]">{f.probability}%</span>
+                
+                {/* Methodology Info */}
+                {forecast.methodology && (
+                  <div className="mt-4 p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <h5 className="text-xs text-[#FFD700] mb-2">METHODOLOGY</h5>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="text-[#888]">Event Type:</div>
+                      <div className="text-[#EDEDED]">{forecast.methodology.event_type?.replace(/_/g, ' ')}</div>
+                      <div className="text-[#888]">Base Rate:</div>
+                      <div className="text-[#00FF94]">{forecast.methodology.base_rate}%</div>
+                      <div className="text-[#888]">Time Horizon:</div>
+                      <div className="text-[#EDEDED]">{forecast.methodology.time_horizon?.horizon_type || "medium"}</div>
+                      <div className="text-[#888]">Engine:</div>
+                      <div className="text-[#00E5FF]">{forecast.methodology.engine?.split(' ')[0] || "Plutus AI"}</div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Factor Analysis or LLM Forecasts */}
+              <div>
+                {forecast.factors ? (
+                  <>
+                    <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">FACTOR_ANALYSIS</h4>
+                    <div className="space-y-2">
+                      {Object.entries(forecast.factors).map(([name, data]) => (
+                        <div key={name} className="flex justify-between items-center p-2 bg-[#141414] border border-[#1F1F1F]">
+                          <span className="text-sm text-[#888]">{name.replace(/_/g, ' ')}</span>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              data.impact === "positive" ? "bg-[#00FF94]" : 
+                              data.impact === "negative" ? "bg-[#FF4444]" : "bg-[#FFD700]"
+                            }`} />
+                            <span className="font-mono text-sm text-[#00E5FF]">{(data.score * 100).toFixed(0)}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : forecast.individual_forecasts ? (
+                  <>
+                    <h4 className="text-xs uppercase tracking-wider text-[#888] mb-2">INDIVIDUAL_LLM_FORECASTS</h4>
+                    <div className="space-y-2">
+                      {forecast.individual_forecasts?.map((f, i) => (
+                        <div key={i} className="flex justify-between items-center p-2 bg-[#141414] border border-[#1F1F1F]">
+                          <span className="text-sm text-[#888] uppercase">{f.provider}</span>
+                          <span className="font-mono font-bold text-[#00E5FF]">{f.probability}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
               </div>
             </div>
 
-            <div className="mt-4 text-xs text-[#444]">
-              Sources analyzed: {forecast.sources_analyzed?.toLocaleString()} | Method: {forecast.aggregation_method}
+            {/* Footer Info */}
+            <div className="mt-4 flex justify-between items-center text-xs text-[#444]">
+              <span>
+                {forecast.sources_analyzed ? `Sources: ${forecast.sources_analyzed.toLocaleString()}` : 
+                 forecast.methodology?.factors_analyzed ? `Factors: ${forecast.methodology.factors_analyzed}` : ""}
+                {forecast.aggregation_method && ` | Method: ${forecast.aggregation_method}`}
+              </span>
+              <span className="text-[#00FF94]">
+                {forecast.model_version || "plutus-jf-1.0"}
+              </span>
             </div>
           </CardContent>
         </Card>
