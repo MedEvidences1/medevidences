@@ -754,6 +754,9 @@ const Astrology = ({ getHeaders, user }) => {
     return acc;
   }, {});
 
+  // Total predictions count
+  const totalPredictions = Object.values(predictionCounts).reduce((sum, count) => sum + count, 0);
+
   return (
     <div className="space-y-6" data-testid="astrology-view">
       {/* Header */}
@@ -761,14 +764,14 @@ const Astrology = ({ getHeaders, user }) => {
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Moon className="w-5 h-5 text-[#9D4EDD]" />
-            VEDIC_ASTROLOGY_DISASTER_PREDICTIONS
+            VEDIC_ASTROLOGY_PREDICTIONS
           </h2>
-          <p className="text-xs text-[#888] mt-1">War & Natural Disaster predictions from Abhigya Anand, Prashant Kapoor, Ashish Mehta & Preetika Rao</p>
+          <p className="text-xs text-[#888] mt-1">War, Disasters & Metal Prices from Abhigya Anand, Prashant Kapoor, Ashish Mehta & Preetika Rao</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={importTranscripts} disabled={importing} size="sm" className="bg-[#FFD700] hover:bg-[#FFD700]/80 text-black text-xs">
+          <Button onClick={loadCuratedPredictions} disabled={importing} size="sm" className="bg-[#FFD700] hover:bg-[#FFD700]/80 text-black text-xs">
             {importing ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <FileText className="w-3 h-3 mr-1" />}
-            IMPORT_TRANSCRIPTS
+            LOAD_PREDICTIONS
           </Button>
           <Button onClick={runReconciliation} disabled={reconciling} size="sm" className="bg-[#00FF94] hover:bg-[#00FF94]/80 text-black text-xs">
             {reconciling ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <Target className="w-3 h-3 mr-1" />}
@@ -778,7 +781,7 @@ const Astrology = ({ getHeaders, user }) => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
         <Card className="terminal-card">
           <CardContent className="p-3 text-center">
             <div className="text-2xl font-bold text-[#9D4EDD]">{Object.keys(channels).length}</div>
@@ -787,14 +790,8 @@ const Astrology = ({ getHeaders, user }) => {
         </Card>
         <Card className="terminal-card">
           <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-[#FFD700]">{importedPredictions.length}</div>
-            <div className="text-xs text-[#888]">TRANSCRIPTS</div>
-          </CardContent>
-        </Card>
-        <Card className="terminal-card">
-          <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-[#FF4444]">{predictionCounts.earthquake || 0}</div>
-            <div className="text-xs text-[#888]">EARTHQUAKE</div>
+            <div className="text-2xl font-bold text-[#FFD700]">{totalPredictions}</div>
+            <div className="text-xs text-[#888]">PREDICTIONS</div>
           </CardContent>
         </Card>
         <Card className="terminal-card">
@@ -805,8 +802,20 @@ const Astrology = ({ getHeaders, user }) => {
         </Card>
         <Card className="terminal-card">
           <CardContent className="p-3 text-center">
-            <div className="text-2xl font-bold text-[#00E5FF]">{predictionCounts.natural_disaster || 0}</div>
+            <div className="text-2xl font-bold text-[#FF4444]">{predictionCounts.earthquake || 0}</div>
+            <div className="text-xs text-[#888]">EARTHQUAKE</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#00E5FF]">{(predictionCounts.natural_disaster || 0) + (predictionCounts.pandemic || 0)}</div>
             <div className="text-xs text-[#888]">DISASTERS</div>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card">
+          <CardContent className="p-3 text-center">
+            <div className="text-2xl font-bold text-[#FFD700]">{predictionCounts.metals || 0}</div>
+            <div className="text-xs text-[#888]">METALS</div>
           </CardContent>
         </Card>
         <Card className="terminal-card">
