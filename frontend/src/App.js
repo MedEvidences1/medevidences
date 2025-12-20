@@ -1044,6 +1044,9 @@ const TabularPredictions = () => {
   const tableOptions = [
     { id: "business_tech", label: "BUSINESS", icon: TrendingUp },
     { id: "economics", label: "ECONOMICS", icon: BarChart3 },
+    { id: "finance", label: "FINANCE", icon: DollarSign },
+    { id: "technology", label: "TECHNOLOGY", icon: Cpu },
+    { id: "energy", label: "ENERGY", icon: Zap },
     { id: "global_affairs", label: "GLOBAL", icon: Globe },
     { id: "geopolitical", label: "CONFLICT", icon: Shield },
     { id: "terror_attacks", label: "SECURITY", icon: AlertTriangle },
