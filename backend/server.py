@@ -724,33 +724,40 @@ class VedicAstrologyEngine:
         return predictions
     
     def extract_future_predictions(self, transcript: str, video_title: str = "") -> List[Dict]:
-        """Extract future predictions (2025-2030) from transcript"""
+        """Extract ONLY WAR & DISASTER predictions (2025-2030) from transcript"""
         predictions = []
         transcript_lower = transcript.lower()
         
         # Future years to look for
         future_years = ['2025', '2026', '2027', '2028', '2029', '2030']
         
-        # Prediction patterns
+        # ONLY disaster/war prediction patterns (no economic/political)
         prediction_patterns = [
-            # Disaster predictions
-            (r'(earthquake|bhukamp|seismic).{0,100}(202[5-9]|203[0-9])', 'earthquake'),
-            (r'(tsunami|flood|cyclone|hurricane).{0,100}(202[5-9]|203[0-9])', 'natural_disaster'),
-            (r'(war|conflict|military|attack|invasion|yuddh).{0,100}(202[5-9]|203[0-9])', 'war'),
-            (r'(pandemic|disease|virus|outbreak).{0,100}(202[5-9]|203[0-9])', 'pandemic'),
-            (r'(recession|crash|market collapse|economic crisis).{0,100}(202[5-9]|203[0-9])', 'economic'),
-            # Reverse pattern - year first
-            (r'(202[5-9]|203[0-9]).{0,100}(earthquake|disaster|war|conflict|tsunami)', 'general'),
-            # India-Pakistan specific
-            (r'(india|pakistan|china).{0,100}(war|conflict|attack|tension)', 'geopolitical'),
+            # Earthquake predictions
+            (r'(earthquake|bhukamp|seismic|tremor|richter).{0,150}(202[5-9]|203[0-9])', 'earthquake'),
+            (r'(202[5-9]|203[0-9]).{0,150}(earthquake|bhukamp|seismic)', 'earthquake'),
+            # War/Conflict predictions
+            (r'(war|conflict|military|attack|invasion|yuddh|battle|troops).{0,150}(202[5-9]|203[0-9])', 'war'),
+            (r'(202[5-9]|203[0-9]).{0,150}(war|conflict|military|invasion|attack)', 'war'),
+            # India-Pakistan-China war
+            (r'(india|pakistan|china).{0,100}(war|conflict|attack|tension|military)', 'war'),
+            # Natural disasters
+            (r'(tsunami|flood|cyclone|hurricane|typhoon|storm).{0,150}(202[5-9]|203[0-9])', 'natural_disaster'),
+            (r'(202[5-9]|203[0-9]).{0,150}(tsunami|flood|cyclone|hurricane)', 'natural_disaster'),
+            # Volcanic eruptions
+            (r'(volcano|eruption|volcanic|lava).{0,150}(202[5-9]|203[0-9])', 'volcanic'),
+            # Pandemic
+            (r'(pandemic|disease|virus|outbreak|epidemic).{0,150}(202[5-9]|203[0-9])', 'pandemic'),
+            # Nuclear threats
+            (r'(nuclear|atomic|radiation|missile).{0,150}(202[5-9]|203[0-9]|war|attack)', 'nuclear'),
         ]
         
         for pattern, category in prediction_patterns:
             matches = re.finditer(pattern, transcript_lower, re.IGNORECASE)
             for match in matches:
                 # Get surrounding context
-                start = max(0, match.start() - 150)
-                end = min(len(transcript), match.end() + 150)
+                start = max(0, match.start() - 200)
+                end = min(len(transcript), match.end() + 200)
                 context = transcript[start:end].strip()
                 
                 # Extract year mentioned
@@ -766,7 +773,8 @@ class VedicAstrologyEngine:
                     "context": context,
                     "year_predicted": year,
                     "confidence": confidence,
-                    "source_title": video_title
+                    "source_title": video_title,
+                    "type": "disaster_war"  # Mark as disaster/war only
                 })
         
         # Remove duplicates
