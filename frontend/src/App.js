@@ -3281,9 +3281,10 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
   const loadDocuments = async () => {
     try {
       const res = await axios.get(`${API}/admin/documents`, { headers: getHeaders() });
-      setDocuments(res.data || []);
+      setDocuments(res.data.documents || res.data || []);
     } catch (e) {
       console.error("Error loading documents:", e);
+      setDocuments([]);
     }
   };
 
