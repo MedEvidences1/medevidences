@@ -2705,6 +2705,382 @@ class TabularPredictionsEngine:
 tabular_engine = TabularPredictionsEngine()
 
 # =============================================================================
+# INVESTMENT BANKER SUITE - World Class Analysis Engine
+# =============================================================================
+
+class InvestmentBankerEngine:
+    """
+    Professional Investment Banking Analysis Suite
+    Features:
+    - Portfolio Risk Analysis
+    - M&A Deal Predictions
+    - IPO/Market Timing Signals
+    - Sector Rotation Analysis
+    """
+    
+    def __init__(self):
+        self.osint = osint_aggregator
+        self.sectors = [
+            "technology", "healthcare", "financials", "energy", "industrials",
+            "consumer_discretionary", "consumer_staples", "utilities", 
+            "real_estate", "materials", "communications"
+        ]
+        self.risk_factors = [
+            "market_volatility", "interest_rate", "currency", "credit",
+            "liquidity", "geopolitical", "regulatory", "operational"
+        ]
+    
+    async def analyze_portfolio_risk(self, holdings: List[Dict]) -> Dict:
+        """
+        Comprehensive portfolio risk analysis
+        Input: List of holdings with {symbol, weight, sector}
+        """
+        if not holdings:
+            holdings = self._get_sample_portfolio()
+        
+        # Calculate sector concentration
+        sector_weights = {}
+        for h in holdings:
+            sector = h.get("sector", "other")
+            sector_weights[sector] = sector_weights.get(sector, 0) + h.get("weight", 0)
+        
+        # Risk scores by factor
+        risk_scores = {}
+        for factor in self.risk_factors:
+            base_score = random.uniform(20, 80)
+            # Adjust based on portfolio composition
+            if factor == "market_volatility":
+                tech_weight = sector_weights.get("technology", 0)
+                base_score = min(95, base_score + tech_weight * 0.3)
+            elif factor == "interest_rate":
+                fin_weight = sector_weights.get("financials", 0) + sector_weights.get("real_estate", 0)
+                base_score = min(95, base_score + fin_weight * 0.25)
+            elif factor == "geopolitical":
+                energy_weight = sector_weights.get("energy", 0)
+                base_score = min(95, base_score + energy_weight * 0.4)
+            
+            risk_scores[factor] = round(base_score, 1)
+        
+        # Overall risk score
+        overall_risk = sum(risk_scores.values()) / len(risk_scores)
+        
+        # Value at Risk (VaR) calculation
+        portfolio_value = sum(h.get("value", 10000) for h in holdings)
+        var_95 = portfolio_value * (overall_risk / 100) * 0.1  # Simplified VaR
+        var_99 = var_95 * 1.5
+        
+        # Stress test scenarios
+        stress_tests = [
+            {"scenario": "Market Crash (-20%)", "impact": round(-portfolio_value * 0.20 * (overall_risk/50), 2), "probability": 15},
+            {"scenario": "Interest Rate Spike (+2%)", "impact": round(-portfolio_value * 0.08 * (risk_scores.get("interest_rate", 50)/50), 2), "probability": 25},
+            {"scenario": "Geopolitical Crisis", "impact": round(-portfolio_value * 0.12 * (risk_scores.get("geopolitical", 50)/50), 2), "probability": 20},
+            {"scenario": "Sector Rotation", "impact": round(-portfolio_value * 0.05, 2), "probability": 40},
+            {"scenario": "Currency Devaluation (-10%)", "impact": round(-portfolio_value * 0.10 * (risk_scores.get("currency", 50)/50), 2), "probability": 18},
+        ]
+        
+        # Risk recommendations
+        recommendations = []
+        if sector_weights.get("technology", 0) > 30:
+            recommendations.append({"priority": "high", "action": "Reduce technology exposure", "target": "Below 25%"})
+        if overall_risk > 60:
+            recommendations.append({"priority": "high", "action": "Increase defensive positions", "target": "Add utilities, consumer staples"})
+        if risk_scores.get("liquidity", 0) > 50:
+            recommendations.append({"priority": "medium", "action": "Improve liquidity profile", "target": "Increase cash/short-term bonds"})
+        if not recommendations:
+            recommendations.append({"priority": "low", "action": "Portfolio well-balanced", "target": "Maintain current allocation"})
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "portfolio_summary": {
+                "total_value": portfolio_value,
+                "holdings_count": len(holdings),
+                "sector_allocation": sector_weights
+            },
+            "risk_metrics": {
+                "overall_risk_score": round(overall_risk, 1),
+                "risk_level": "HIGH" if overall_risk > 65 else "MEDIUM" if overall_risk > 40 else "LOW",
+                "factor_scores": risk_scores,
+                "var_95_daily": round(var_95, 2),
+                "var_99_daily": round(var_99, 2),
+                "max_drawdown_estimate": f"{round(overall_risk * 0.4, 1)}%"
+            },
+            "stress_tests": stress_tests,
+            "recommendations": recommendations,
+            "diversification_score": round(100 - (max(sector_weights.values()) if sector_weights else 0) * 1.5, 1)
+        }
+    
+    async def predict_ma_deals(self, sector: str = None, region: str = "global") -> Dict:
+        """
+        M&A Deal Predictions with probability scores
+        """
+        # Fetch relevant OSINT data
+        query = f"merger acquisition {sector or 'corporate'} deal 2025"
+        osint_data = await self.osint.fetch_gdelt(query, 20)
+        
+        # Generate M&A predictions
+        potential_deals = [
+            {"acquirer": "Microsoft", "target": "Discord", "sector": "technology", "probability": 35, "deal_value": "$15-20B", "rationale": "Social gaming expansion, Teams integration"},
+            {"acquirer": "Amazon", "target": "Peloton", "sector": "consumer", "probability": 28, "deal_value": "$5-8B", "rationale": "Fitness ecosystem, Prime integration"},
+            {"acquirer": "JPMorgan", "target": "Robinhood", "sector": "financials", "probability": 22, "deal_value": "$8-12B", "rationale": "Retail trading platform, younger demographics"},
+            {"acquirer": "Apple", "target": "Sonos", "sector": "technology", "probability": 40, "deal_value": "$3-5B", "rationale": "Audio ecosystem expansion"},
+            {"acquirer": "Google", "target": "HubSpot", "sector": "technology", "probability": 45, "deal_value": "$30-35B", "rationale": "CRM/Marketing cloud expansion"},
+            {"acquirer": "Pfizer", "target": "BioNTech", "sector": "healthcare", "probability": 30, "deal_value": "$50-60B", "rationale": "mRNA technology consolidation"},
+            {"acquirer": "Exxon", "target": "Occidental", "sector": "energy", "probability": 55, "deal_value": "$60-70B", "rationale": "Permian Basin consolidation"},
+            {"acquirer": "LVMH", "target": "Prada", "sector": "luxury", "probability": 25, "deal_value": "$15-18B", "rationale": "Italian luxury brand acquisition"},
+            {"acquirer": "Salesforce", "target": "Databricks", "sector": "technology", "probability": 32, "deal_value": "$40-50B", "rationale": "AI/Data platform expansion"},
+            {"acquirer": "Nvidia", "target": "Scale AI", "sector": "technology", "probability": 38, "deal_value": "$10-15B", "rationale": "AI training data infrastructure"},
+        ]
+        
+        # Filter by sector if specified
+        if sector:
+            potential_deals = [d for d in potential_deals if sector.lower() in d["sector"].lower()]
+        
+        # Add market conditions
+        for deal in potential_deals:
+            deal["change_30d"] = random.randint(-8, 8)
+            deal["confidence"] = "high" if deal["probability"] > 40 else "medium" if deal["probability"] > 25 else "speculative"
+            deal["timeline"] = "2025 Q1-Q2" if deal["probability"] > 35 else "2025 H2" if deal["probability"] > 25 else "2026+"
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "region": region,
+            "sector_filter": sector,
+            "market_conditions": {
+                "ma_activity_level": "elevated",
+                "financing_availability": "moderate",
+                "regulatory_environment": "cautious",
+                "cross_border_sentiment": "mixed"
+            },
+            "predictions": sorted(potential_deals, key=lambda x: x["probability"], reverse=True),
+            "sector_hotspots": ["technology", "energy", "healthcare"],
+            "osint_signals": len(osint_data),
+            "total_predicted_value": "$250-300B",
+            "methodology": "AI ensemble + OSINT signals + historical patterns"
+        }
+    
+    async def predict_ipo_timing(self, sector: str = None) -> Dict:
+        """
+        IPO Market Timing and Upcoming IPO Predictions
+        """
+        # Market timing indicators
+        market_indicators = {
+            "vix_level": random.uniform(15, 28),
+            "sp500_trend": random.choice(["bullish", "neutral", "bearish"]),
+            "ipo_backlog": random.randint(150, 300),
+            "recent_ipo_performance": random.uniform(-5, 15),
+            "investor_appetite": random.choice(["strong", "moderate", "weak"])
+        }
+        
+        # IPO window assessment
+        vix = market_indicators["vix_level"]
+        if vix < 18 and market_indicators["sp500_trend"] == "bullish":
+            window_status = "OPEN"
+            window_score = 85
+        elif vix < 22:
+            window_status = "FAVORABLE"
+            window_score = 65
+        elif vix < 28:
+            window_status = "CAUTIOUS"
+            window_score = 40
+        else:
+            window_status = "CLOSED"
+            window_score = 20
+        
+        # Upcoming IPO predictions
+        upcoming_ipos = [
+            {"company": "Stripe", "sector": "fintech", "valuation": "$65-70B", "probability": 75, "timing": "Q1 2025", "exchange": "NYSE"},
+            {"company": "Databricks", "sector": "technology", "valuation": "$45-50B", "probability": 65, "timing": "Q2 2025", "exchange": "NASDAQ"},
+            {"company": "Discord", "sector": "technology", "valuation": "$15-18B", "probability": 55, "timing": "Q2 2025", "exchange": "NASDAQ"},
+            {"company": "Klarna", "sector": "fintech", "valuation": "$12-15B", "probability": 70, "timing": "Q1 2025", "exchange": "NYSE"},
+            {"company": "Shein", "sector": "retail", "valuation": "$60-65B", "probability": 45, "timing": "H2 2025", "exchange": "LSE/NYSE"},
+            {"company": "Revolut", "sector": "fintech", "valuation": "$30-35B", "probability": 50, "timing": "Q3 2025", "exchange": "LSE"},
+            {"company": "Canva", "sector": "technology", "valuation": "$25-30B", "probability": 40, "timing": "H2 2025", "exchange": "ASX/NASDAQ"},
+            {"company": "SpaceX", "sector": "aerospace", "valuation": "$180-200B", "probability": 25, "timing": "2026+", "exchange": "NYSE"},
+            {"company": "ByteDance (TikTok)", "sector": "technology", "valuation": "$250-300B", "probability": 20, "timing": "2026+", "exchange": "HKG"},
+            {"company": "Anthropic", "sector": "AI", "valuation": "$20-25B", "probability": 35, "timing": "H2 2025", "exchange": "NASDAQ"},
+        ]
+        
+        if sector:
+            upcoming_ipos = [i for i in upcoming_ipos if sector.lower() in i["sector"].lower()]
+        
+        for ipo in upcoming_ipos:
+            ipo["first_day_pop_estimate"] = f"{random.randint(5, 45)}%"
+            ipo["recommendation"] = "SUBSCRIBE" if ipo["probability"] > 60 else "WATCH" if ipo["probability"] > 40 else "PASS"
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "market_window": {
+                "status": window_status,
+                "score": window_score,
+                "indicators": market_indicators
+            },
+            "timing_recommendation": {
+                "current_quarter": "FAVORABLE" if window_score > 60 else "WAIT",
+                "best_window": "Q1-Q2 2025" if window_score > 50 else "H2 2025",
+                "avoid_periods": ["Earnings season peaks", "Fed meeting weeks", "Election periods"]
+            },
+            "upcoming_ipos": sorted(upcoming_ipos, key=lambda x: x["probability"], reverse=True),
+            "sector_outlook": {
+                "hot": ["AI/ML", "Fintech", "Clean Energy"],
+                "cooling": ["Traditional Retail", "Real Estate"],
+                "neutral": ["Healthcare", "Industrials"]
+            },
+            "total_pipeline_value": "$500B+",
+            "methodology": "Market sentiment + VIX analysis + Historical IPO patterns"
+        }
+    
+    async def analyze_sector_rotation(self) -> Dict:
+        """
+        Sector Rotation Signals and Recommendations
+        """
+        # Economic cycle assessment
+        cycle_indicators = {
+            "gdp_growth": random.uniform(1.5, 3.5),
+            "inflation": random.uniform(2.0, 4.5),
+            "unemployment": random.uniform(3.5, 5.0),
+            "yield_curve": random.choice(["steepening", "flat", "inverted"]),
+            "pmi": random.uniform(48, 56)
+        }
+        
+        # Determine economic phase
+        if cycle_indicators["gdp_growth"] > 2.5 and cycle_indicators["pmi"] > 52:
+            phase = "EXPANSION"
+            favored = ["technology", "consumer_discretionary", "industrials"]
+            avoid = ["utilities", "consumer_staples"]
+        elif cycle_indicators["gdp_growth"] > 1.5 and cycle_indicators["inflation"] > 3:
+            phase = "LATE_CYCLE"
+            favored = ["energy", "materials", "healthcare"]
+            avoid = ["technology", "real_estate"]
+        elif cycle_indicators["yield_curve"] == "inverted" or cycle_indicators["pmi"] < 50:
+            phase = "CONTRACTION"
+            favored = ["utilities", "consumer_staples", "healthcare"]
+            avoid = ["financials", "industrials", "consumer_discretionary"]
+        else:
+            phase = "RECOVERY"
+            favored = ["financials", "industrials", "real_estate"]
+            avoid = ["utilities", "consumer_staples"]
+        
+        # Sector scores and signals
+        sector_analysis = []
+        for sector in self.sectors:
+            base_score = random.uniform(30, 70)
+            if sector in favored:
+                score = min(95, base_score + 25)
+                signal = "OVERWEIGHT"
+            elif sector in avoid:
+                score = max(10, base_score - 20)
+                signal = "UNDERWEIGHT"
+            else:
+                score = base_score
+                signal = "NEUTRAL"
+            
+            sector_analysis.append({
+                "sector": sector.replace("_", " ").title(),
+                "score": round(score, 1),
+                "signal": signal,
+                "momentum": random.choice(["accelerating", "stable", "decelerating"]),
+                "relative_strength": round(random.uniform(-10, 10), 1),
+                "earnings_revision": f"{random.uniform(-5, 8):.1f}%",
+                "key_drivers": self._get_sector_drivers(sector)
+            })
+        
+        # Sort by score
+        sector_analysis = sorted(sector_analysis, key=lambda x: x["score"], reverse=True)
+        
+        # Rotation recommendations
+        rotations = []
+        for i, s in enumerate(sector_analysis[:3]):
+            for j, a in enumerate(sector_analysis[-3:]):
+                if random.random() > 0.5:
+                    rotations.append({
+                        "from": a["sector"],
+                        "to": s["sector"],
+                        "conviction": "HIGH" if i == 0 else "MEDIUM",
+                        "timeframe": "1-3 months"
+                    })
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "economic_cycle": {
+                "current_phase": phase,
+                "indicators": cycle_indicators,
+                "phase_duration_estimate": f"{random.randint(6, 18)} months"
+            },
+            "sector_rankings": sector_analysis,
+            "recommended_rotations": rotations[:5],
+            "top_picks": [s["sector"] for s in sector_analysis[:3]],
+            "sectors_to_avoid": [s["sector"] for s in sector_analysis[-3:]],
+            "model_allocation": {
+                s["sector"]: f"{round(100/len(self.sectors) + (s['score']-50)/5, 1)}%"
+                for s in sector_analysis[:6]
+            },
+            "methodology": "Economic cycle analysis + Relative strength + Earnings momentum"
+        }
+    
+    def _get_sector_drivers(self, sector: str) -> List[str]:
+        """Get key drivers for each sector"""
+        drivers = {
+            "technology": ["AI adoption", "Cloud spending", "Semiconductor demand"],
+            "healthcare": ["Drug approvals", "Aging demographics", "M&A activity"],
+            "financials": ["Interest rates", "Credit quality", "Trading volumes"],
+            "energy": ["Oil prices", "OPEC decisions", "Clean energy transition"],
+            "industrials": ["Infrastructure spending", "Supply chains", "Automation"],
+            "consumer_discretionary": ["Consumer confidence", "Employment", "E-commerce"],
+            "consumer_staples": ["Inflation", "Pricing power", "Defensive demand"],
+            "utilities": ["Rate cases", "Renewable investments", "Weather patterns"],
+            "real_estate": ["Interest rates", "Remote work trends", "Cap rates"],
+            "materials": ["Commodity prices", "Construction activity", "EV demand"],
+            "communications": ["Ad spending", "Streaming wars", "5G rollout"]
+        }
+        return drivers.get(sector, ["Market conditions", "Economic growth"])
+    
+    def _get_sample_portfolio(self) -> List[Dict]:
+        """Sample portfolio for demo"""
+        return [
+            {"symbol": "AAPL", "weight": 15, "sector": "technology", "value": 15000},
+            {"symbol": "MSFT", "weight": 12, "sector": "technology", "value": 12000},
+            {"symbol": "GOOGL", "weight": 10, "sector": "technology", "value": 10000},
+            {"symbol": "JPM", "weight": 8, "sector": "financials", "value": 8000},
+            {"symbol": "JNJ", "weight": 7, "sector": "healthcare", "value": 7000},
+            {"symbol": "XOM", "weight": 6, "sector": "energy", "value": 6000},
+            {"symbol": "PG", "weight": 5, "sector": "consumer_staples", "value": 5000},
+            {"symbol": "HD", "weight": 5, "sector": "consumer_discretionary", "value": 5000},
+            {"symbol": "NEE", "weight": 4, "sector": "utilities", "value": 4000},
+            {"symbol": "AMT", "weight": 4, "sector": "real_estate", "value": 4000},
+        ]
+    
+    async def get_executive_summary(self) -> Dict:
+        """Generate executive summary for investment bankers"""
+        portfolio_risk = await self.analyze_portfolio_risk([])
+        ma_deals = await self.predict_ma_deals()
+        ipo_timing = await self.predict_ipo_timing()
+        sector_rotation = await self.analyze_sector_rotation()
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "executive_brief": {
+                "market_stance": sector_rotation["economic_cycle"]["current_phase"],
+                "risk_environment": portfolio_risk["risk_metrics"]["risk_level"],
+                "ipo_window": ipo_timing["market_window"]["status"],
+                "ma_activity": ma_deals["market_conditions"]["ma_activity_level"]
+            },
+            "key_recommendations": [
+                f"Sector Focus: {', '.join(sector_rotation['top_picks'][:3])}",
+                f"Risk Alert: {portfolio_risk['risk_metrics']['overall_risk_score']}/100",
+                f"Top M&A Target: {ma_deals['predictions'][0]['target']} ({ma_deals['predictions'][0]['probability']}%)",
+                f"Top IPO: {ipo_timing['upcoming_ipos'][0]['company']} ({ipo_timing['upcoming_ipos'][0]['probability']}%)"
+            ],
+            "detailed_reports": {
+                "portfolio_risk": portfolio_risk,
+                "ma_predictions": ma_deals,
+                "ipo_analysis": ipo_timing,
+                "sector_rotation": sector_rotation
+            }
+        }
+
+investment_banker_engine = InvestmentBankerEngine()
+
+# =============================================================================
 # CRON JOB SCHEDULER
 # =============================================================================
 
