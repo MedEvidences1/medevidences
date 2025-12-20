@@ -1858,14 +1858,15 @@ For each scenario, provide:
 - Potential triggers"""
 
         try:
-            response = await self.llm.send_async(
+            llm = self.get_llm(f"scenario-{uuid.uuid4()}", "You are a scenario planning expert.")
+            response = await llm.send_async(
                 message=UserMessage(content=scenario_prompt),
                 model="gpt-4o",
                 max_tokens=1000
             )
             scenarios_output = response.content
-        except:
-            scenarios_output = "Scenario generation unavailable."
+        except Exception as e:
+            scenarios_output = f"Scenario generation unavailable. Error: {str(e)[:100]}"
         
         # Parse scenarios (simplified)
         scenarios = {
