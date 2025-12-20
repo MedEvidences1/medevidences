@@ -4142,7 +4142,12 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
     { id: "security", label: "Security", icon: Shield, color: "#9D4EDD" },
     { id: "emails", label: "Emails", icon: Mail, color: "#FF6B6B" },
     { id: "payments", label: "Payments", icon: CreditCard, color: "#00FF94" },
+    { id: "usage", label: "Usage & Quotas", icon: BarChart3, color: "#00E5FF" },
+    { id: "white-label", label: "White-Label", icon: Sparkles, color: "#FFD700", badge: "PRO" },
+    { id: "support", label: "Support Tickets", icon: MessageSquare, color: "#9D4EDD" },
     ...(isOwner ? [{ id: "organizations", label: "Organizations", icon: Building2, color: "#FFD700" }] : []),
+    ...(isOwner ? [{ id: "all-tickets", label: "All Tickets", icon: AlertTriangle, color: "#FF6B6B" }] : []),
+    ...(isOwner ? [{ id: "white-label-admin", label: "White-Label Admin", icon: Star, color: "#FFD700" }] : []),
     { id: "analytics", label: "Analytics", icon: BarChart3, color: "#00E5FF" },
   ];
 
