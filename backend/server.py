@@ -4200,6 +4200,107 @@ async def get_ceo_departures():
     return {"ceos": ceos, "updated_at": datetime.now(timezone.utc).isoformat()}
 
 # =============================================================================
+# API ENDPOINTS - INVESTMENT BANKER SUITE
+# =============================================================================
+
+class PortfolioHolding(BaseModel):
+    symbol: str
+    weight: float = Field(..., ge=0, le=100)
+    sector: str = "other"
+    value: float = 10000
+
+class PortfolioRequest(BaseModel):
+    holdings: List[PortfolioHolding] = []
+
+@api_router.get("/investment/summary", tags=["Investment Banking"])
+async def get_investment_executive_summary(user: dict = Depends(get_current_user)):
+    """
+    Executive Summary for Investment Bankers
+    Includes: Market stance, risk environment, IPO window, M&A activity
+    """
+    summary = await investment_banker_engine.get_executive_summary()
+    return summary
+
+@api_router.post("/investment/portfolio-risk", tags=["Investment Banking"])
+async def analyze_portfolio_risk(request: PortfolioRequest = None, user: dict = Depends(get_current_user)):
+    """
+    Comprehensive Portfolio Risk Analysis
+    - Value at Risk (VaR) calculations
+    - Stress test scenarios
+    - Risk factor breakdown
+    - Diversification scoring
+    """
+    holdings = []
+    if request and request.holdings:
+        holdings = [h.dict() for h in request.holdings]
+    
+    analysis = await investment_banker_engine.analyze_portfolio_risk(holdings)
+    return analysis
+
+@api_router.get("/investment/ma-predictions", tags=["Investment Banking"])
+async def get_ma_predictions(sector: str = None, region: str = "global", user: dict = Depends(get_current_user)):
+    """
+    M&A Deal Predictions with Probability Scores
+    Filter by sector: technology, healthcare, financials, energy, consumer, etc.
+    """
+    predictions = await investment_banker_engine.predict_ma_deals(sector, region)
+    return predictions
+
+@api_router.get("/investment/ipo-timing", tags=["Investment Banking"])
+async def get_ipo_timing(sector: str = None, user: dict = Depends(get_current_user)):
+    """
+    IPO Market Timing & Upcoming IPO Predictions
+    - Market window assessment
+    - Upcoming IPO pipeline
+    - First-day pop estimates
+    """
+    analysis = await investment_banker_engine.predict_ipo_timing(sector)
+    return analysis
+
+@api_router.get("/investment/sector-rotation", tags=["Investment Banking"])
+async def get_sector_rotation(user: dict = Depends(get_current_user)):
+    """
+    Sector Rotation Signals & Recommendations
+    - Economic cycle phase
+    - Sector rankings
+    - Rotation recommendations
+    """
+    analysis = await investment_banker_engine.analyze_sector_rotation()
+    return analysis
+
+@api_router.get("/investment/dashboard", tags=["Investment Banking"])
+async def get_investment_dashboard(user: dict = Depends(get_current_user)):
+    """
+    Complete Investment Banking Dashboard
+    All metrics in one call for dashboard display
+    """
+    portfolio = await investment_banker_engine.analyze_portfolio_risk([])
+    ma = await investment_banker_engine.predict_ma_deals()
+    ipo = await investment_banker_engine.predict_ipo_timing()
+    sectors = await investment_banker_engine.analyze_sector_rotation()
+    
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "dashboard": {
+            "risk_score": portfolio["risk_metrics"]["overall_risk_score"],
+            "risk_level": portfolio["risk_metrics"]["risk_level"],
+            "ipo_window": ipo["market_window"]["status"],
+            "ipo_window_score": ipo["market_window"]["score"],
+            "economic_phase": sectors["economic_cycle"]["current_phase"],
+            "top_ma_target": ma["predictions"][0] if ma["predictions"] else None,
+            "top_ipo": ipo["upcoming_ipos"][0] if ipo["upcoming_ipos"] else None,
+            "top_sectors": sectors["top_picks"],
+            "avoid_sectors": sectors["sectors_to_avoid"]
+        },
+        "quick_stats": {
+            "total_ma_pipeline": ma["total_predicted_value"],
+            "total_ipo_pipeline": ipo["total_pipeline_value"],
+            "var_95": portfolio["risk_metrics"]["var_95_daily"],
+            "diversification": portfolio["diversification_score"]
+        }
+    }
+
+# =============================================================================
 # API ENDPOINTS - PAYMENTS
 # =============================================================================
 
