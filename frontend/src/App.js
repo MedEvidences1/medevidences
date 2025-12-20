@@ -1000,64 +1000,8 @@ const Astrology = ({ getHeaders, user }) => {
     </div>
   );
 };
-      toast.success(`Imported ${res.data.transcripts_fetched} transcripts, found ${res.data.predictions_extracted} predictions`);
-      loadData();
-    } catch (e) { toast.error("Import failed"); }
-    setFetchingDaily(false);
-  };
 
-  const runReconciliation = async () => {
-    if (!user) { toast.error("Please login"); return; }
-    setReconciling(true);
-    try {
-      const res = await axios.post(`${API}/astrology/reconcile`, {}, { headers: getHeaders() });
-      toast.success(`Found ${res.data.matches_found} matches with actual disasters`);
-      loadData();
-    } catch (e) { toast.error("Reconciliation failed"); }
-    setReconciling(false);
-  };
-
-  return (
-    <div className="space-y-6" data-testid="astrology-view">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold flex items-center gap-2">
-          <Moon className="w-5 h-5 text-[#9D4EDD]" />
-          VEDIC_ASTROLOGY_PREDICTIONS
-        </h2>
-        <div className="flex gap-2">
-          <Button onClick={importTranscripts} disabled={fetchingDaily} size="sm" className="bg-[#FFD700] hover:bg-[#FFD700]/80 text-black text-xs" data-testid="import-transcripts-btn">
-            {fetchingDaily ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <FileText className="w-3 h-3 mr-1" />}IMPORT_TRANSCRIPTS
-          </Button>
-          <Button onClick={runReconciliation} disabled={reconciling} size="sm" variant="outline" className="text-xs border-[#00FF94] text-[#00FF94]" data-testid="reconcile-btn">
-            {reconciling ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <Target className="w-3 h-3 mr-1" />}RECONCILE_WITH_AI
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="terminal-card border-l-2 border-l-[#9D4EDD]">
-          <CardContent className="p-3 text-center">
-            <div className="font-mono text-2xl font-bold text-[#9D4EDD]">{Object.keys(channels).length}</div>
-            <div className="text-xs text-[#888]">TRACKED CHANNELS</div>
-          </CardContent>
-        </Card>
-        <Card className="terminal-card border-l-2 border-l-[#FFD700]">
-          <CardContent className="p-3 text-center">
-            <div className="font-mono text-2xl font-bold text-[#FFD700]">{storedPredictions.length}</div>
-            <div className="text-xs text-[#888]">STORED PREDICTIONS</div>
-          </CardContent>
-        </Card>
-        <Card className="terminal-card border-l-2 border-l-[#00FF94]">
-          <CardContent className="p-3 text-center">
-            <div className="font-mono text-2xl font-bold text-[#00FF94]">{reconciled.length}</div>
-            <div className="text-xs text-[#888]">RECONCILED</div>
-          </CardContent>
-        </Card>
-        <Card className="terminal-card border-l-2 border-l-[#00E5FF]">
-          <CardContent className="p-3 text-center">
-            <div className="font-mono text-2xl font-bold text-[#00E5FF]">{videos.length}</div>
-            <div className="text-xs text-[#888]">SEARCH RESULTS</div>
+// Tabular Predictions Component
           </CardContent>
         </Card>
       </div>
