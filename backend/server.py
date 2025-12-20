@@ -1750,7 +1750,15 @@ class ForecastingAgent:
     def __init__(self, name: str, role: str):
         self.name = name
         self.role = role
-        self.llm = LlmChat(api_key=os.environ.get('EMERGENT_API_KEY', ''))
+        self.api_key = os.environ.get('EMERGENT_API_KEY', EMERGENT_LLM_KEY)
+    
+    def get_llm(self, session_id: str, system_message: str):
+        """Get LLM instance with proper initialization"""
+        return LlmChat(
+            api_key=self.api_key,
+            session_id=session_id,
+            system_message=system_message
+        )
     
     async def process(self, input_data: Dict) -> Dict:
         raise NotImplementedError
