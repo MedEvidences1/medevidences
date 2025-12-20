@@ -156,12 +156,12 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout }) => {
         </div>
 
         <nav className="hidden lg:flex items-center gap-1">
-          {tabs.map((tab) => (
+          {filteredTabs.map((tab) => (
             <button
               key={tab.id}
               data-testid={`nav-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`nav-item flex items-center gap-2 ${activeTab === tab.id ? "active" : ""}`}
+              className={`nav-item flex items-center gap-2 ${activeTab === tab.id ? "active" : ""} ${tab.adminOnly ? "text-[#FFD700]" : ""}`}
             >
               <tab.icon className="w-4 h-4" />
               {tab.label}
