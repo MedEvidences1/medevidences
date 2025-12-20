@@ -193,7 +193,7 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout, langua
     { id: "chat", label: "CHAT", icon: MessageSquare },
   ];
 
-  const filteredTabs = tabs.filter(tab => !tab.adminOnly || (user?.role === "admin" || user?.role === "enterprise" || user?.role === "owner"));
+  const filteredTabs = tabs.filter(tab => !tab.adminOnly || (user?.role === "admin" || user?.role === "enterprise" || user?.role === "enterprise_admin" || user?.role === "owner" || user?.role === "super_admin"));
 
 
   return (
