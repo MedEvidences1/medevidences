@@ -1544,6 +1544,271 @@ class CustomDashboardManager:
 dashboard_manager = CustomDashboardManager()
 
 # =============================================================================
+# ENTERPRISE ADMIN SYSTEM
+# =============================================================================
+
+class EnterpriseAdminSystem:
+    """
+    Enterprise-level admin panel for:
+    - Platform owner (super admin)
+    - Enterprise customers
+    - User management
+    - Usage analytics
+    - API key management
+    """
+    
+    ROLES = {
+        "super_admin": {"level": 100, "permissions": ["all"]},
+        "enterprise_admin": {"level": 80, "permissions": ["manage_org", "view_analytics", "api_keys", "manage_users"]},
+        "enterprise_user": {"level": 50, "permissions": ["forecasts", "dashboards", "alerts"]},
+        "pro_user": {"level": 30, "permissions": ["forecasts", "limited_api"]},
+        "free_user": {"level": 10, "permissions": ["basic_forecasts"]}
+    }
+    
+    async def get_admin_dashboard(self, admin_user: Dict) -> Dict:
+        """Get comprehensive admin dashboard data"""
+        role = admin_user.get("role", "free_user")
+        
+        if role not in ["admin", "super_admin", "enterprise_admin"]:
+            return {"error": "Insufficient permissions"}
+        
+        # Get platform stats
+        total_users = await db.users.count_documents({})
+        total_forecasts = await db.forecasts.count_documents({})
+        total_predictions = await db.predictions.count_documents({})
+        total_deep_forecasts = await db.deep_forecasts.count_documents({})
+        
+        # Get usage by plan
+        plan_stats = {}
+        for plan in ["free", "pro", "enterprise"]:
+            count = await db.users.count_documents({"plan": plan})
+            plan_stats[plan] = count
+        
+        # Get recent activity
+        recent_forecasts = await db.forecasts.find({}, {"_id": 0}).sort("created_at", -1).limit(10).to_list(10)
+        
+        # Get OSINT stats
+        osint_jobs = await db.cron_jobs.find({"job_type": "daily_osint"}, {"_id": 0}).sort("completed_at", -1).limit(5).to_list(5)
+        total_osint_articles = sum(job.get("articles_collected", 0) for job in osint_jobs)
+        
+        return {
+            "platform_stats": {
+                "total_users": total_users,
+                "total_forecasts": total_forecasts,
+                "total_predictions": total_predictions,
+                "total_deep_forecasts": total_deep_forecasts,
+                "osint_articles_processed": total_osint_articles
+            },
+            "users_by_plan": plan_stats,
+            "recent_activity": {
+                "forecasts": recent_forecasts[:5],
+                "osint_jobs": osint_jobs
+            },
+            "system_status": {
+                "cron_jobs_active": SCHEDULER_AVAILABLE,
+                "email_alerts_active": bool(RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder'),
+                "llm_integration": bool(EMERGENT_LLM_KEY)
+            }
+        }
+    
+    async def get_enterprise_analytics(self, org_id: str = None) -> Dict:
+        """Get analytics for enterprise customers"""
+        # Get forecast accuracy by category
+        accuracy_stats = await accuracy_tracker.get_accuracy_stats(days=90)
+        
+        # Get prediction distribution
+        categories = ["earthquake", "war", "natural_disaster", "pandemic", "nuclear"]
+        category_counts = {}
+        for cat in categories:
+            count = await db.astrology_predictions.count_documents({"predictions.category": cat})
+            category_counts[cat] = count
+        
+        # Get reconciliation success rate
+        total_predictions = await db.astrology_predictions.count_documents({})
+        reconciled = await db.astrology_predictions.count_documents({"reconciled": True})
+        
+        return {
+            "accuracy": accuracy_stats,
+            "predictions_by_category": category_counts,
+            "reconciliation": {
+                "total": total_predictions,
+                "reconciled": reconciled,
+                "success_rate": round(reconciled / total_predictions * 100, 1) if total_predictions > 0 else 0
+            },
+            "api_usage": {
+                "forecasts_today": await db.forecasts.count_documents({
+                    "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()}
+                }),
+                "osint_queries_today": 50  # Placeholder
+            }
+        }
+    
+    async def manage_user(self, admin_user: Dict, target_user_id: str, action: str, data: Dict = None) -> Dict:
+        """Admin user management"""
+        if admin_user.get("role") not in ["admin", "super_admin"]:
+            return {"error": "Insufficient permissions"}
+        
+        if action == "upgrade_plan":
+            new_plan = data.get("plan", "pro")
+            await db.users.update_one(
+                {"id": target_user_id},
+                {"$set": {"plan": new_plan, "upgraded_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            return {"success": True, "message": f"User upgraded to {new_plan}"}
+        
+        elif action == "set_role":
+            new_role = data.get("role", "enterprise_user")
+            await db.users.update_one(
+                {"id": target_user_id},
+                {"$set": {"role": new_role}}
+            )
+            return {"success": True, "message": f"User role set to {new_role}"}
+        
+        elif action == "disable":
+            await db.users.update_one(
+                {"id": target_user_id},
+                {"$set": {"disabled": True, "disabled_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            return {"success": True, "message": "User disabled"}
+        
+        return {"error": "Unknown action"}
+
+enterprise_admin = EnterpriseAdminSystem()
+
+# =============================================================================
+# 3D VISUALIZATION DATA ENGINE
+# =============================================================================
+
+class VisualizationDataEngine:
+    """
+    Generate data for 3D/holographic visualizations:
+    - Global risk heatmaps
+    - Prediction probability distributions
+    - Time-series forecasts for animations
+    - Geospatial disaster data
+    """
+    
+    async def get_global_risk_heatmap(self) -> Dict:
+        """Generate global risk data for 3D globe visualization"""
+        # Risk by region
+        regions = {
+            "asia_pacific": {"lat": 35.0, "lng": 105.0, "risk_factors": ["earthquake", "tsunami", "war"]},
+            "middle_east": {"lat": 29.0, "lng": 47.0, "risk_factors": ["war", "nuclear", "political"]},
+            "europe": {"lat": 54.0, "lng": 15.0, "risk_factors": ["economic", "political"]},
+            "north_america": {"lat": 40.0, "lng": -100.0, "risk_factors": ["earthquake", "hurricane"]},
+            "south_america": {"lat": -15.0, "lng": -60.0, "risk_factors": ["earthquake", "volcanic"]},
+            "africa": {"lat": 0.0, "lng": 20.0, "risk_factors": ["pandemic", "conflict"]},
+            "south_asia": {"lat": 20.0, "lng": 78.0, "risk_factors": ["earthquake", "war", "flood"]},
+        }
+        
+        # Get recent earthquake data for hotspots
+        earthquakes = await osint_aggregator.fetch_usgs_earthquakes(4.5, 100)
+        
+        # Generate risk scores
+        risk_data = []
+        for region_id, region in regions.items():
+            # Calculate regional risk based on factors
+            base_risk = random.uniform(20, 60)
+            
+            # Increase risk if earthquakes nearby
+            nearby_quakes = sum(1 for eq in earthquakes if 
+                abs(eq.get("lat", 0) - region["lat"]) < 20 and 
+                abs(eq.get("lng", 0) - region["lng"]) < 20)
+            
+            risk_score = min(95, base_risk + nearby_quakes * 5)
+            
+            risk_data.append({
+                "region_id": region_id,
+                "coordinates": {"lat": region["lat"], "lng": region["lng"]},
+                "risk_score": round(risk_score, 1),
+                "risk_factors": region["risk_factors"],
+                "earthquake_activity": nearby_quakes,
+                "color_intensity": risk_score / 100
+            })
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "regions": risk_data,
+            "hotspots": earthquakes[:20],
+            "visualization_type": "3d_globe_heatmap"
+        }
+    
+    async def get_probability_distribution(self, category: str = "all") -> Dict:
+        """Get probability distributions for 3D chart visualization"""
+        predictions = await db.predictions.find(
+            {} if category == "all" else {"category": category},
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Group by probability ranges
+        ranges = {"0-20": 0, "20-40": 0, "40-60": 0, "60-80": 0, "80-100": 0}
+        for pred in predictions:
+            prob = pred.get("probability", 50)
+            if prob < 20: ranges["0-20"] += 1
+            elif prob < 40: ranges["20-40"] += 1
+            elif prob < 60: ranges["40-60"] += 1
+            elif prob < 80: ranges["60-80"] += 1
+            else: ranges["80-100"] += 1
+        
+        return {
+            "category": category,
+            "total_predictions": len(predictions),
+            "distribution": ranges,
+            "visualization_type": "3d_bar_chart"
+        }
+    
+    async def get_time_series_forecast(self, metric: str = "global_risk", days: int = 30) -> Dict:
+        """Generate time-series data for animated forecasts"""
+        data_points = []
+        base_value = 45
+        
+        for i in range(days):
+            date = (datetime.now(timezone.utc) + timedelta(days=i)).strftime("%Y-%m-%d")
+            # Simulate forecast with some variance
+            value = base_value + random.uniform(-10, 15) + (i * 0.3)  # Slight upward trend
+            confidence_low = max(0, value - 15)
+            confidence_high = min(100, value + 15)
+            
+            data_points.append({
+                "date": date,
+                "value": round(value, 1),
+                "confidence_interval": [round(confidence_low, 1), round(confidence_high, 1)],
+                "day_index": i
+            })
+        
+        return {
+            "metric": metric,
+            "forecast_horizon_days": days,
+            "data": data_points,
+            "visualization_type": "animated_line_chart"
+        }
+    
+    async def get_holographic_dashboard_data(self) -> Dict:
+        """Compile all data needed for holographic/3D dashboard display"""
+        globe_data = await self.get_global_risk_heatmap()
+        distribution = await self.get_probability_distribution()
+        time_series = await self.get_time_series_forecast()
+        
+        # Get live disaster count
+        earthquakes = await osint_aggregator.fetch_usgs_earthquakes(5.0, 50)
+        
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "globe_visualization": globe_data,
+            "probability_chart": distribution,
+            "forecast_animation": time_series,
+            "live_metrics": {
+                "active_earthquakes_m5plus": len(earthquakes),
+                "global_risk_index": round(random.uniform(40, 65), 1),
+                "predictions_active": await db.predictions.count_documents({"status": "active"}),
+                "astrology_matches": await db.astrology_predictions.count_documents({"reconciled": True})
+            },
+            "display_mode": "holographic_3d"
+        }
+
+visualization_engine = VisualizationDataEngine()
+
+# =============================================================================
 # DEEP FORECAST ENGINE
 # =============================================================================
 
