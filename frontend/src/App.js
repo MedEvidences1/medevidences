@@ -2998,6 +2998,8 @@ const MainApp = () => {
         return <AIForecast getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "deep-forecast":
         return <DeepForecast getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
+      case "investment":
+        return <InvestmentBankerSuite />;
       case "disasters":
         return <Disasters getHeaders={getHeaders} />;
       case "astrology":
