@@ -81,7 +81,7 @@ const API = `${BACKEND_URL}/api`;
 // MULTI-LANGUAGE SUPPORT
 // =============================================================================
 const SUPPORTED_LANGUAGES = {
-  en: { name: "English", native: "English", flag: "🇬🇧" },
+  en: { name: "English", native: "English", flag: "🇺🇸" },
   es: { name: "Spanish", native: "Español", flag: "🇪🇸" },
   fr: { name: "French", native: "Français", flag: "🇫🇷" },
   ar: { name: "Arabic", native: "العربية", flag: "🇸🇦", rtl: true },

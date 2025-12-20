@@ -132,7 +132,7 @@ class DashboardRequest(BaseModel):
 # =============================================================================
 
 SUPPORTED_LANGUAGES = {
-    "en": {"name": "English", "native": "English", "rtl": False},
+    "en": {"name": "English", "native": "English", "rtl": False, "flag": "🇺🇸"},
     "es": {"name": "Spanish", "native": "Español", "rtl": False},
     "fr": {"name": "French", "native": "Français", "rtl": False},
     "ar": {"name": "Arabic", "native": "العربية", "rtl": True},
