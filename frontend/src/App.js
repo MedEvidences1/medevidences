@@ -692,15 +692,17 @@ const Astrology = ({ getHeaders, user }) => {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const importTranscripts = async () => {
-    if (!user) { toast.error("Please login"); return; }
+  const loadCuratedPredictions = async () => {
     setImporting(true);
-    toast.info("Importing transcripts & extracting WAR/DISASTER predictions...");
+    toast.info("Loading curated predictions from 4 tracked channels...");
     try {
-      const res = await axios.post(`${API}/astrology/import-transcripts?videos_per_channel=10`, {}, { headers: getHeaders() });
-      toast.success(`Imported ${res.data.transcripts_fetched} transcripts, extracted ${res.data.predictions_extracted} WAR/DISASTER predictions`);
+      const res = await axios.post(`${API}/astrology/load-curated`);
+      toast.success(res.data.message);
       loadData();
-    } catch (e) { toast.error("Import failed"); }
+    } catch (e) { 
+      console.error(e);
+      toast.error("Failed to load predictions"); 
+    }
     setImporting(false);
   };
 
@@ -723,7 +725,10 @@ const Astrology = ({ getHeaders, user }) => {
       natural_disaster: "#00E5FF",
       pandemic: "#9D4EDD",
       volcanic: "#FF8C00",
-      nuclear: "#FFD700"
+      nuclear: "#FFD700",
+      metals: "#FFD700",
+      economic: "#00FF94",
+      geopolitical: "#9D4EDD"
     };
     return colors[cat] || "#888";
   };
@@ -735,6 +740,9 @@ const Astrology = ({ getHeaders, user }) => {
     if (cat === "pandemic") return "🦠";
     if (cat === "volcanic") return "🌋";
     if (cat === "nuclear") return "☢️";
+    if (cat === "metals") return "🥇";
+    if (cat === "economic") return "📈";
+    if (cat === "geopolitical") return "🌐";
     return "📊";
   };
 
