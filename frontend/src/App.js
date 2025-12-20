@@ -2547,6 +2547,315 @@ const RiskGrid = () => {
   );
 };
 
+// Competitor Comparison Component
+const CompetitorComparison = () => {
+  const [activeTab, setActiveTab] = useState("forecasting");
+
+  // Forecasting Platform Comparison Data
+  const forecastingComparison = {
+    title: "AI Forecasting Platforms",
+    subtitle: "Plutus Predict vs Mantic.com & Others",
+    competitors: [
+      {
+        name: "Plutus Predict",
+        isUs: true,
+        features: {
+          "Multi-LLM Ensemble": { value: "✓", details: "GPT-4, Claude, Gemini", highlight: true },
+          "OSINT Aggregation": { value: "1M+", details: "Sources integrated", highlight: true },
+          "Prediction Categories": { value: "10+", details: "Economics, Geopolitical, Tech, etc." },
+          "Probability Streams": { value: "✓", details: "Mantic-style tabular forecasts" },
+          "Deep Forecast Reports": { value: "✓", details: "On-demand analysis" },
+          "Disaster Prediction": { value: "✓", details: "27 agencies, 57K+ IoT sensors", highlight: true },
+          "Investment Banking Suite": { value: "✓", details: "M&A, IPO, Risk Analysis", highlight: true },
+          "Vedic Astrology": { value: "✓", details: "Curated predictions", highlight: true },
+          "Real-time Alerts": { value: "✓", details: "Email & in-app" },
+          "Admin Panel": { value: "Enterprise", details: "Full management suite" },
+          "Multi-language": { value: "6", details: "EN, ES, FR, AR, ID, SW" },
+          "3D Visualization": { value: "✓", details: "Globe view" },
+          "Pricing": { value: "Competitive", details: "Enterprise & Pro tiers" },
+        }
+      },
+      {
+        name: "Mantic.com",
+        features: {
+          "Multi-LLM Ensemble": { value: "✓", details: "AI-powered" },
+          "OSINT Aggregation": { value: "✓", details: "Multiple sources" },
+          "Prediction Categories": { value: "5+", details: "Geopolitics, Business, Policy" },
+          "Probability Streams": { value: "✓", details: "Tabular outputs" },
+          "Deep Forecast Reports": { value: "✓", details: "On-demand" },
+          "Disaster Prediction": { value: "Limited", details: "Not primary focus" },
+          "Investment Banking Suite": { value: "✗", details: "Not available" },
+          "Vedic Astrology": { value: "✗", details: "Not available" },
+          "Real-time Alerts": { value: "✓", details: "Dashboard alerts" },
+          "Admin Panel": { value: "Custom", details: "Client dashboards" },
+          "Multi-language": { value: "1", details: "English only" },
+          "3D Visualization": { value: "✗", details: "Not available" },
+          "Pricing": { value: "Enterprise", details: "Custom pricing" },
+        }
+      },
+      {
+        name: "OneConcern",
+        features: {
+          "Multi-LLM Ensemble": { value: "✗", details: "Proprietary AI" },
+          "OSINT Aggregation": { value: "Limited", details: "Disaster-focused" },
+          "Prediction Categories": { value: "3", details: "Earthquake, Flood, Fire" },
+          "Probability Streams": { value: "✗", details: "Risk scores only" },
+          "Deep Forecast Reports": { value: "✓", details: "Risk reports" },
+          "Disaster Prediction": { value: "✓", details: "Primary focus" },
+          "Investment Banking Suite": { value: "✗", details: "Not available" },
+          "Vedic Astrology": { value: "✗", details: "Not available" },
+          "Real-time Alerts": { value: "✓", details: "Government alerts" },
+          "Admin Panel": { value: "Limited", details: "Basic" },
+          "Multi-language": { value: "2-3", details: "Limited" },
+          "3D Visualization": { value: "✓", details: "Map-based" },
+          "Pricing": { value: "Enterprise", details: "Government contracts" },
+        }
+      }
+    ]
+  };
+
+  // Investment Banking Suite Comparison
+  const ibComparison = {
+    title: "Investment Banking Tools",
+    subtitle: "Plutus IB Suite vs Bloomberg & Competitors",
+    competitors: [
+      {
+        name: "Plutus IB Suite",
+        isUs: true,
+        features: {
+          "M&A Deal Predictions": { value: "AI-Powered", details: "Probability-based", highlight: true },
+          "IPO Window Analysis": { value: "✓", details: "Market timing AI", highlight: true },
+          "Sector Rotation": { value: "✓", details: "AI recommendations", highlight: true },
+          "Risk Analytics": { value: "Multi-factor", details: "VaR, stress tests" },
+          "Real-time Data": { value: "Simulated", details: "Demo environment" },
+          "Company Screening": { value: "AI-Enhanced", details: "Pattern recognition" },
+          "Price": { value: "$5K/yr", details: "Enterprise tier", highlight: true },
+          "API Access": { value: "✓", details: "Full API" },
+          "Custom Dashboards": { value: "✓", details: "Drag & drop" },
+        }
+      },
+      {
+        name: "Bloomberg Terminal",
+        features: {
+          "M&A Deal Predictions": { value: "Historical", details: "Data-based analysis" },
+          "IPO Window Analysis": { value: "✓", details: "Market data" },
+          "Sector Rotation": { value: "Manual", details: "Research required" },
+          "Risk Analytics": { value: "Comprehensive", details: "Industry standard" },
+          "Real-time Data": { value: "✓", details: "Live feeds" },
+          "Company Screening": { value: "✓", details: "Extensive filters" },
+          "Price": { value: "$25K/yr", details: "Per seat" },
+          "API Access": { value: "Limited", details: "Additional cost" },
+          "Custom Dashboards": { value: "✓", details: "Bloomberg functions" },
+        }
+      },
+      {
+        name: "S&P Capital IQ",
+        features: {
+          "M&A Deal Predictions": { value: "Historical", details: "Transaction data" },
+          "IPO Window Analysis": { value: "✓", details: "Pipeline data" },
+          "Sector Rotation": { value: "Manual", details: "Research tools" },
+          "Risk Analytics": { value: "Good", details: "Credit ratings" },
+          "Real-time Data": { value: "Delayed", details: "15-20 min" },
+          "Company Screening": { value: "✓", details: "Advanced screening" },
+          "Price": { value: "$15K/yr", details: "Per seat" },
+          "API Access": { value: "✓", details: "Full API" },
+          "Custom Dashboards": { value: "Limited", details: "Template-based" },
+        }
+      },
+      {
+        name: "Koyfin",
+        features: {
+          "M&A Deal Predictions": { value: "✗", details: "Not available" },
+          "IPO Window Analysis": { value: "Limited", details: "Market data only" },
+          "Sector Rotation": { value: "✓", details: "Analytics" },
+          "Risk Analytics": { value: "Basic", details: "Stock metrics" },
+          "Real-time Data": { value: "✓", details: "Live quotes" },
+          "Company Screening": { value: "✓", details: "Good screener" },
+          "Price": { value: "$840/yr", details: "Pro plan" },
+          "API Access": { value: "Limited", details: "Premium only" },
+          "Custom Dashboards": { value: "✓", details: "Flexible" },
+        }
+      }
+    ]
+  };
+
+  const currentData = activeTab === "forecasting" ? forecastingComparison : ibComparison;
+
+  return (
+    <div className="space-y-6" data-testid="comparison-view">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 text-[#00E5FF]" />
+            COMPETITIVE_LANDSCAPE
+          </h2>
+          <p className="text-sm text-[#888] mt-1">
+            How Plutus Predict compares to market alternatives
+          </p>
+        </div>
+        <Badge className="bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30">
+          MARKET ANALYSIS
+        </Badge>
+      </div>
+
+      {/* Tab Selector */}
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant={activeTab === "forecasting" ? "default" : "outline"}
+          onClick={() => setActiveTab("forecasting")}
+          className={activeTab === "forecasting" ? "bg-[#00E5FF] text-black" : ""}
+        >
+          <Brain className="w-4 h-4 mr-2" />
+          AI Forecasting
+        </Button>
+        <Button
+          size="sm"
+          variant={activeTab === "investment" ? "default" : "outline"}
+          onClick={() => setActiveTab("investment")}
+          className={activeTab === "investment" ? "bg-[#FFD700] text-black" : ""}
+        >
+          <TrendingUp className="w-4 h-4 mr-2" />
+          Investment Banking
+        </Button>
+      </div>
+
+      {/* Comparison Table */}
+      <Card className="terminal-card">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{currentData.title}</CardTitle>
+          <CardDescription>{currentData.subtitle}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#1F1F1F]">
+                  <th className="text-left py-3 px-2 text-[#888]">Feature</th>
+                  {currentData.competitors.map((comp, i) => (
+                    <th key={i} className={`text-center py-3 px-2 ${comp.isUs ? "text-[#00FF94]" : "text-[#888]"}`}>
+                      {comp.name}
+                      {comp.isUs && <span className="ml-1 text-[10px]">⭐</span>}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.keys(currentData.competitors[0].features).map((feature, i) => (
+                  <tr key={i} className="border-b border-[#1F1F1F] hover:bg-[#0A0A0A]">
+                    <td className="py-3 px-2 text-[#EDEDED]">{feature}</td>
+                    {currentData.competitors.map((comp, j) => {
+                      const feat = comp.features[feature];
+                      const isHighlight = feat.highlight && comp.isUs;
+                      return (
+                        <td key={j} className={`text-center py-3 px-2 ${
+                          isHighlight ? "bg-[#00FF94]/10" : ""
+                        }`}>
+                          <div className={`font-medium ${
+                            feat.value === "✓" ? "text-[#00FF94]" :
+                            feat.value === "✗" ? "text-[#FF4444]" :
+                            feat.value === "Limited" ? "text-[#FFD700]" :
+                            comp.isUs ? "text-[#00E5FF]" : "text-[#EDEDED]"
+                          }`}>
+                            {feat.value}
+                          </div>
+                          <div className="text-[10px] text-[#666] mt-0.5">{feat.details}</div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Key Differentiators */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <Card className="terminal-card border-[#00FF94]/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Star className="w-5 h-5 text-[#00FF94]" />
+              <h3 className="font-medium text-[#00FF94]">Unique to Plutus</h3>
+            </div>
+            <ul className="text-xs text-[#888] space-y-1">
+              <li>• Combined forecasting + disaster prediction</li>
+              <li>• Investment banking AI suite integrated</li>
+              <li>• Vedic astrology predictions</li>
+              <li>• 6 languages including Swahili</li>
+              <li>• 27 disaster agencies connected</li>
+            </ul>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card border-[#00E5FF]/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-5 h-5 text-[#00E5FF]" />
+              <h3 className="font-medium text-[#00E5FF]">Market Position</h3>
+            </div>
+            <ul className="text-xs text-[#888] space-y-1">
+              <li>• Only platform with full-stack approach</li>
+              <li>• Enterprise + consumer focus</li>
+              <li>• Cost-effective vs Bloomberg ($5K vs $25K)</li>
+              <li>• AI-first architecture</li>
+              <li>• Real-time OSINT pipeline</li>
+            </ul>
+          </CardContent>
+        </Card>
+        <Card className="terminal-card border-[#FFD700]/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-5 h-5 text-[#FFD700]" />
+              <h3 className="font-medium text-[#FFD700]">Global Reach</h3>
+            </div>
+            <ul className="text-xs text-[#888] space-y-1">
+              <li>• No direct competitor exists globally</li>
+              <li>• Mantic: Forecasting only</li>
+              <li>• OneConcern: Disasters only</li>
+              <li>• Bloomberg: Finance only</li>
+              <li>• Plutus: All-in-one platform</li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Market Summary */}
+      <Card className="terminal-card bg-gradient-to-r from-[#0A0A0A] to-[#1A1A1A]">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-bold text-[#FFD700] mb-4">📊 Market Summary</h3>
+          <div className="grid md:grid-cols-2 gap-6 text-sm">
+            <div>
+              <h4 className="text-[#00E5FF] font-medium mb-2">vs Mantic.com</h4>
+              <p className="text-[#888]">
+                Mantic focuses purely on AI forecasting for geopolitical/business predictions. 
+                Plutus Predict offers similar forecasting capabilities PLUS disaster prediction, 
+                investment banking tools, and unique features like Vedic astrology. 
+                Mantic targets enterprise clients only; Plutus serves both enterprise and pro users.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-[#00E5FF] font-medium mb-2">vs IB Tools (Bloomberg, Capital IQ)</h4>
+              <p className="text-[#888]">
+                Traditional IB tools focus on historical data and manual analysis. 
+                Plutus IB Suite adds AI-powered predictions for M&A, IPO timing, and sector rotation. 
+                At ~80% lower cost than Bloomberg, with unique AI-driven insights not available elsewhere.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-[#00FF94]/10 rounded border border-[#00FF94]/30">
+            <p className="text-sm text-[#00FF94]">
+              <strong>Conclusion:</strong> No single platform in the world combines AI forecasting, 
+              disaster prediction, investment banking tools, and alternative data (astrology) like Plutus Predict. 
+              This creates a unique market position with no direct competitors.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 // Chat Component
 const Chat = ({ getHeaders, user, setShowAuth }) => {
   const [messages, setMessages] = useState([]);
