@@ -510,7 +510,7 @@ VEDIC_CHANNELS = {
         "specialty": ["Medical astrology", "Mundane predictions", "Stock market"]
     },
     "ashish_mehta": {
-        "name": "Ashish Mehta (Astro Granth)",
+        "name": "Ashish Mehta (Asishmehta astro)",
         "channel_id": "UC4aH3kwy1rjfzLoo6RCnQzA",
         "handle": "@AshishMehtaAstro",
         "specialty": ["Vedic astrology", "Vastu", "World predictions"]
@@ -667,7 +667,7 @@ class VedicAstrologyEngine:
     Fetches videos ONLY from the 4 specified Vedic astrology channels:
     1. Abhigya Anand (Praajna Jyotisha)
     2. Prashant Kapoor (AstroKapoor)
-    3. Ashish Mehta (Astro Granth)
+    3. Ashish Mehta (Asishmehta astro)
     4. Preetika Rao (Podcasts with various astrologers)
     
     FILTERS OUT: Personal zodiac predictions, religious content
@@ -963,7 +963,7 @@ class VedicAstrologyEngine:
                 "source": "YouTube - Silver Price Astrology Forecast"
             },
             
-            # ============= ASHISH MEHTA (Astro Granth) =============
+            # ============= ASHISH MEHTA (Asishmehta astro) =============
             {
                 "id": "curated_ashish_1",
                 "astrologer": "Ashish Mehta",
