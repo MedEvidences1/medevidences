@@ -715,6 +715,179 @@ class VedicAstrologyEngine:
         
         return predictions
     
+    def extract_future_predictions(self, transcript: str, video_title: str = "") -> List[Dict]:
+        """Extract future predictions (2025-2030) from transcript"""
+        predictions = []
+        transcript_lower = transcript.lower()
+        
+        # Future years to look for
+        future_years = ['2025', '2026', '2027', '2028', '2029', '2030']
+        
+        # Prediction patterns
+        prediction_patterns = [
+            # Disaster predictions
+            (r'(earthquake|bhukamp|seismic).{0,100}(202[5-9]|203[0-9])', 'earthquake'),
+            (r'(tsunami|flood|cyclone|hurricane).{0,100}(202[5-9]|203[0-9])', 'natural_disaster'),
+            (r'(war|conflict|military|attack|invasion|yuddh).{0,100}(202[5-9]|203[0-9])', 'war'),
+            (r'(pandemic|disease|virus|outbreak).{0,100}(202[5-9]|203[0-9])', 'pandemic'),
+            (r'(recession|crash|market collapse|economic crisis).{0,100}(202[5-9]|203[0-9])', 'economic'),
+            # Reverse pattern - year first
+            (r'(202[5-9]|203[0-9]).{0,100}(earthquake|disaster|war|conflict|tsunami)', 'general'),
+            # India-Pakistan specific
+            (r'(india|pakistan|china).{0,100}(war|conflict|attack|tension)', 'geopolitical'),
+        ]
+        
+        for pattern, category in prediction_patterns:
+            matches = re.finditer(pattern, transcript_lower, re.IGNORECASE)
+            for match in matches:
+                # Get surrounding context
+                start = max(0, match.start() - 150)
+                end = min(len(transcript), match.end() + 150)
+                context = transcript[start:end].strip()
+                
+                # Extract year mentioned
+                year_match = re.search(r'202[5-9]|203[0-9]', match.group())
+                year = year_match.group() if year_match else "Unknown"
+                
+                # Determine confidence based on specificity
+                confidence = "high" if any(y in match.group() for y in future_years) else "medium"
+                
+                predictions.append({
+                    "category": category,
+                    "prediction_text": match.group().strip(),
+                    "context": context,
+                    "year_predicted": year,
+                    "confidence": confidence,
+                    "source_title": video_title
+                })
+        
+        # Remove duplicates
+        seen = set()
+        unique_predictions = []
+        for pred in predictions:
+            key = f"{pred['category']}_{pred['year_predicted']}_{pred['prediction_text'][:50]}"
+            if key not in seen:
+                seen.add(key)
+                unique_predictions.append(pred)
+        
+        return unique_predictions[:10]  # Limit to 10 predictions per video
+    
+    async def import_transcripts_from_channels(self, videos_per_channel: int = 10) -> Dict:
+        """
+        Import transcripts from all 4 tracked channels and extract predictions.
+        This is the main function to populate the prediction database.
+        """
+        results = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "channels_processed": 0,
+            "videos_processed": 0,
+            "transcripts_fetched": 0,
+            "predictions_extracted": 0,
+            "by_channel": {},
+            "errors": []
+        }
+        
+        for channel_key, channel_info in self.channels.items():
+            channel_result = {
+                "videos_found": 0,
+                "transcripts_fetched": 0,
+                "predictions_found": 0,
+                "videos": []
+            }
+            
+            try:
+                logger.info(f"Importing from channel: {channel_info['name']}")
+                
+                # Fetch videos from channel
+                videos = await self.fetch_channel_videos(channel_key, videos_per_channel)
+                channel_result["videos_found"] = len(videos)
+                
+                for video in videos:
+                    video_id = video.get("video_id")
+                    
+                    # Check if already imported
+                    existing = await db.astrology_predictions.find_one({"video_id": video_id})
+                    if existing:
+                        continue
+                    
+                    # Fetch transcript
+                    transcript_data = self.get_transcript(video_id)
+                    
+                    if transcript_data["success"]:
+                        channel_result["transcripts_fetched"] += 1
+                        results["transcripts_fetched"] += 1
+                        
+                        # Extract predictions
+                        predictions = self.extract_future_predictions(
+                            transcript_data["full_text"],
+                            video.get("title", "")
+                        )
+                        
+                        if predictions:
+                            # Store in database
+                            doc = {
+                                "id": str(uuid.uuid4()),
+                                "video_id": video_id,
+                                "title": video.get("title"),
+                                "channel": channel_info["name"],
+                                "channel_key": channel_key,
+                                "url": video.get("url"),
+                                "published": video.get("published"),
+                                "transcript_text": transcript_data["full_text"][:5000],  # Store first 5000 chars
+                                "word_count": transcript_data["word_count"],
+                                "predictions": predictions,
+                                "imported_at": datetime.now(timezone.utc).isoformat(),
+                                "reconciled": False
+                            }
+                            await db.astrology_predictions.insert_one(doc)
+                            
+                            channel_result["predictions_found"] += len(predictions)
+                            results["predictions_extracted"] += len(predictions)
+                            
+                            channel_result["videos"].append({
+                                "video_id": video_id,
+                                "title": video.get("title"),
+                                "predictions_count": len(predictions)
+                            })
+                        
+                        results["videos_processed"] += 1
+                    
+                    await asyncio.sleep(0.5)  # Rate limit
+                    
+            except Exception as e:
+                error_msg = f"Error importing from {channel_info['name']}: {str(e)}"
+                logger.error(error_msg)
+                results["errors"].append(error_msg)
+            
+            results["by_channel"][channel_info["name"]] = channel_result
+            results["channels_processed"] += 1
+        
+        logger.info(f"Import complete: {results['videos_processed']} videos, {results['predictions_extracted']} predictions")
+        return results
+    
+    async def get_imported_predictions(self, channel: str = None, year: str = None, category: str = None, limit: int = 50) -> List[Dict]:
+        """Get imported predictions with optional filters"""
+        query = {}
+        if channel:
+            query["channel"] = {"$regex": channel, "$options": "i"}
+        
+        predictions = await db.astrology_predictions.find(query, {"_id": 0}).limit(limit).to_list(limit)
+        
+        # Filter by year and category in predictions
+        filtered = []
+        for pred in predictions:
+            for p in pred.get("predictions", []):
+                if year and p.get("year_predicted") != year:
+                    continue
+                if category and p.get("category") != category:
+                    continue
+                filtered.append({
+                    **pred,
+                    "matched_prediction": p
+                })
+        
+        return filtered if (year or category) else predictions
+    
     async def analyze_video_for_predictions(self, video_id: str, video_title: str = "", channel: str = "") -> Dict:
         """Analyze a video for disaster/war predictions"""
         transcript_data = self.get_transcript(video_id)
