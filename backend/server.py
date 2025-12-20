@@ -498,28 +498,28 @@ disaster_engine = DisasterPredictionEngine()
 VEDIC_CHANNELS = {
     "abhigya_anand": {
         "name": "Abhigya Anand (Praajna Jyotisha)",
-        "channel_id": "UCLlH4sNbL5GmNj8Y4c9h1wQ",
-        "handle": "@PraajnaJyotisha",
+        "channel_id": "UCco7hZ6tU33lXbAV6aO7XPA",
+        "handle": "@AbhigyaAnandPraajnaJyotisha",
         "specialty": ["COVID predictor", "Earthquake predictions", "War predictions"],
         "notable_predictions": ["COVID-19 (Aug 2019)", "Israel-Hamas (3 days before)", "Myanmar earthquake"]
     },
     "prashant_kapoor": {
         "name": "Prashant Kapoor (AstroKapoor)",
-        "channel_id": "UCZvnC7ZhXiPBqwV6rPgKlqw",
-        "handle": "@astrokapoorcom",
+        "channel_id": "UCpg-rSVxo3EgwEmWHl2nN9A",
+        "handle": "@PrashantKapoorChannel",
         "specialty": ["Medical astrology", "Mundane predictions", "Stock market"]
     },
     "ashish_mehta": {
         "name": "Ashish Mehta (Astro Granth)",
-        "channel_id": "UCYTfxZvfxcr4GZ7C8MRXzTg",
+        "channel_id": "UC4aH3kwy1rjfzLoo6RCnQzA",
         "handle": "@AshishMehtaAstro",
         "specialty": ["Vedic astrology", "Vastu", "World predictions"]
     },
     "preetika_rao": {
         "name": "Preetika Rao",
-        "channel_id": "UCgK0Z8FnMKxL0WsGK8_yHtA",
+        "channel_id": "UCvct-ro35_CwB3MpMIXhSjw",
         "handle": "@preetikarao712",
-        "specialty": ["Astrologer interviews", "K.N. Rao podcasts"]
+        "specialty": ["Astrologer interviews", "K.N. Rao podcasts", "Prediction discussions"]
     }
 }
 
