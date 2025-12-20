@@ -1433,12 +1433,12 @@ class DeepForecastEngine:
 deep_forecast_engine = DeepForecastEngine()
 
 # =============================================================================
-# TABULAR PREDICTIONS ENGINE (Mantic-style)
+# TABULAR PREDICTIONS ENGINE
 # =============================================================================
 
 class TabularPredictionsEngine:
     """
-    Generates structured, tabular predictions like Mantic.com
+    Generates structured, tabular predictions
     - Terror attack probabilities by country
     - CEO departure probabilities
     - Country risk indices
@@ -1879,12 +1879,12 @@ async def list_forecasts(limit: int = 50):
     return {"forecasts": forecasts, "total": len(forecasts)}
 
 # =============================================================================
-# API ENDPOINTS - MANTIC-STYLE DEEP FORECASTS
+# API ENDPOINTS - DEEP FORECASTS
 # =============================================================================
 
 @api_router.post("/deep-forecast", tags=["Deep Forecasts"])
 async def create_deep_forecast(request: DeepForecastRequest, user: dict = Depends(get_current_user)):
-    """Generate a Mantic-style deep forecast report on a topic"""
+    """Generate a comprehensive deep forecast report on a topic"""
     report = await deep_forecast_engine.generate_deep_forecast(
         request.topic,
         request.num_questions,
@@ -1908,7 +1908,7 @@ async def get_deep_forecast(report_id: str):
     return report
 
 # =============================================================================
-# API ENDPOINTS - TABULAR PREDICTIONS (Mantic-style)
+# API ENDPOINTS - TABULAR PREDICTIONS
 # =============================================================================
 
 @api_router.get("/tabular/all", tags=["Tabular Predictions"])
