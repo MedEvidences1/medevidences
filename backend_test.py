@@ -175,23 +175,14 @@ class PlutusAstrologyTester:
     def test_admin_add_prediction(self):
         """Test POST /api/astrology/admin/add-prediction - admin endpoint to add new predictions"""
         test_prediction = {
-            "title": "Test Earthquake Prediction 2025",
-            "channel": "Test Channel",
             "astrologer": "Test Astrologer",
-            "video_id": "test_video_123",
-            "transcript_text": "Test prediction about earthquake in 2025 based on planetary alignments",
-            "predictions": [
-                {
-                    "category": "earthquake",
-                    "prediction_text": "Major earthquake predicted for 2025",
-                    "context": "Planetary alignments suggest seismic activity",
-                    "year_predicted": "2025",
-                    "confidence": "medium",
-                    "source_title": "Test Prediction Video",
-                    "astrologer": "Test Astrologer",
-                    "type": "manual"
-                }
-            ]
+            "channel": "Test Channel",
+            "prediction_type": "earthquake",
+            "title": "Test Earthquake Prediction 2025",
+            "context": "Test prediction about earthquake in 2025 based on planetary alignments and astrological calculations",
+            "year_predicted": "2025",
+            "confidence": "medium",
+            "source": "Test Source Video"
         }
         
         success, response = self.run_test(
