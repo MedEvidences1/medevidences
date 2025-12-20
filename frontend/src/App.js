@@ -707,6 +707,18 @@ const Astrology = ({ getHeaders, user }) => {
     setFetchingDaily(false);
   };
 
+  const importTranscripts = async () => {
+    if (!user) { toast.error("Please login"); return; }
+    setFetchingDaily(true);
+    toast.info("Importing transcripts from all channels... This may take a minute.");
+    try {
+      const res = await axios.post(`${API}/astrology/import-transcripts?videos_per_channel=8`, {}, { headers: getHeaders() });
+      toast.success(`Imported ${res.data.transcripts_fetched} transcripts, found ${res.data.predictions_extracted} predictions`);
+      loadData();
+    } catch (e) { toast.error("Import failed"); }
+    setFetchingDaily(false);
+  };
+
   const runReconciliation = async () => {
     if (!user) { toast.error("Please login"); return; }
     setReconciling(true);
