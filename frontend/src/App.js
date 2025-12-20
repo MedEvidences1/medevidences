@@ -665,13 +665,13 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#00E5FF]" />
-            AI_POWERED_FORECASTING_ENGINE
+            PLUTUS_JUDGMENTAL_FORECASTING
           </h2>
-          <p className="text-xs text-[#888] mt-1">3-LLM Ensemble (GPT-4, Claude, Gemini) • 1M+ OSINT Sources • Bayesian Aggregation</p>
+          <p className="text-xs text-[#888] mt-1">Proprietary Multi-Factor Bayesian Engine • 3 LLMs • Backtesting • Brier Score Calibration</p>
         </div>
         <div className="flex gap-2">
+          <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">PROPRIETARY AI</Badge>
           <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{predictionCategories.length} CATEGORIES</Badge>
-          <Badge variant="outline" className="border-[#FFD700] text-[#FFD700]">WORLD-CLASS</Badge>
         </div>
       </div>
 
