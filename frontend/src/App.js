@@ -5041,8 +5041,6 @@ const MainApp = () => {
         return <HolographicVisualization getHeaders={getHeaders} />;
       case "accuracy":
         return <AccuracyDashboard getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
-      case "compare":
-        return <CompetitorComparison />;
       case "my-dashboards":
         return <CustomDashboards getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "admin":
