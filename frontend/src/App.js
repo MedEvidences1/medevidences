@@ -1771,6 +1771,412 @@ const CustomDashboards = ({ getHeaders, user, setShowAuth }) => {
   );
 };
 
+// Holographic 3D Visualization Component
+const HolographicVisualization = ({ getHeaders }) => {
+  const [holoData, setHoloData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("globe");
+
+  useEffect(() => {
+    loadHolographicData();
+  }, []);
+
+  const loadHolographicData = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/visualization/holographic-dashboard`);
+      setHoloData(res.data);
+    } catch (e) {
+      console.error("Error loading holographic data:", e);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="space-y-6" data-testid="holographic-view">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Globe className="w-6 h-6 text-[#00E5FF]" />3D_HOLOGRAPHIC_VISUALIZATION
+        </h2>
+        <div className="flex gap-2">
+          {["globe", "probability", "timeline"].map(view => (
+            <Button
+              key={view}
+              size="sm"
+              variant={activeView === view ? "default" : "outline"}
+              onClick={() => setActiveView(view)}
+              className={activeView === view ? "bg-[#00E5FF] text-black" : "border-[#333]"}
+            >
+              {view.toUpperCase()}
+            </Button>
+          ))}
+          <Button onClick={loadHolographicData} size="sm" variant="outline" className="border-[#333]">
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-[#888]">Loading 3D visualization data...</div>
+      ) : (
+        <>
+          {/* Live Metrics Panel */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#FF4444]">{holoData?.live_metrics?.active_earthquakes_m5plus || 0}</div>
+                <div className="text-xs text-[#888] mt-1">ACTIVE_M5+_QUAKES</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#FFD700]">{holoData?.live_metrics?.global_risk_index || 0}%</div>
+                <div className="text-xs text-[#888] mt-1">GLOBAL_RISK_INDEX</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#00FF94]">{holoData?.live_metrics?.predictions_active || 0}</div>
+                <div className="text-xs text-[#888] mt-1">ACTIVE_PREDICTIONS</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#9D4EDD]">{holoData?.live_metrics?.astrology_matches || 0}</div>
+                <div className="text-xs text-[#888] mt-1">ASTROLOGY_MATCHES</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* 3D Globe Simulation */}
+          {activeView === "globe" && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#00E5FF]" />GLOBAL_RISK_HEATMAP_3D
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] bg-[#050505] rounded-lg border border-[#1F1F1F] relative overflow-hidden">
+                  {/* Simulated 3D Globe with CSS */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-[300px] h-[300px] rounded-full bg-gradient-to-br from-[#0A2540] via-[#1E3A5F] to-[#0A1628] relative animate-pulse" style={{boxShadow: "0 0 60px #00E5FF30, inset 0 0 60px #00E5FF20"}}>
+                      {/* Hotspots */}
+                      {holoData?.globe_visualization?.regions?.map((region, i) => (
+                        <div
+                          key={i}
+                          className="absolute w-3 h-3 rounded-full animate-ping"
+                          style={{
+                            backgroundColor: region.risk_score > 60 ? "#FF4444" : region.risk_score > 40 ? "#FFD700" : "#00FF94",
+                            top: `${30 + Math.random() * 40}%`,
+                            left: `${20 + Math.random() * 60}%`,
+                            animationDelay: `${i * 0.2}s`
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="absolute bottom-4 left-4 text-xs text-[#888]">
+                    HOLOGRAPHIC_SIMULATION • {holoData?.globe_visualization?.regions?.length || 0} RISK_ZONES
+                  </div>
+                </div>
+                {/* Region Risk List */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+                  {holoData?.globe_visualization?.regions?.slice(0, 8).map((region, i) => (
+                    <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded">
+                      <div className="text-xs text-[#888] uppercase">{region.region_id?.replace("_", " ")}</div>
+                      <div className={`text-lg font-bold ${region.risk_score > 60 ? "text-[#FF4444]" : region.risk_score > 40 ? "text-[#FFD700]" : "text-[#00FF94]"}`}>
+                        {region.risk_score}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Probability Distribution */}
+          {activeView === "probability" && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">PROBABILITY_DISTRIBUTION_3D</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={Object.entries(holoData?.probability_chart?.distribution || {}).map(([range, count]) => ({range, count}))}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1F1F1F" />
+                      <XAxis dataKey="range" stroke="#888" tick={{ fill: "#888", fontSize: 10 }} />
+                      <YAxis stroke="#888" tick={{ fill: "#888", fontSize: 10 }} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: "#0A0A0A", border: "1px solid #1F1F1F" }} />
+                      <Bar dataKey="count" fill="#00E5FF" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Timeline Animation */}
+          {activeView === "timeline" && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">FORECAST_TIMELINE_ANIMATION</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={holoData?.forecast_animation?.data || []}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1F1F1F" />
+                      <XAxis dataKey="date" stroke="#888" tick={{ fill: "#888", fontSize: 10 }} />
+                      <YAxis stroke="#888" tick={{ fill: "#888", fontSize: 10 }} domain={[0, 100]} />
+                      <RechartsTooltip contentStyle={{ backgroundColor: "#0A0A0A", border: "1px solid #1F1F1F" }} />
+                      <Area type="monotone" dataKey="value" stroke="#FFD700" fill="#FFD700" fillOpacity={0.2} name="Risk Forecast" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="text-center text-xs text-[#888] mt-2">
+                  30-DAY_GLOBAL_RISK_FORECAST • CONFIDENCE_INTERVAL_SHOWN
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Enterprise Admin Component
+const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
+  const [adminData, setAdminData] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => {
+    if (user?.role === "admin" || user?.role === "enterprise") {
+      loadAdminData();
+    }
+  }, [user]);
+
+  const loadAdminData = async () => {
+    setLoading(true);
+    try {
+      const [dashRes, analyticsRes] = await Promise.all([
+        axios.get(`${API}/admin/dashboard`, { headers: getHeaders() }),
+        axios.get(`${API}/admin/analytics`, { headers: getHeaders() })
+      ]);
+      setAdminData(dashRes.data);
+      setAnalytics(analyticsRes.data);
+    } catch (e) {
+      console.error("Error loading admin data:", e);
+    }
+    setLoading(false);
+  };
+
+  if (!user) {
+    return (
+      <div className="text-center py-12">
+        <Shield className="w-12 h-12 text-[#FFD700] mx-auto mb-4" />
+        <h3 className="text-lg text-[#888] mb-4">Admin access required</h3>
+        <Button onClick={() => setShowAuth(true)} className="btn-primary">
+          <LogIn className="w-4 h-4 mr-2" />LOGIN
+        </Button>
+      </div>
+    );
+  }
+
+  if (user.role !== "admin" && user.role !== "enterprise") {
+    return (
+      <div className="text-center py-12">
+        <Shield className="w-12 h-12 text-[#FF4444] mx-auto mb-4" />
+        <h3 className="text-lg text-[#888]">Insufficient permissions</h3>
+        <p className="text-sm text-[#666] mt-2">Enterprise admin access required</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6" data-testid="admin-dashboard">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Shield className="w-6 h-6 text-[#FFD700]" />ENTERPRISE_ADMIN_PANEL
+        </h2>
+        <Badge className="bg-[#FFD700] text-black">{user.role?.toUpperCase()}</Badge>
+      </div>
+
+      {/* Admin Tabs */}
+      <div className="flex gap-2 border-b border-[#1F1F1F] pb-2">
+        {["overview", "users", "analytics", "osint"].map(tab => (
+          <Button
+            key={tab}
+            size="sm"
+            variant={activeTab === tab ? "default" : "ghost"}
+            onClick={() => setActiveTab(tab)}
+            className={activeTab === tab ? "bg-[#FFD700] text-black" : ""}
+          >
+            {tab.toUpperCase()}
+          </Button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-[#888]">Loading admin data...</div>
+      ) : (
+        <>
+          {activeTab === "overview" && adminData && (
+            <>
+              {/* Platform Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-[#00FF94]">{adminData.platform_stats?.total_users || 0}</div>
+                    <div className="text-xs text-[#888]">TOTAL_USERS</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-[#00E5FF]">{adminData.platform_stats?.total_forecasts || 0}</div>
+                    <div className="text-xs text-[#888]">FORECASTS</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-[#FFD700]">{adminData.platform_stats?.total_predictions || 0}</div>
+                    <div className="text-xs text-[#888]">PREDICTIONS</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-[#9D4EDD]">{adminData.platform_stats?.total_deep_forecasts || 0}</div>
+                    <div className="text-xs text-[#888]">DEEP_FORECASTS</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-2xl font-bold text-[#FF4444]">{(adminData.platform_stats?.osint_articles_processed || 0).toLocaleString()}</div>
+                    <div className="text-xs text-[#888]">OSINT_ARTICLES</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* System Status */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">SYSTEM_STATUS</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${adminData.system_status?.cron_jobs_active ? "bg-[#00FF94]" : "bg-[#FF4444]"}`} />
+                      <span className="text-sm">CRON_JOBS</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${adminData.system_status?.email_alerts_active ? "bg-[#00FF94]" : "bg-[#FFD700]"}`} />
+                      <span className="text-sm">EMAIL_ALERTS</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${adminData.system_status?.llm_integration ? "bg-[#00FF94]" : "bg-[#FF4444]"}`} />
+                      <span className="text-sm">LLM_INTEGRATION</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Users by Plan */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">USERS_BY_PLAN</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-4">
+                    {Object.entries(adminData.users_by_plan || {}).map(([plan, count]) => (
+                      <div key={plan} className="flex-1 p-3 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xl font-bold text-[#EDEDED]">{count}</div>
+                        <div className="text-xs text-[#888] uppercase">{plan}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {activeTab === "analytics" && analytics && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">PREDICTION_ANALYTICS</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm text-[#888] mb-2">BY_CATEGORY</h4>
+                    {Object.entries(analytics.predictions_by_category || {}).map(([cat, count]) => (
+                      <div key={cat} className="flex justify-between py-1 border-b border-[#1F1F1F]">
+                        <span className="text-sm uppercase">{cat}</span>
+                        <span className="text-sm text-[#00FF94]">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <h4 className="text-sm text-[#888] mb-2">RECONCILIATION</h4>
+                    <div className="text-center py-4">
+                      <div className="text-4xl font-bold text-[#00FF94]">{analytics.reconciliation?.success_rate || 0}%</div>
+                      <div className="text-xs text-[#888]">SUCCESS_RATE</div>
+                      <div className="text-sm mt-2">{analytics.reconciliation?.reconciled || 0} / {analytics.reconciliation?.total || 0}</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "osint" && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">OSINT_AGGREGATION_STATUS</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <div className="text-5xl font-bold text-[#00E5FF]">1M+</div>
+                  <div className="text-sm text-[#888] mt-2">SOURCES_CONFIGURED</div>
+                  <div className="grid grid-cols-3 gap-4 mt-6 text-left">
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-sm text-[#00FF94]">✓ GDELT</div>
+                      <div className="text-xs text-[#888]">Global Events</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-sm text-[#00FF94]">✓ USGS</div>
+                      <div className="text-xs text-[#888]">Earthquakes</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-sm text-[#00FF94]">✓ NOAA</div>
+                      <div className="text-xs text-[#888]">Weather Alerts</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-sm text-[#00FF94]">✓ GDACS</div>
+                      <div className="text-xs text-[#888]">Disasters</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-sm text-[#00FF94]">✓ SEC EDGAR</div>
+                      <div className="text-xs text-[#888]">Financial</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-sm text-[#00FF94]">✓ arXiv</div>
+                      <div className="text-xs text-[#888]">Academic</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 // Auth Modal
 const AuthModal = ({ isOpen, onClose, login, register }) => {
   const [isLogin, setIsLogin] = useState(true);
