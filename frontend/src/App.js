@@ -1264,6 +1264,517 @@ const DeepForecast = ({ getHeaders, user, setShowAuth }) => {
   );
 };
 
+// =============================================================================
+// INVESTMENT BANKER SUITE - World Class Analysis
+// =============================================================================
+const InvestmentBankerSuite = () => {
+  const { token } = useAuth();
+  const [activeView, setActiveView] = useState("dashboard");
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [portfolioRisk, setPortfolioRisk] = useState(null);
+  const [maPredictions, setMaPredictions] = useState(null);
+  const [ipoTiming, setIpoTiming] = useState(null);
+  const [sectorRotation, setSectorRotation] = useState(null);
+  
+  const getHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
+
+  const loadDashboard = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/investment/dashboard`, { headers: getHeaders() });
+      setDashboardData(res.data);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, [token]);
+
+  const loadPortfolioRisk = async () => {
+    try {
+      const res = await axios.post(`${API}/investment/portfolio-risk`, {}, { headers: getHeaders() });
+      setPortfolioRisk(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const loadMAPredictions = async () => {
+    try {
+      const res = await axios.get(`${API}/investment/ma-predictions`, { headers: getHeaders() });
+      setMaPredictions(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const loadIPOTiming = async () => {
+    try {
+      const res = await axios.get(`${API}/investment/ipo-timing`, { headers: getHeaders() });
+      setIpoTiming(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const loadSectorRotation = async () => {
+    try {
+      const res = await axios.get(`${API}/investment/sector-rotation`, { headers: getHeaders() });
+      setSectorRotation(res.data);
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => {
+    loadDashboard();
+    loadPortfolioRisk();
+    loadMAPredictions();
+    loadIPOTiming();
+    loadSectorRotation();
+  }, [loadDashboard]);
+
+  const getRiskColor = (level) => {
+    if (level === "HIGH") return "#FF4444";
+    if (level === "MEDIUM") return "#FFD700";
+    return "#00FF94";
+  };
+
+  const getWindowColor = (status) => {
+    if (status === "OPEN") return "#00FF94";
+    if (status === "FAVORABLE") return "#00E5FF";
+    if (status === "CAUTIOUS") return "#FFD700";
+    return "#FF4444";
+  };
+
+  const views = [
+    { id: "dashboard", label: "EXECUTIVE SUMMARY", icon: Home },
+    { id: "portfolio", label: "PORTFOLIO RISK", icon: Shield },
+    { id: "ma", label: "M&A DEALS", icon: Users },
+    { id: "ipo", label: "IPO TIMING", icon: TrendingUp },
+    { id: "sectors", label: "SECTOR ROTATION", icon: RefreshCw },
+  ];
+
+  return (
+    <div className="space-y-6" data-testid="investment-banking-suite">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#00FF94]" />
+            INVESTMENT_BANKER_SUITE
+          </h2>
+          <p className="text-xs text-[#888] mt-1">World-class analysis for professional investors • Portfolio Risk • M&A • IPO • Sectors</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge className="bg-[#00FF94]/20 text-[#00FF94] border-[#00FF94]">PROFESSIONAL</Badge>
+          <Badge variant="outline" className="border-[#FFD700] text-[#FFD700]">REAL-TIME</Badge>
+        </div>
+      </div>
+
+      {/* View Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {views.map((v) => (
+          <Button
+            key={v.id}
+            size="sm"
+            variant={activeView === v.id ? "default" : "outline"}
+            onClick={() => setActiveView(v.id)}
+            className={activeView === v.id ? "bg-[#00FF94] text-black" : "border-[#1F1F1F] text-[#888]"}
+          >
+            <v.icon className="w-3 h-3 mr-1" />
+            {v.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Executive Summary Dashboard */}
+      {activeView === "dashboard" && dashboardData && (
+        <div className="space-y-4">
+          {/* Key Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="terminal-card">
+              <CardContent className="p-4">
+                <div className="text-xs text-[#888] mb-1">RISK SCORE</div>
+                <div className="text-3xl font-bold" style={{color: getRiskColor(dashboardData.dashboard?.risk_level)}}>
+                  {dashboardData.dashboard?.risk_score || 0}
+                </div>
+                <Badge className="mt-2" style={{backgroundColor: `${getRiskColor(dashboardData.dashboard?.risk_level)}30`, color: getRiskColor(dashboardData.dashboard?.risk_level)}}>
+                  {dashboardData.dashboard?.risk_level}
+                </Badge>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4">
+                <div className="text-xs text-[#888] mb-1">IPO WINDOW</div>
+                <div className="text-3xl font-bold" style={{color: getWindowColor(dashboardData.dashboard?.ipo_window)}}>
+                  {dashboardData.dashboard?.ipo_window_score || 0}
+                </div>
+                <Badge className="mt-2" style={{backgroundColor: `${getWindowColor(dashboardData.dashboard?.ipo_window)}30`, color: getWindowColor(dashboardData.dashboard?.ipo_window)}}>
+                  {dashboardData.dashboard?.ipo_window}
+                </Badge>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4">
+                <div className="text-xs text-[#888] mb-1">ECONOMIC PHASE</div>
+                <div className="text-xl font-bold text-[#00E5FF]">
+                  {dashboardData.dashboard?.economic_phase}
+                </div>
+                <div className="text-xs text-[#888] mt-2">Cycle Position</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4">
+                <div className="text-xs text-[#888] mb-1">VAR (95%)</div>
+                <div className="text-2xl font-bold text-[#FF6B6B]">
+                  ${dashboardData.quick_stats?.var_95?.toLocaleString() || 0}
+                </div>
+                <div className="text-xs text-[#888] mt-2">Daily at Risk</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top Picks */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#9D4EDD]" />
+                  TOP M&A TARGET
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dashboardData.dashboard?.top_ma_target && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold">{dashboardData.dashboard.top_ma_target.target}</span>
+                      <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{dashboardData.dashboard.top_ma_target.probability}%</Badge>
+                    </div>
+                    <div className="text-xs text-[#888]">Acquirer: {dashboardData.dashboard.top_ma_target.acquirer}</div>
+                    <div className="text-xs text-[#00E5FF]">{dashboardData.dashboard.top_ma_target.deal_value}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-[#00FF94]" />
+                  TOP IPO
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dashboardData.dashboard?.top_ipo && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold">{dashboardData.dashboard.top_ipo.company}</span>
+                      <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{dashboardData.dashboard.top_ipo.probability}%</Badge>
+                    </div>
+                    <div className="text-xs text-[#888]">{dashboardData.dashboard.top_ipo.sector} • {dashboardData.dashboard.top_ipo.exchange}</div>
+                    <div className="text-xs text-[#FFD700]">{dashboardData.dashboard.top_ipo.valuation}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sector Recommendations */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">SECTOR POSITIONING</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-[#00FF94] mb-2">✓ OVERWEIGHT</div>
+                  <div className="space-y-1">
+                    {(dashboardData.dashboard?.top_sectors || []).map((s, i) => (
+                      <Badge key={i} className="mr-2 bg-[#00FF94]/20 text-[#00FF94]">{s}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-[#FF4444] mb-2">✗ UNDERWEIGHT</div>
+                  <div className="space-y-1">
+                    {(dashboardData.dashboard?.avoid_sectors || []).map((s, i) => (
+                      <Badge key={i} className="mr-2 bg-[#FF4444]/20 text-[#FF4444]">{s}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Portfolio Risk Analysis */}
+      {activeView === "portfolio" && portfolioRisk && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#00E5FF]" />
+                RISK FACTOR BREAKDOWN
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {Object.entries(portfolioRisk.risk_metrics?.factor_scores || {}).map(([factor, score]) => (
+                  <div key={factor} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-1">{factor.replace(/_/g, ' ').toUpperCase()}</div>
+                    <div className="text-2xl font-bold" style={{color: score > 60 ? '#FF4444' : score > 40 ? '#FFD700' : '#00FF94'}}>
+                      {score}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Stress Tests */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">STRESS TEST SCENARIOS</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(portfolioRisk.stress_tests || []).map((test, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div>
+                      <div className="font-medium">{test.scenario}</div>
+                      <div className="text-xs text-[#888]">{test.probability}% probability</div>
+                    </div>
+                    <div className="text-lg font-bold text-[#FF4444]">
+                      ${test.impact?.toLocaleString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recommendations */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">RISK RECOMMENDATIONS</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(portfolioRisk.recommendations || []).map((rec, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-[#0A0A0A] rounded border-l-4" style={{borderColor: rec.priority === 'high' ? '#FF4444' : rec.priority === 'medium' ? '#FFD700' : '#00FF94'}}>
+                    <Badge style={{backgroundColor: rec.priority === 'high' ? '#FF4444' : rec.priority === 'medium' ? '#FFD700' : '#00FF94', color: '#000'}}>
+                      {rec.priority?.toUpperCase()}
+                    </Badge>
+                    <div>
+                      <div className="font-medium">{rec.action}</div>
+                      <div className="text-xs text-[#888]">Target: {rec.target}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* M&A Predictions */}
+      {activeView === "ma" && maPredictions && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#9D4EDD]" />
+                  M&A DEAL PREDICTIONS
+                </CardTitle>
+                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{maPredictions.total_predicted_value}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(maPredictions.predictions || []).map((deal, i) => (
+                  <div key={i} className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#9D4EDD] transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-[#EDEDED]">{deal.acquirer}</span>
+                        <ChevronRight className="w-4 h-4 text-[#888]" />
+                        <span className="text-lg font-bold text-[#9D4EDD]">{deal.target}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={deal.confidence === 'high' ? 'bg-[#00FF94]/20 text-[#00FF94]' : deal.confidence === 'medium' ? 'bg-[#FFD700]/20 text-[#FFD700]' : 'bg-[#888]/20 text-[#888]'}>
+                          {deal.probability}%
+                        </Badge>
+                        <span className={`text-xs ${deal.change_30d >= 0 ? 'text-[#00FF94]' : 'text-[#FF4444]'}`}>
+                          {deal.change_30d >= 0 ? '↑' : '↓'}{Math.abs(deal.change_30d)}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-[#888]">
+                      <span className="bg-[#1F1F1F] px-2 py-1 rounded">{deal.sector}</span>
+                      <span className="text-[#FFD700]">{deal.deal_value}</span>
+                      <span>{deal.timeline}</span>
+                    </div>
+                    <div className="mt-2 text-xs text-[#888]">{deal.rationale}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* IPO Timing */}
+      {activeView === "ipo" && ipoTiming && (
+        <div className="space-y-4">
+          {/* Market Window */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">IPO MARKET WINDOW</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold" style={{color: getWindowColor(ipoTiming.market_window?.status)}}>
+                    {ipoTiming.market_window?.score}
+                  </div>
+                  <Badge className="mt-2" style={{backgroundColor: `${getWindowColor(ipoTiming.market_window?.status)}30`, color: getWindowColor(ipoTiming.market_window?.status)}}>
+                    {ipoTiming.market_window?.status}
+                  </Badge>
+                </div>
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-2">
+                  {Object.entries(ipoTiming.market_window?.indicators || {}).map(([key, value]) => (
+                    <div key={key} className="p-2 bg-[#0A0A0A] rounded text-center">
+                      <div className="text-xs text-[#888]">{key.replace(/_/g, ' ').toUpperCase()}</div>
+                      <div className="text-sm font-bold text-[#00E5FF]">{typeof value === 'number' ? value.toFixed(1) : value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming IPOs */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">UPCOMING IPO PIPELINE</CardTitle>
+                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{ipoTiming.total_pipeline_value}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(ipoTiming.upcoming_ipos || []).map((ipo, i) => (
+                  <div key={i} className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#00FF94] transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <span className="text-lg font-bold text-[#EDEDED]">{ipo.company}</span>
+                        <Badge className="ml-2 bg-[#1F1F1F] text-[#888]">{ipo.sector}</Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={ipo.recommendation === 'SUBSCRIBE' ? 'bg-[#00FF94] text-black' : ipo.recommendation === 'WATCH' ? 'bg-[#FFD700] text-black' : 'bg-[#888] text-black'}>
+                          {ipo.recommendation}
+                        </Badge>
+                        <span className="text-[#00E5FF] font-bold">{ipo.probability}%</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-[#888]">
+                      <span className="text-[#FFD700]">{ipo.valuation}</span>
+                      <span>{ipo.timing}</span>
+                      <span>{ipo.exchange}</span>
+                      <span className="text-[#00FF94]">Est. Pop: {ipo.first_day_pop_estimate}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Sector Rotation */}
+      {activeView === "sectors" && sectorRotation && (
+        <div className="space-y-4">
+          {/* Economic Cycle */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">ECONOMIC CYCLE POSITION</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#00E5FF]">{sectorRotation.economic_cycle?.current_phase}</div>
+                  <div className="text-xs text-[#888] mt-1">Est. Duration: {sectorRotation.economic_cycle?.phase_duration_estimate}</div>
+                </div>
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-5 gap-2">
+                  {Object.entries(sectorRotation.economic_cycle?.indicators || {}).map(([key, value]) => (
+                    <div key={key} className="p-2 bg-[#0A0A0A] rounded text-center">
+                      <div className="text-xs text-[#888]">{key.replace(/_/g, ' ').toUpperCase()}</div>
+                      <div className="text-sm font-bold text-[#FFD700]">{typeof value === 'number' ? value.toFixed(1) : value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sector Rankings */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">SECTOR RANKINGS & SIGNALS</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(sectorRotation.sector_rankings || []).map((sector, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 bg-[#0A0A0A] rounded border-l-4" style={{borderColor: sector.signal === 'OVERWEIGHT' ? '#00FF94' : sector.signal === 'UNDERWEIGHT' ? '#FF4444' : '#888'}}>
+                    <div className="w-8 text-center font-bold text-[#888]">#{i+1}</div>
+                    <div className="flex-1">
+                      <div className="font-medium">{sector.sector}</div>
+                      <div className="text-xs text-[#888]">{sector.key_drivers?.join(' • ')}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold" style={{color: sector.score > 60 ? '#00FF94' : sector.score > 40 ? '#FFD700' : '#FF4444'}}>
+                        {sector.score}
+                      </div>
+                      <Badge className={sector.signal === 'OVERWEIGHT' ? 'bg-[#00FF94] text-black' : sector.signal === 'UNDERWEIGHT' ? 'bg-[#FF4444] text-white' : 'bg-[#888] text-white'}>
+                        {sector.signal}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-[#888]">
+                      <div className={sector.relative_strength >= 0 ? 'text-[#00FF94]' : 'text-[#FF4444]'}>
+                        RS: {sector.relative_strength >= 0 ? '+' : ''}{sector.relative_strength}
+                      </div>
+                      <div>{sector.momentum}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Rotation Recommendations */}
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">RECOMMENDED ROTATIONS</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {(sectorRotation.recommended_rotations || []).map((rot, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <Badge className="bg-[#FF4444]/20 text-[#FF4444]">{rot.from}</Badge>
+                    <ChevronRight className="w-4 h-4 text-[#FFD700]" />
+                    <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{rot.to}</Badge>
+                    <Badge variant="outline" className={rot.conviction === 'HIGH' ? 'border-[#00FF94] text-[#00FF94]' : 'border-[#888] text-[#888]'}>
+                      {rot.conviction}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center py-8 text-[#888]">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
+          Loading investment analysis...
+        </div>
+      )}
+    </div>
+  );
+};
+
 // OSINT Search Component
 const OSINTSearch = () => {
   const [query, setQuery] = useState("");
