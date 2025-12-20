@@ -7959,6 +7959,142 @@ async def get_investment_dashboard(user: dict = Depends(get_optional_user)):
     }
 
 # =============================================================================
+# API ENDPOINTS - USAGE QUOTAS
+# =============================================================================
+
+@api_router.get("/usage/quotas", tags=["Usage & Quotas"])
+async def get_usage_quotas(user: dict = Depends(get_current_user)):
+    """Get usage quotas dashboard for current user"""
+    return await usage_quota_system.get_full_quota_dashboard(user)
+
+@api_router.get("/usage/check/{limit_type}", tags=["Usage & Quotas"])
+async def check_usage_limit(limit_type: str, user: dict = Depends(get_current_user)):
+    """Check if user is within a specific limit"""
+    plan = user.get("plan", "free")
+    return await usage_quota_system.check_limit(user["id"], plan, limit_type)
+
+@api_router.get("/usage/limits/{plan}", tags=["Usage & Quotas"])
+async def get_plan_limits(plan: str):
+    """Get limits for a specific plan"""
+    return await usage_quota_system.get_limits(plan)
+
+# =============================================================================
+# API ENDPOINTS - WHITE-LABEL
+# =============================================================================
+
+class WhiteLabelSettingsUpdate(BaseModel):
+    logo_url: Optional[str] = None
+    company_name: Optional[str] = None
+    primary_color: Optional[str] = None
+    secondary_color: Optional[str] = None
+    accent_color: Optional[str] = None
+    hide_plutus_branding: Optional[bool] = None
+
+class WhiteLabelPriceUpdate(BaseModel):
+    new_price: float
+
+@api_router.get("/white-label/status", tags=["White-Label"])
+async def get_white_label_status(user: dict = Depends(get_current_user)):
+    """Get white-label status for user's organization"""
+    org_id = user.get("organization_id")
+    if not org_id:
+        return {"status": "no_organization", "error": "User not part of an organization"}
+    return await white_label_system.get_white_label_status(org_id)
+
+@api_router.post("/white-label/request", tags=["White-Label"])
+async def request_white_label(user: dict = Depends(get_current_user)):
+    """Enterprise customer requests white-label (initiates payment process)"""
+    org_id = user.get("organization_id")
+    if not org_id:
+        return {"success": False, "error": "User not part of an organization"}
+    return await white_label_system.request_white_label(user, org_id)
+
+@api_router.post("/white-label/activate/{org_id}", tags=["White-Label"])
+async def activate_white_label(org_id: str, payment_reference: str = None, user: dict = Depends(get_current_user)):
+    """Platform Owner activates white-label after payment confirmed"""
+    return await white_label_system.activate_white_label(user, org_id, payment_reference)
+
+@api_router.post("/white-label/deactivate/{org_id}", tags=["White-Label"])
+async def deactivate_white_label(org_id: str, user: dict = Depends(get_current_user)):
+    """Platform Owner deactivates white-label"""
+    return await white_label_system.deactivate_white_label(user, org_id)
+
+@api_router.put("/white-label/settings", tags=["White-Label"])
+async def update_white_label_settings(settings: WhiteLabelSettingsUpdate, user: dict = Depends(get_current_user)):
+    """Enterprise admin updates their white-label customization"""
+    org_id = user.get("organization_id")
+    if not org_id:
+        return {"success": False, "error": "User not part of an organization"}
+    return await white_label_system.update_white_label_settings(user, org_id, settings.dict(exclude_none=True))
+
+@api_router.put("/white-label/price", tags=["White-Label"])
+async def update_white_label_price(price_update: WhiteLabelPriceUpdate, user: dict = Depends(get_current_user)):
+    """Platform Owner updates white-label price"""
+    return await white_label_system.update_price(user, price_update.new_price)
+
+@api_router.get("/white-label/requests", tags=["White-Label"])
+async def get_white_label_requests(user: dict = Depends(get_current_user)):
+    """Platform Owner gets all white-label requests"""
+    return await white_label_system.get_all_white_label_requests(user)
+
+# =============================================================================
+# API ENDPOINTS - SUPPORT TICKETS
+# =============================================================================
+
+class TicketCreate(BaseModel):
+    title: str
+    description: str
+    category: str = "other"
+    priority: str = "medium"
+
+class TicketMessage(BaseModel):
+    content: str
+
+class TicketStatusUpdate(BaseModel):
+    status: str
+    resolution_note: Optional[str] = None
+
+class TicketPriorityUpdate(BaseModel):
+    priority: str
+
+@api_router.post("/support/tickets", tags=["Support Tickets"])
+async def create_support_ticket(ticket: TicketCreate, user: dict = Depends(get_current_user)):
+    """Create a new support ticket"""
+    return await support_ticket_system.create_ticket(
+        user, ticket.title, ticket.description, ticket.category, ticket.priority
+    )
+
+@api_router.get("/support/tickets", tags=["Support Tickets"])
+async def get_my_tickets(status: str = None, user: dict = Depends(get_current_user)):
+    """Get current user's support tickets"""
+    return await support_ticket_system.get_user_tickets(user, status)
+
+@api_router.get("/support/tickets/all", tags=["Support Tickets"])
+async def get_all_tickets(status: str = None, priority: str = None, user: dict = Depends(get_current_user)):
+    """Platform Owner gets all support tickets"""
+    return await support_ticket_system.get_all_tickets(user, status, priority)
+
+@api_router.get("/support/tickets/{ticket_id}", tags=["Support Tickets"])
+async def get_ticket(ticket_id: str, user: dict = Depends(get_current_user)):
+    """Get a specific support ticket"""
+    return await support_ticket_system.get_ticket(user, ticket_id)
+
+@api_router.post("/support/tickets/{ticket_id}/message", tags=["Support Tickets"])
+async def add_ticket_message(ticket_id: str, message: TicketMessage, user: dict = Depends(get_current_user)):
+    """Add a message to a support ticket"""
+    return await support_ticket_system.add_message(user, ticket_id, message.content)
+
+@api_router.put("/support/tickets/{ticket_id}/status", tags=["Support Tickets"])
+async def update_ticket_status(ticket_id: str, update: TicketStatusUpdate, user: dict = Depends(get_current_user)):
+    """Admin updates ticket status"""
+    return await support_ticket_system.update_ticket_status(user, ticket_id, update.status, update.resolution_note)
+
+@api_router.put("/support/tickets/{ticket_id}/priority", tags=["Support Tickets"])
+async def update_ticket_priority(ticket_id: str, update: TicketPriorityUpdate, user: dict = Depends(get_current_user)):
+    """Admin updates ticket priority"""
+    return await support_ticket_system.update_ticket_priority(user, ticket_id, update.priority)
+
+# =============================================================================
 # API ENDPOINTS - PAYMENTS
 # =============================================================================
 
