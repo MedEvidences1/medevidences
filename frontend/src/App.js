@@ -4945,6 +4945,8 @@ const MainApp = () => {
         return <AccuracyDashboard getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "my-dashboards":
         return <CustomDashboards getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
+      case "pricing":
+        return <Pricing user={user} setShowAuth={setShowAuth} getHeaders={getHeaders} />;
       case "admin":
         return <EnterpriseAdmin getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
       case "osint":
