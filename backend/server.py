@@ -559,7 +559,8 @@ class VedicAstrologyEngine:
             return []
         
         channel = self.channels[channel_key]
-        channel_url = f"https://www.youtube.com/{channel.get('handle', '@channel')}"
+        # Use channel ID with /videos tab for reliable video listing
+        channel_url = f"https://www.youtube.com/channel/{channel.get('channel_id')}/videos"
         
         try:
             opts = {**self.ydl_opts, 'playlistend': limit}
