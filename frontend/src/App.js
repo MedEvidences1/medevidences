@@ -735,11 +735,11 @@ const Astrology = ({ getHeaders, user }) => {
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold flex items-center gap-2">
           <Moon className="w-5 h-5 text-[#9D4EDD]" />
-          DATA_ASTROLOGY
+          VEDIC_ASTROLOGY_PREDICTIONS
         </h2>
         <div className="flex gap-2">
-          <Button onClick={runDailyFetch} disabled={fetchingDaily} size="sm" className="bg-[#9D4EDD] hover:bg-[#9D4EDD]/80 text-white text-xs" data-testid="daily-fetch-btn">
-            {fetchingDaily ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <Zap className="w-3 h-3 mr-1" />}FETCH_DAILY
+          <Button onClick={importTranscripts} disabled={fetchingDaily} size="sm" className="bg-[#FFD700] hover:bg-[#FFD700]/80 text-black text-xs" data-testid="import-transcripts-btn">
+            {fetchingDaily ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <FileText className="w-3 h-3 mr-1" />}IMPORT_TRANSCRIPTS
           </Button>
           <Button onClick={runReconciliation} disabled={reconciling} size="sm" variant="outline" className="text-xs border-[#00FF94] text-[#00FF94]" data-testid="reconcile-btn">
             {reconciling ? <RefreshCw className="w-3 h-3 animate-spin mr-1" /> : <Target className="w-3 h-3 mr-1" />}RECONCILE_WITH_AI
