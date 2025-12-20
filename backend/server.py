@@ -1519,7 +1519,9 @@ class VedicAstrologyEngine:
                 
                 elif category == "pandemic":
                     for alert in weather_alerts:
-                        if "health" in alert.get("event", "").lower() or "disease" in alert.get("headline", "").lower():
+                        alert_event = (alert.get("event") or "").lower()
+                        alert_headline = (alert.get("headline") or "").lower()
+                        if "health" in alert_event or "disease" in alert_headline:
                             matches.append({
                                 "type": "pandemic",
                                 "event": alert.get("headline"),
