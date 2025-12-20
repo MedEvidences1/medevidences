@@ -234,6 +234,113 @@ class PlutusAPITester:
             self.log_result("AI Chat", False, f"Exception: {str(e)}")
             return False
 
+    def test_usage_quotas(self):
+        """Test NEW: Usage Quotas API - should return plan limits and usage"""
+        if not self.token:
+            self.log_result("Usage Quotas API", False, "No authentication token")
+            return False
+        
+        try:
+            response = requests.get(f"{self.api_url}/usage/quotas", 
+                                   headers=self.get_headers(),
+                                   timeout=15)
+            success = response.status_code == 200
+            self.log_result("Usage Quotas API", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                quotas = data.get("quotas", [])
+                print(f"   Quota items found: {len(quotas)}")
+                print(f"   Current plan: {data.get('current_plan', 'unknown')}")
+                
+                # Check if we have expected quota structure
+                if len(quotas) >= 5:
+                    print(f"   ✅ Expected quota items (5+) found")
+                    for quota in quotas[:3]:  # Show first 3
+                        print(f"   - {quota.get('name', 'Unknown')}: {quota.get('used', 0)}/{quota.get('limit', 0)}")
+                else:
+                    print(f"   ⚠️  Expected 5+ quota items, found {len(quotas)}")
+            return success
+        except Exception as e:
+            self.log_result("Usage Quotas API", False, f"Exception: {str(e)}")
+            return False
+
+    def test_white_label_status(self):
+        """Test NEW: White-Label Status API - should return inactive with $10,000 price"""
+        if not self.token:
+            self.log_result("White-Label Status API", False, "No authentication token")
+            return False
+        
+        try:
+            response = requests.get(f"{self.api_url}/white-label/status", 
+                                   headers=self.get_headers(),
+                                   timeout=10)
+            success = response.status_code == 200
+            self.log_result("White-Label Status API", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                status = data.get("status", "unknown")
+                price = data.get("price", 0)
+                print(f"   White-label status: {status}")
+                print(f"   Price: ${price:,.2f}")
+                
+                # Check expected values
+                if status == "inactive" and price == 10000.0:
+                    print(f"   ✅ Expected status (inactive) and price ($10,000)")
+                else:
+                    print(f"   ⚠️  Expected inactive status and $10,000 price")
+            return success
+        except Exception as e:
+            self.log_result("White-Label Status API", False, f"Exception: {str(e)}")
+            return False
+
+    def test_support_tickets_crud(self):
+        """Test NEW: Support Tickets CRUD operations"""
+        if not self.token:
+            self.log_result("Support Tickets CRUD", False, "No authentication token")
+            return False
+        
+        try:
+            # Test 1: Get user tickets (should work even if empty)
+            response = requests.get(f"{self.api_url}/support/tickets", 
+                                   headers=self.get_headers(),
+                                   timeout=10)
+            get_success = response.status_code == 200
+            
+            if get_success:
+                data = response.json()
+                tickets = data.get("tickets", [])
+                print(f"   Existing tickets: {len(tickets)}")
+            
+            # Test 2: Create a new ticket
+            create_response = requests.post(f"{self.api_url}/support/tickets", 
+                                          json={
+                                              "subject": "Test API Ticket",
+                                              "description": "This is a test ticket created by automated testing",
+                                              "priority": "medium",
+                                              "category": "technical"
+                                          },
+                                          headers=self.get_headers(),
+                                          timeout=15)
+            create_success = create_response.status_code == 200
+            
+            ticket_id = None
+            if create_success:
+                create_data = create_response.json()
+                ticket_id = create_data.get("ticket", {}).get("id")
+                print(f"   Created ticket ID: {ticket_id}")
+            
+            # Overall success if both operations work
+            success = get_success and create_success
+            self.log_result("Support Tickets CRUD", success, 
+                          f"GET: {response.status_code}, POST: {create_response.status_code}")
+            
+            return success
+        except Exception as e:
+            self.log_result("Support Tickets CRUD", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting Plutus Predict API Tests")
