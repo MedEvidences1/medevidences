@@ -177,6 +177,7 @@ class PlutusAstrologyTester:
         test_prediction = {
             "title": "Test Earthquake Prediction 2025",
             "channel": "Test Channel",
+            "astrologer": "Test Astrologer",
             "video_id": "test_video_123",
             "transcript_text": "Test prediction about earthquake in 2025 based on planetary alignments",
             "predictions": [
