@@ -2489,6 +2489,260 @@ class DisasterPredictionEngine:
 disaster_engine = DisasterPredictionEngine()
 
 # =============================================================================
+# LIVE DISASTER MONITOR & AI FUTURE PREDICTIONS ENGINE
+# =============================================================================
+
+class LiveDisasterMonitor:
+    """
+    Real-time monitoring of disasters worldwide + AI-powered future predictions
+    Links current events and predictions to remediation planning
+    """
+    
+    def __init__(self):
+        self.osint = osint_aggregator
+        self.cache = {}
+        self.cache_ttl = 300  # 5 minutes
+    
+    async def fetch_live_disasters(self) -> List[Dict]:
+        """Fetch all current disasters happening RIGHT NOW on Earth"""
+        disasters = []
+        
+        # 1. GDACS Global Disasters
+        gdacs = await self.osint.fetch_gdacs()
+        for d in gdacs[:20]:
+            disasters.append({
+                "id": d.get("id", str(uuid.uuid4())[:8]),
+                "type": d.get("type", "unknown").lower(),
+                "title": d.get("title"),
+                "location": d.get("country", "Unknown"),
+                "coordinates": d.get("coordinates"),
+                "severity": d.get("alert_level", "orange"),
+                "status": "ACTIVE",
+                "source": "GDACS",
+                "timestamp": d.get("date", datetime.now(timezone.utc).isoformat()),
+                "affected_population": d.get("affected_population"),
+                "remediation_available": True
+            })
+        
+        # 2. USGS Earthquakes (M4.5+)
+        earthquakes = await self.osint.fetch_usgs_earthquakes(4.5, 50)
+        for eq in earthquakes[:15]:
+            disasters.append({
+                "id": eq.get("id", str(uuid.uuid4())[:8]),
+                "type": "earthquake",
+                "title": f"M{eq.get('magnitude', 0)} Earthquake - {eq.get('place', 'Unknown')}",
+                "location": eq.get("place", "Unknown"),
+                "coordinates": eq.get("coordinates"),
+                "severity": "critical" if eq.get("magnitude", 0) >= 6.0 else "high" if eq.get("magnitude", 0) >= 5.0 else "medium",
+                "magnitude": eq.get("magnitude"),
+                "depth_km": eq.get("depth"),
+                "status": "ACTIVE",
+                "source": "USGS",
+                "timestamp": eq.get("time"),
+                "remediation_available": True
+            })
+        
+        # 3. NOAA Weather Alerts (Severe/Extreme)
+        alerts = await self.osint.fetch_noaa_alerts()
+        severe_alerts = [a for a in alerts if a.get("severity") in ["Extreme", "Severe"]]
+        for alert in severe_alerts[:15]:
+            disaster_type = "hurricane" if "hurricane" in alert.get("event", "").lower() else \
+                           "tornado" if "tornado" in alert.get("event", "").lower() else \
+                           "flood" if "flood" in alert.get("event", "").lower() else \
+                           "wildfire" if "fire" in alert.get("event", "").lower() else "severe_weather"
+            disasters.append({
+                "id": alert.get("id", str(uuid.uuid4())[:8]),
+                "type": disaster_type,
+                "title": alert.get("headline", alert.get("event", "Weather Alert")),
+                "location": ", ".join(alert.get("areas", [])) if alert.get("areas") else "USA",
+                "severity": "critical" if alert.get("severity") == "Extreme" else "high",
+                "status": "ACTIVE",
+                "source": "NOAA",
+                "timestamp": alert.get("effective"),
+                "expires": alert.get("expires"),
+                "remediation_available": True
+            })
+        
+        return sorted(disasters, key=lambda x: x.get("timestamp", ""), reverse=True)[:50]
+    
+    async def generate_ai_future_predictions(self, timeframe: str = "2025-2026") -> Dict:
+        """Generate AI-powered disaster predictions for future periods"""
+        if not EMERGENT_LLM_KEY:
+            return {"error": "AI not available"}
+        
+        # Get current conditions as context
+        current_disasters = await self.fetch_live_disasters()
+        space_data = await space_hazards_engine.get_current_hazards()
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"future-pred-{uuid.uuid4()}",
+                system_message="""You are an expert disaster prediction analyst using data science, climate models, and geopolitical analysis. 
+Provide realistic, data-driven predictions based on current trends and historical patterns.
+Be specific with probabilities, timeframes, and affected regions."""
+            )
+            chat.with_model("openai", "gpt-4o")
+            
+            prompt = f"""Based on current disaster conditions and trends, generate predictions for {timeframe}:
+
+CURRENT ACTIVE DISASTERS ({len(current_disasters)} events):
+{json.dumps([{"type": d["type"], "location": d["location"], "severity": d["severity"]} for d in current_disasters[:10]], indent=2)}
+
+CURRENT SPACE WEATHER:
+- Kp Index: {space_data.get("space_weather", {}).get("kp_index", 0)}
+- NEOs Tracked: {space_data.get("near_earth_objects", {}).get("total_tracked", 0)}
+- Hazardous NEOs: {space_data.get("near_earth_objects", {}).get("potentially_hazardous", 0)}
+
+Generate a JSON response with:
+{{
+  "timeframe": "{timeframe}",
+  "predictions": [
+    {{
+      "id": "PRED-001",
+      "type": "earthquake/hurricane/flood/wildfire/volcanic/tsunami/drought/pandemic/solar_storm/geomagnetic_storm",
+      "title": "Predicted event title",
+      "location": "Specific region/country",
+      "probability": 0-100,
+      "severity": "critical/high/medium/low",
+      "estimated_timeframe": "Q1 2025 / March-April 2025 / etc",
+      "affected_population": "estimated number",
+      "economic_impact": "$X billion",
+      "key_indicators": ["indicator1", "indicator2"],
+      "recommended_preparation": ["action1", "action2"],
+      "confidence_level": "high/medium/low"
+    }}
+  ],
+  "seasonal_risks": {{
+    "Q1_2025": ["risk1", "risk2"],
+    "Q2_2025": ["risk1", "risk2"],
+    "Q3_2025": ["risk1", "risk2"],
+    "Q4_2025": ["risk1", "risk2"],
+    "2026_outlook": ["major risk trends"]
+  }},
+  "high_risk_regions": [
+    {{"region": "name", "primary_risks": ["risk1"], "preparation_priority": "critical/high/medium"}}
+  ],
+  "space_weather_outlook": {{
+    "solar_cycle_phase": "ascending/maximum/descending",
+    "major_storm_probability": 0-100,
+    "satellite_risk_periods": ["period1", "period2"]
+  }}
+}}
+
+Include 8-12 specific predictions covering different disaster types and regions. Respond ONLY with valid JSON."""
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                predictions = json.loads(json_match.group())
+                predictions["generated_at"] = datetime.now(timezone.utc).isoformat()
+                predictions["model"] = "gpt-4o"
+                predictions["based_on_active_disasters"] = len(current_disasters)
+                return predictions
+        except Exception as e:
+            logger.error(f"AI future predictions error: {e}")
+        
+        return {"error": "Failed to generate predictions"}
+    
+    async def get_daily_disaster_briefing(self) -> Dict:
+        """Generate AI-powered daily disaster briefing"""
+        if not EMERGENT_LLM_KEY:
+            return {"error": "AI not available"}
+        
+        live = await self.fetch_live_disasters()
+        space = await space_hazards_engine.get_current_hazards()
+        
+        # Group by type
+        by_type = {}
+        for d in live:
+            dtype = d["type"]
+            if dtype not in by_type:
+                by_type[dtype] = []
+            by_type[dtype].append(d)
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"briefing-{uuid.uuid4()}",
+                system_message="You are a disaster intelligence analyst providing concise daily briefings for emergency management agencies."
+            )
+            chat.with_model("gemini", "gemini-2.5-flash")
+            
+            prompt = f"""Generate a concise daily disaster briefing:
+
+TODAY'S DATE: {datetime.now(timezone.utc).strftime("%B %d, %Y")}
+
+ACTIVE DISASTERS: {len(live)} events
+BY TYPE: {json.dumps({k: len(v) for k, v in by_type.items()})}
+
+TOP EVENTS:
+{json.dumps([{"type": d["type"], "title": d["title"], "location": d["location"], "severity": d["severity"]} for d in live[:8]], indent=2)}
+
+SPACE WEATHER:
+- Geomagnetic: Kp {space.get("space_weather", {}).get("kp_index", 0)} ({space.get("space_weather", {}).get("storm_level", "Quiet")})
+- Space Risk: {space.get("overall_risk", "normal")}
+
+Provide JSON:
+{{
+  "date": "today's date",
+  "executive_summary": "2-3 sentence overview",
+  "alert_level": "green/yellow/orange/red",
+  "priority_events": [
+    {{"event": "name", "location": "place", "action_required": "recommendation"}}
+  ],
+  "24_hour_outlook": "brief forecast",
+  "key_sectors_affected": ["sector1", "sector2"],
+  "recommended_actions": ["action1", "action2"]
+}}"""
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                briefing = json.loads(json_match.group())
+                briefing["generated_at"] = datetime.now(timezone.utc).isoformat()
+                briefing["total_active_disasters"] = len(live)
+                briefing["disasters_by_type"] = {k: len(v) for k, v in by_type.items()}
+                return briefing
+        except Exception as e:
+            logger.error(f"Daily briefing error: {e}")
+        
+        return {
+            "date": datetime.now(timezone.utc).strftime("%B %d, %Y"),
+            "total_active_disasters": len(live),
+            "disasters_by_type": {k: len(v) for k, v in by_type.items()},
+            "error": "AI briefing unavailable"
+        }
+    
+    async def get_linked_remediation_suggestions(self) -> List[Dict]:
+        """Get remediation suggestions for current active disasters"""
+        live = await self.fetch_live_disasters()
+        
+        suggestions = []
+        for disaster in live[:10]:  # Top 10 most recent
+            suggestions.append({
+                "disaster_id": disaster["id"],
+                "disaster_type": disaster["type"],
+                "disaster_title": disaster["title"],
+                "location": disaster["location"],
+                "severity": disaster["severity"],
+                "source": disaster["source"],
+                "remediation_endpoint": f"/api/disasters/remediation/plan",
+                "suggested_request": {
+                    "disaster_type": disaster["type"],
+                    "severity": disaster["severity"],
+                    "location": disaster["location"],
+                    "population_affected": disaster.get("affected_population", 10000),
+                    "model_preference": "ensemble"
+                },
+                "can_generate_plan": disaster.get("remediation_available", True)
+            })
+        
+        return suggestions
+
+live_disaster_monitor = LiveDisasterMonitor()
+
+# =============================================================================
 # DISASTER REMEDIATION PLANNING ENGINE - AI-Powered Life & Property Protection
 # =============================================================================
 
