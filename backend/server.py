@@ -8103,6 +8103,7 @@ class RemediationPlanRequest(BaseModel):
     location: str = "Unknown"
     population_affected: int = 10000
     current_conditions: Optional[Dict] = None
+    model_preference: str = "ensemble"  # "ensemble", "openai", "claude", "gemini"
 
 class AgencyPlanRequest(BaseModel):
     disaster_type: str
@@ -8119,7 +8120,8 @@ class ImpactAssessmentRequest(BaseModel):
 @api_router.post("/disasters/remediation/plan", tags=["Disaster Remediation"])
 async def generate_remediation_plan(request: RemediationPlanRequest, user: dict = Depends(get_optional_user)):
     """
-    Generate comprehensive AI-powered disaster remediation plan
+    Generate comprehensive AI-powered disaster remediation plan using multi-LLM ensemble
+    Supports: GPT-4o (OpenAI), Claude (Anthropic), Gemini (Google)
     Helps agencies save lives and protect properties
     """
     plan = await remediation_engine.generate_remediation_plan(
@@ -8127,7 +8129,8 @@ async def generate_remediation_plan(request: RemediationPlanRequest, user: dict 
         severity=request.severity,
         location=request.location,
         population_affected=request.population_affected,
-        current_conditions=request.current_conditions
+        current_conditions=request.current_conditions,
+        model_preference=request.model_preference
     )
     return plan
 
