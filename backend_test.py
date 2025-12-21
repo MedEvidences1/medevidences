@@ -610,7 +610,17 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
-        # NEW DISASTER REMEDIATION FEATURES - Priority tests from review request
+        # NEW SPACE HAZARDS FEATURES - Priority tests from review request
+        print("\n🌌 Testing NEW SPACE HAZARDS Features:")
+        self.test_space_hazards_current()  # NEW: Current space weather data
+        self.test_space_hazards_forecast()  # NEW: 7-day space weather forecast
+        self.test_space_hazards_impacts()  # NEW: Sector impact analysis
+        self.test_space_hazards_neo()  # NEW: Near Earth Objects
+        self.test_space_hazards_debris()  # NEW: Space debris reentries
+        if login_success:
+            self.test_space_hazards_remediation()  # NEW: Solar storm remediation
+        
+        # NEW DISASTER REMEDIATION FEATURES - Previous features
         print("\n🆕 Testing NEW DISASTER REMEDIATION Features:")
         self.test_disaster_remediation_types()  # NEW: Get supported disaster types
         if login_success:
