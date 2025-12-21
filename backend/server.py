@@ -5976,46 +5976,93 @@ Respond ONLY with valid JSON."""
                 "best_window": "Q1-Q2 2025" if window_score > 50 else "H2 2025",
                 "avoid_periods": ["Earnings season peaks", "Fed meeting weeks", "Election periods"]
             },
-            "upcoming_ipos": sorted(upcoming_ipos, key=lambda x: x["probability"], reverse=True),
+            "upcoming_ipos": upcoming_ipos,
+            "best_sectors": best_sectors,
             "sector_outlook": {
                 "hot": ["AI/ML", "Fintech", "Clean Energy"],
                 "cooling": ["Traditional Retail", "Real Estate"],
                 "neutral": ["Healthcare", "Industrials"]
             },
-            "total_pipeline_value": "$500B+",
-            "methodology": "Market sentiment + VIX analysis + Historical IPO patterns"
+            "methodology": "GPT-4 Analysis + Market Sentiment + VIX Analysis"
         }
     
     async def analyze_sector_rotation(self) -> Dict:
-        """
-        Sector Rotation Signals and Recommendations
-        """
-        # Economic cycle assessment
-        cycle_indicators = {
-            "gdp_growth": random.uniform(1.5, 3.5),
-            "inflation": random.uniform(2.0, 4.5),
-            "unemployment": random.uniform(3.5, 5.0),
-            "yield_curve": random.choice(["steepening", "flat", "inverted"]),
-            "pmi": random.uniform(48, 56)
-        }
+        """AI-Powered Sector Rotation Analysis"""
+        market_context = await self._get_market_context()
         
-        # Determine economic phase
-        if cycle_indicators["gdp_growth"] > 2.5 and cycle_indicators["pmi"] > 52:
-            phase = "EXPANSION"
-            favored = ["technology", "consumer_discretionary", "industrials"]
-            avoid = ["utilities", "consumer_staples"]
-        elif cycle_indicators["gdp_growth"] > 1.5 and cycle_indicators["inflation"] > 3:
-            phase = "LATE_CYCLE"
-            favored = ["energy", "materials", "healthcare"]
-            avoid = ["technology", "real_estate"]
-        elif cycle_indicators["yield_curve"] == "inverted" or cycle_indicators["pmi"] < 50:
-            phase = "CONTRACTION"
-            favored = ["utilities", "consumer_staples", "healthcare"]
-            avoid = ["financials", "industrials", "consumer_discretionary"]
-        else:
-            phase = "RECOVERY"
-            favored = ["financials", "industrials", "real_estate"]
-            avoid = ["utilities", "consumer_staples"]
+        # Get AI analysis
+        ai_prompt = """As a macro strategist, analyze current economic conditions and sector rotation signals.
+
+Provide JSON with:
+{
+  "cycle_indicators": {
+    "gdp_growth": number (1.5-3.5),
+    "inflation": number (2.0-4.5),
+    "unemployment": number (3.5-5.0),
+    "yield_curve": "steepening/flat/inverted",
+    "pmi": number (45-58)
+  },
+  "economic_phase": "EXPANSION/LATE_CYCLE/CONTRACTION/RECOVERY",
+  "favored_sectors": ["sector1", "sector2", "sector3"],
+  "avoid_sectors": ["sector1", "sector2"],
+  "rotation_signals": [
+    {"from_sector": "sector", "to_sector": "sector", "strength": "strong/moderate/weak", "rationale": "reason"}
+  ]
+}
+
+Respond ONLY with valid JSON."""
+
+        ai_response = await self._get_ai_analysis(ai_prompt, market_context)
+        
+        # Defaults
+        cycle_indicators = {
+            "gdp_growth": 2.5,
+            "inflation": 3.0,
+            "unemployment": 4.0,
+            "yield_curve": "flat",
+            "pmi": 52
+        }
+        phase = "EXPANSION"
+        favored = ["technology", "consumer_discretionary", "industrials"]
+        avoid = ["utilities", "consumer_staples"]
+        rotation_signals = []
+        
+        if ai_response:
+            try:
+                import re
+                json_match = re.search(r'\{[\s\S]*\}', ai_response)
+                if json_match:
+                    parsed = json.loads(json_match.group())
+                    if parsed.get("cycle_indicators"):
+                        cycle_indicators = parsed["cycle_indicators"]
+                    phase = parsed.get("economic_phase", phase)
+                    if parsed.get("favored_sectors"):
+                        favored = parsed["favored_sectors"]
+                    if parsed.get("avoid_sectors"):
+                        avoid = parsed["avoid_sectors"]
+                    if parsed.get("rotation_signals"):
+                        rotation_signals = parsed["rotation_signals"]
+            except Exception as e:
+                logger.debug(f"Sector rotation AI parse error: {e}")
+        
+        # Calculate phase from indicators if AI didn't provide
+        if not ai_response:
+            if cycle_indicators["gdp_growth"] > 2.5 and cycle_indicators["pmi"] > 52:
+                phase = "EXPANSION"
+                favored = ["technology", "consumer_discretionary", "industrials"]
+                avoid = ["utilities", "consumer_staples"]
+            elif cycle_indicators["gdp_growth"] > 1.5 and cycle_indicators["inflation"] > 3:
+                phase = "LATE_CYCLE"
+                favored = ["energy", "materials", "healthcare"]
+                avoid = ["technology", "real_estate"]
+            elif cycle_indicators["yield_curve"] == "inverted" or cycle_indicators["pmi"] < 50:
+                phase = "CONTRACTION"
+                favored = ["utilities", "consumer_staples", "healthcare"]
+                avoid = ["financials", "industrials", "consumer_discretionary"]
+            else:
+                phase = "RECOVERY"
+                favored = ["financials", "industrials", "real_estate"]
+                avoid = ["utilities", "consumer_staples"]
         
         # Sector scores and signals
         sector_analysis = []
