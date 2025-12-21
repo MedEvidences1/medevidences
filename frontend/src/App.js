@@ -5944,6 +5944,11 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<MainApp />} />
+          <Route path="/admin" element={<MainApp />} />
+          <Route path="/pricing" element={<MainApp />} />
+          <Route path="/chat" element={<MainApp />} />
+          <Route path="/osint" element={<MainApp />} />
           <Route path="/*" element={<MainApp />} />
         </Routes>
       </BrowserRouter>
