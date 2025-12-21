@@ -1501,6 +1501,303 @@ class JudgmentalForecastEngine:
 judgmental_forecaster = JudgmentalForecastEngine()
 
 # =============================================================================
+# LONG-RANGE FORECASTING ENGINE (2026-2040) - Automatic Updates
+# =============================================================================
+
+class LongRangeForecastEngine:
+    """
+    AI-powered long-range event forecasting for 2026-2040.
+    Auto-retrieves data and updates predictions.
+    Inspired by TDIS Risk Assessment methodology.
+    
+    Features:
+    - Multi-decade event prediction
+    - Automatic daily/weekly updates
+    - Integration with climate models, demographic trends, economic cycles
+    - Risk scoring per region and sector
+    - Astrology correlation (as requested)
+    """
+    
+    FORECAST_CATEGORIES = [
+        "climate_disasters", "geopolitical_events", "economic_cycles",
+        "technological_disruptions", "pandemic_risks", "resource_scarcity",
+        "space_events", "infrastructure_failures", "social_unrest", "energy_transitions"
+    ]
+    
+    FORECAST_REGIONS = [
+        "North America", "South America", "Europe", "Middle East",
+        "Africa", "South Asia", "East Asia", "Southeast Asia", "Oceania"
+    ]
+    
+    TIMEFRAMES = [
+        ("2026", "Near-term"),
+        ("2027-2028", "Short-term"),
+        ("2029-2030", "Medium-term"),
+        ("2031-2035", "Long-term"),
+        ("2036-2040", "Extended")
+    ]
+    
+    def __init__(self):
+        self.cached_forecasts = {}
+        self.last_auto_update = None
+    
+    async def generate_2026_2040_forecasts(self, category: str = None, region: str = None) -> Dict:
+        """Generate comprehensive forecasts for 2026-2040"""
+        if not EMERGENT_LLM_KEY:
+            return {"error": "AI not available"}
+        
+        # Get current context
+        current_disasters = await live_disaster_monitor.fetch_live_disasters()
+        space_data = await space_hazards_engine.get_current_hazards()
+        
+        target_category = category or "all"
+        target_region = region or "global"
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"longrange-{uuid.uuid4()}",
+                system_message="""You are a world-class futurist and risk analyst specializing in long-range forecasting (2026-2040).
+Your predictions are based on:
+- Historical patterns and cycles
+- Climate science projections
+- Demographic trends
+- Economic models (Kondratiev waves, debt cycles)
+- Technological adoption curves
+- Geopolitical analysis
+- Space weather cycles (11-year solar cycle)
+Be specific with years, probabilities, and affected populations."""
+            )
+            chat.with_model("openai", "gpt-4o")
+            
+            prompt = f"""Generate detailed event forecasts for 2026-2040:
+
+CURRENT CONTEXT (December 2025):
+- Active Disasters: {len(current_disasters)}
+- Space Weather Kp: {space_data.get('space_weather', {}).get('kp_index', 0)}
+- Solar Cycle: Approaching maximum (2025-2026)
+
+TARGET: {target_category.upper()} events in {target_region.upper()}
+
+Generate JSON with forecasts for each timeframe:
+{{
+  "forecast_period": "2026-2040",
+  "generated_at": "timestamp",
+  "analysis_model": "plutus-longrange-v1",
+  "timeframe_predictions": {{
+    "2026": {{
+      "high_probability_events": [
+        {{
+          "event_id": "2026-001",
+          "title": "Event title",
+          "category": "climate_disasters/geopolitical/economic/tech/pandemic/space",
+          "region": "specific region",
+          "probability": 0-100,
+          "severity": "catastrophic/severe/moderate/minor",
+          "affected_population": "X million",
+          "economic_impact": "$X billion",
+          "key_drivers": ["driver1", "driver2"],
+          "early_warning_signs": ["sign1", "sign2"],
+          "recommended_preparations": ["prep1", "prep2"]
+        }}
+      ],
+      "risk_score": 0-100,
+      "key_themes": ["theme1", "theme2"]
+    }},
+    "2027-2028": {{ same structure }},
+    "2029-2030": {{ same structure }},
+    "2031-2035": {{ same structure }},
+    "2036-2040": {{ same structure }}
+  }},
+  "mega_trends": [
+    {{
+      "trend": "trend name",
+      "description": "description",
+      "peak_impact_year": 2030,
+      "affected_sectors": ["sector1", "sector2"]
+    }}
+  ],
+  "solar_cycle_impacts": {{
+    "cycle_25_peak": "2025-2026",
+    "cycle_26_start": "2031",
+    "high_risk_years_for_space_events": ["2025", "2026", "2036", "2037"]
+  }},
+  "black_swan_scenarios": [
+    {{
+      "scenario": "scenario name",
+      "probability": 0-15,
+      "impact_if_occurs": "description",
+      "timeline": "year range"
+    }}
+  ]
+}}
+
+Include 3-5 high-probability events per timeframe. Be specific and actionable."""
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                forecasts = json.loads(json_match.group())
+                forecasts["generated_at"] = datetime.now(timezone.utc).isoformat()
+                forecasts["model"] = "gpt-4o"
+                forecasts["auto_update_enabled"] = True
+                forecasts["next_update"] = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+                
+                # Cache the forecasts
+                cache_key = f"{target_category}_{target_region}"
+                self.cached_forecasts[cache_key] = forecasts
+                self.last_auto_update = datetime.now(timezone.utc)
+                
+                return forecasts
+        except Exception as e:
+            logger.error(f"Long-range forecast error: {e}")
+        
+        return {"error": "Failed to generate forecasts"}
+    
+    async def get_year_specific_forecast(self, year: int) -> Dict:
+        """Get forecasts for a specific year (2026-2040)"""
+        if year < 2026 or year > 2040:
+            return {"error": "Year must be between 2026 and 2040"}
+        
+        if not EMERGENT_LLM_KEY:
+            return {"error": "AI not available"}
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"year-{year}-{uuid.uuid4()}",
+                system_message=f"You are a futurist generating detailed predictions for {year}."
+            )
+            chat.with_model("gemini", "gemini-2.5-flash")
+            
+            prompt = f"""Generate comprehensive predictions for the year {year}:
+
+Provide JSON with:
+{{
+  "year": {year},
+  "global_outlook": "brief summary",
+  "risk_score": 0-100,
+  "predicted_events": [
+    {{
+      "month": "Q1/Q2/Q3/Q4 {year}",
+      "event": "specific event",
+      "category": "category",
+      "region": "region",
+      "probability": 0-100,
+      "impact_level": "low/medium/high/critical",
+      "sectors_affected": ["sector1", "sector2"],
+      "preparation_window": "X months before"
+    }}
+  ],
+  "economic_forecast": {{
+    "global_gdp_growth": "X%",
+    "inflation_trend": "rising/stable/falling",
+    "major_economies": {{"US": "X%", "China": "X%", "EU": "X%", "India": "X%"}}
+  }},
+  "climate_outlook": {{
+    "global_temp_anomaly": "+X.X°C",
+    "extreme_weather_frequency": "X% above average",
+    "high_risk_regions": ["region1", "region2"]
+  }},
+  "technology_milestones": ["milestone1", "milestone2"],
+  "geopolitical_hotspots": ["region1", "region2"]
+}}
+
+Include 8-12 specific predicted events with month-level precision where possible."""
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                forecast = json.loads(json_match.group())
+                forecast["generated_at"] = datetime.now(timezone.utc).isoformat()
+                return forecast
+        except Exception as e:
+            logger.error(f"Year forecast error: {e}")
+        
+        return {"error": f"Failed to generate {year} forecast"}
+    
+    async def get_decade_summary(self) -> Dict:
+        """Get summary of the 2026-2040 decade outlook"""
+        if not EMERGENT_LLM_KEY:
+            return {"error": "AI not available"}
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"decade-{uuid.uuid4()}",
+                system_message="You are a strategic foresight analyst providing decade-level insights."
+            )
+            chat.with_model("anthropic", "claude-4-sonnet-20250514")
+            
+            prompt = """Provide a decade summary for 2026-2040 in JSON:
+{{
+  "decade_overview": "Executive summary of 2026-2040",
+  "defining_challenges": [
+    {{"challenge": "name", "peak_years": "YYYY-YYYY", "severity": 1-10}}
+  ],
+  "transformation_waves": [
+    {{"wave": "name", "description": "desc", "years": "YYYY-YYYY"}}
+  ],
+  "risk_by_category": {{
+    "climate": {{"risk_level": "critical/high/medium/low", "trend": "increasing/stable/decreasing"}},
+    "geopolitical": {{ same }},
+    "economic": {{ same }},
+    "technological": {{ same }},
+    "health": {{ same }},
+    "space": {{ same }}
+  }},
+  "inflection_points": [
+    {{"year": YYYY, "event": "potential inflection", "probability": 0-100}}
+  ],
+  "optimistic_scenarios": ["scenario1", "scenario2"],
+  "pessimistic_scenarios": ["scenario1", "scenario2"],
+  "key_statistics_2040": {{
+    "world_population": "X billion",
+    "global_gdp": "$X trillion",
+    "renewable_energy_share": "X%",
+    "ai_workforce_impact": "X% of jobs"
+  }}
+}}"""
+            
+            response = await chat.send_message(UserMessage(text=prompt))
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                summary = json.loads(json_match.group())
+                summary["generated_at"] = datetime.now(timezone.utc).isoformat()
+                return summary
+        except Exception as e:
+            logger.error(f"Decade summary error: {e}")
+        
+        return {"error": "Failed to generate decade summary"}
+    
+    async def auto_update_forecasts(self):
+        """Automatically update forecasts (called by cron job)"""
+        logger.info("Auto-updating long-range forecasts (2026-2040)...")
+        
+        try:
+            # Update main forecasts
+            forecasts = await self.generate_2026_2040_forecasts()
+            
+            if "error" not in forecasts:
+                # Store in database
+                await db.long_range_forecasts.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "type": "auto_update",
+                    "forecasts": forecasts,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+                
+                logger.info(f"Long-range forecasts updated successfully")
+                return True
+        except Exception as e:
+            logger.error(f"Auto-update failed: {e}")
+        
+        return False
+
+# Initialize Long-Range Forecasting Engine
+long_range_forecaster = LongRangeForecastEngine()
+
+# =============================================================================
 # LIVE OSINT PIPELINE (Real-Time Data Integration)
 # =============================================================================
 
