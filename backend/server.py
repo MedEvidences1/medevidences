@@ -7034,9 +7034,17 @@ class CronJobManager:
             name="Tabular Predictions Update"
         )
         
+        # Space hazards auto-refresh every 15 minutes
+        self.scheduler.add_job(
+            self.refresh_space_hazards,
+            CronTrigger(minute="*/15"),
+            id="space_hazards",
+            name="Space Hazards Refresh"
+        )
+        
         self.scheduler.start()
         self.is_running = True
-        logger.info("Cron job scheduler initialized with 5 scheduled jobs")
+        logger.info("Cron job scheduler initialized with 6 scheduled jobs")
     
     async def daily_osint_collection(self):
         """Collect data from 1M+ OSINT sources daily"""
