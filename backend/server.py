@@ -7601,9 +7601,17 @@ class CronJobManager:
             name="Space Hazards Refresh"
         )
         
+        # Long-range forecasts auto-update (daily at 6 AM UTC)
+        self.scheduler.add_job(
+            self.update_long_range_forecasts,
+            CronTrigger(hour=6, minute=0),
+            id="long_range_forecasts",
+            name="Long-Range Forecasts Update (2026-2040)"
+        )
+        
         self.scheduler.start()
         self.is_running = True
-        logger.info("Cron job scheduler initialized with 6 scheduled jobs")
+        logger.info("Cron job scheduler initialized with 7 scheduled jobs")
     
     async def daily_osint_collection(self):
         """Collect data from 1M+ OSINT sources daily"""
