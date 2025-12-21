@@ -482,7 +482,14 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
-        # NEW B2B FEATURES - Priority tests from review request
+        # NEW DISASTER REMEDIATION FEATURES - Priority tests from review request
+        print("\n🆕 Testing NEW DISASTER REMEDIATION Features:")
+        self.test_disaster_remediation_types()  # NEW: Get supported disaster types
+        if login_success:
+            self.test_disaster_remediation_plan_generation()  # NEW: Generate AI remediation plans
+            self.test_multi_llm_integration()  # NEW: Multi-LLM support (GPT-4o, Claude, Gemini)
+        
+        # NEW B2B FEATURES - Previous features
         print("\n🆕 Testing NEW B2B Features:")
         if login_success:
             self.test_usage_quotas()  # NEW: Usage & Quotas dashboard
