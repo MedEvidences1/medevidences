@@ -2761,21 +2761,22 @@ Respond ONLY with valid JSON."""
         disaster_type: str,
         agency_type: str,
         location: str,
-        severity: str = "high"
+        severity: str = "high",
+        model_preference: str = "ensemble"
     ) -> Dict:
-        """Generate plan specific to an agency's responsibilities"""
+        """Generate plan specific to an agency's responsibilities using multi-LLM"""
         if not EMERGENT_LLM_KEY:
             return {"error": "AI not available", "agency": agency_type}
         
-        try:
-            chat = LlmChat(
-                api_key=EMERGENT_LLM_KEY,
-                session_id=f"agency-{uuid.uuid4()}",
-                system_message=f"You are an expert advisor for {agency_type.replace('_', ' ')} responding to disasters. Provide specific, actionable guidance."
-            )
-            chat.with_model("openai", "gpt-4o")
-            
-            prompt = f"""Create a specific action plan for {agency_type.replace('_', ' ').upper()} responding to a {severity} {disaster_type} in {location}.
+        models = {
+            "openai": ("openai", "gpt-4o"),
+            "claude": ("anthropic", "claude-4-sonnet-20250514"),
+            "gemini": ("gemini", "gemini-2.5-flash"),
+        }
+        
+        system_message = f"You are an expert advisor for {agency_type.replace('_', ' ')} responding to disasters. Provide specific, actionable guidance."
+        
+        prompt = f"""Create a specific action plan for {agency_type.replace('_', ' ').upper()} responding to a {severity} {disaster_type} in {location}.
 
 Provide JSON with:
 {{
@@ -2794,18 +2795,46 @@ Provide JSON with:
 }}
 
 Respond ONLY with valid JSON."""
-
-            response = await chat.send_message(UserMessage(text=prompt))
-            
-            import re
-            json_match = re.search(r'\{[\s\S]*\}', response)
-            if json_match:
-                plan = json.loads(json_match.group())
-                plan["generated_at"] = datetime.now(timezone.utc).isoformat()
-                plan["analysis_type"] = "AI-Powered"
-                return plan
+        
+        async def call_llm(provider: str, model: str) -> Optional[Dict]:
+            try:
+                chat = LlmChat(
+                    api_key=EMERGENT_LLM_KEY,
+                    session_id=f"agency-{uuid.uuid4()}",
+                    system_message=system_message
+                )
+                chat.with_model(provider, model)
+                response = await chat.send_message(UserMessage(text=prompt))
+                json_match = re.search(r'\{[\s\S]*\}', response)
+                if json_match:
+                    plan = json.loads(json_match.group())
+                    plan["generated_at"] = datetime.now(timezone.utc).isoformat()
+                    plan["analysis_type"] = "AI-Powered"
+                    plan["model_used"] = f"{provider}:{model}"
+                    return plan
+            except Exception as e:
+                logger.error(f"Agency plan error ({provider}): {e}")
+                return None
+        
+        try:
+            if model_preference == "ensemble":
+                tasks = [call_llm(p, m) for p, m in models.values()]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                for result in results:
+                    if result and not isinstance(result, Exception):
+                        result["ensemble_mode"] = True
+                        return result
+            elif model_preference in models:
+                provider, model = models[model_preference]
+                result = await call_llm(provider, model)
+                if result:
+                    return result
+            else:
+                result = await call_llm("openai", "gpt-4o")
+                if result:
+                    return result
         except Exception as e:
-            logger.error(f"Agency plan error: {e}")
+            logger.error(f"Agency plan multi-LLM error: {e}")
         
         return {"error": "Failed to generate plan", "agency": agency_type}
     
