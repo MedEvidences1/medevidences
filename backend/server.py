@@ -2674,7 +2674,7 @@ Respond ONLY with valid JSON."""
         
         return ai_plan
     
-    def _get_default_plan(self, disaster_type: str, severity: str, population: int) -> Dict:
+    def _get_default_plan(self, disaster_type: str, severity: str, population: int, location: str = "affected area") -> Dict:
         """Generate default plan when AI is unavailable"""
         severity_multiplier = {"critical": 1.5, "high": 1.0, "medium": 0.7, "low": 0.4}.get(severity, 1.0)
         
