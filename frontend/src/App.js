@@ -1307,6 +1307,248 @@ const Disasters = ({ getHeaders }) => {
         </div>
       )}
 
+      {/* LONG-RANGE FORECASTS 2026-2040 VIEW */}
+      {activeView === "longrange" && (
+        <div className="space-y-4">
+          {/* Header Card */}
+          <Card className="terminal-card border-l-4 border-l-[#00E5FF]">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-[#00E5FF]" />
+                  LONG-RANGE FORECASTING: 2026-2040
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">AUTO-UPDATE</Badge>
+                </CardTitle>
+                <Button onClick={loadLongRangeForecasts} disabled={loadingLongRange} className="bg-[#00E5FF] text-black hover:bg-[#00E5FF]/80">
+                  {loadingLongRange ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <Brain className="w-4 h-4 mr-1" />}
+                  GENERATE 15-YEAR FORECAST
+                </Button>
+              </div>
+              <CardDescription className="text-xs text-[#888]">
+                AI-powered multi-decade predictions • Climate, Geopolitical, Economic, Tech, Space • Daily auto-updates at 6 AM UTC
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Year Selector */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">SELECT YEAR FOR DETAILED FORECAST</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {[2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035, 2036, 2037, 2038, 2039, 2040].map(year => (
+                  <Button
+                    key={year}
+                    size="sm"
+                    variant={selectedYear === year ? "default" : "outline"}
+                    onClick={() => loadYearForecast(year)}
+                    className={selectedYear === year ? "bg-[#00E5FF] text-black" : "border-[#1F1F1F] text-[#888]"}
+                  >
+                    {year}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Year-Specific Forecast */}
+          {yearForecast && (
+            <Card className="terminal-card border-l-2 border-l-[#FFD700]">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Target className="w-4 h-4 text-[#FFD700]" />
+                    FORECAST: {yearForecast.year}
+                  </CardTitle>
+                  <Badge className={yearForecast.risk_score > 70 ? "bg-[#FF3333]" : yearForecast.risk_score > 50 ? "bg-[#FFAA00]" : "bg-[#00FF94]"}>
+                    RISK: {yearForecast.risk_score}/100
+                  </Badge>
+                </div>
+                <p className="text-xs text-[#EDEDED]">{yearForecast.global_outlook}</p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {/* Economic Forecast */}
+                {yearForecast.economic_forecast && (
+                  <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs font-bold text-[#00FF94] mb-2">ECONOMIC OUTLOOK</div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <div className="text-center">
+                        <div className="text-lg font-bold">{yearForecast.economic_forecast.global_gdp_growth}</div>
+                        <div className="text-xs text-[#888]">Global GDP</div>
+                      </div>
+                      {yearForecast.economic_forecast.major_economies && Object.entries(yearForecast.economic_forecast.major_economies).slice(0, 3).map(([country, growth]) => (
+                        <div key={country} className="text-center">
+                          <div className="text-lg font-bold text-[#FFD700]">{growth}</div>
+                          <div className="text-xs text-[#888]">{country}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Climate Outlook */}
+                {yearForecast.climate_outlook && (
+                  <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs font-bold text-[#FF3333] mb-2">CLIMATE OUTLOOK</div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-[#FF3333]">{yearForecast.climate_outlook.global_temp_anomaly}</div>
+                        <div className="text-xs text-[#888]">Temp Anomaly</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-[#FFAA00]">{yearForecast.climate_outlook.extreme_weather_frequency}</div>
+                        <div className="text-xs text-[#888]">Extreme Weather</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xs text-[#888]">High Risk Regions:</div>
+                        <div className="text-xs">{yearForecast.climate_outlook.high_risk_regions?.join(", ")}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Predicted Events */}
+                {yearForecast.predicted_events && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold text-[#00E5FF]">PREDICTED EVENTS</div>
+                    {yearForecast.predicted_events.map((event, i) => (
+                      <div key={i} className={`p-2 bg-[#0A0A0A] rounded border ${event.impact_level === 'critical' ? 'border-[#FF3333]' : event.impact_level === 'high' ? 'border-[#FFAA00]' : 'border-[#1F1F1F]'}`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">{event.event}</div>
+                            <div className="text-xs text-[#888]">{event.month} • {event.region} • {event.category}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-[#FF3333]">{event.probability}%</div>
+                            <Badge className={event.impact_level === 'critical' ? 'bg-[#FF3333]' : event.impact_level === 'high' ? 'bg-[#FFAA00]' : 'bg-[#00E5FF]'}>
+                              {event.impact_level?.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </div>
+                        {event.sectors_affected && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {event.sectors_affected.map((sector, j) => (
+                              <Badge key={j} variant="outline" className="text-xs">{sector}</Badge>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Tech Milestones & Geopolitical Hotspots */}
+                <div className="grid grid-cols-2 gap-3">
+                  {yearForecast.technology_milestones && (
+                    <div className="p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-xs font-bold text-[#9D4EDD] mb-1">TECH MILESTONES</div>
+                      <ul className="text-xs text-[#888] space-y-1">
+                        {yearForecast.technology_milestones.map((m, i) => (
+                          <li key={i}>• {m}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {yearForecast.geopolitical_hotspots && (
+                    <div className="p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-xs font-bold text-[#FF3333] mb-1">GEOPOLITICAL HOTSPOTS</div>
+                      <div className="flex flex-wrap gap-1">
+                        {yearForecast.geopolitical_hotspots.map((h, i) => (
+                          <Badge key={i} variant="outline" className="text-xs border-[#FF3333]/30">{h}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Long-Range Overview */}
+          {longRangeForecasts && longRangeForecasts.timeframe_predictions && (
+            <div className="space-y-4">
+              {/* Mega Trends */}
+              {longRangeForecasts.mega_trends && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-[#9D4EDD]" />
+                      MEGA TRENDS 2026-2040
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {longRangeForecasts.mega_trends.map((trend, i) => (
+                        <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#9D4EDD]/30">
+                          <div className="text-sm font-bold text-[#9D4EDD]">{trend.trend}</div>
+                          <div className="text-xs text-[#888] mt-1">{trend.description}</div>
+                          <div className="text-xs text-[#FFD700] mt-2">Peak Impact: {trend.peak_impact_year}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Solar Cycle Impacts */}
+              {longRangeForecasts.solar_cycle_impacts && (
+                <Card className="terminal-card border-l-2 border-l-[#FFD700]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Star className="w-4 h-4 text-[#FFD700]" />
+                      SOLAR CYCLE IMPACTS
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xs text-[#888]">CYCLE 25 PEAK</div>
+                        <div className="text-lg font-bold text-[#FFD700]">{longRangeForecasts.solar_cycle_impacts.cycle_25_peak}</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xs text-[#888]">CYCLE 26 START</div>
+                        <div className="text-lg font-bold text-[#00E5FF]">{longRangeForecasts.solar_cycle_impacts.cycle_26_start}</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xs text-[#888]">HIGH RISK YEARS</div>
+                        <div className="text-sm font-bold text-[#FF3333]">{longRangeForecasts.solar_cycle_impacts.high_risk_years_for_space_events?.join(", ")}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Black Swan Scenarios */}
+              {longRangeForecasts.black_swan_scenarios && (
+                <Card className="terminal-card border-l-2 border-l-[#FF3333]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FF3333]" />
+                      BLACK SWAN SCENARIOS (Low Probability, High Impact)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {longRangeForecasts.black_swan_scenarios.map((scenario, i) => (
+                        <div key={i} className="p-2 bg-[#0A0A0A] rounded border border-[#FF3333]/30">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-bold">{scenario.scenario}</div>
+                            <Badge className="bg-[#FF3333]/20 text-[#FF3333]">{scenario.probability}% chance</Badge>
+                          </div>
+                          <div className="text-xs text-[#888] mt-1">{scenario.impact_if_occurs}</div>
+                          <div className="text-xs text-[#FFAA00]">Timeline: {scenario.timeline}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* OVERVIEW VIEW */}
       {activeView === "overview" && (
         <>
