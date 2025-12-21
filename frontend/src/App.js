@@ -183,6 +183,7 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout, langua
     { id: "deep-forecast", label: "DEEP_FORECAST", icon: Sparkles },
     { id: "investment", label: "IB_SUITE", icon: TrendingUp },
     { id: "disasters", label: "DISASTERS", icon: AlertTriangle },
+    { id: "space", label: "SPACE_HAZARDS", icon: Star },
     { id: "astrology", label: "ASTROLOGY", icon: Moon },
     { id: "tabular", label: "TABULAR", icon: BarChart3 },
     { id: "holographic", label: "3D_VISUAL", icon: Globe },
