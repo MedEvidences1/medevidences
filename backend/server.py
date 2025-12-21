@@ -5942,29 +5942,30 @@ Respond ONLY with valid JSON."""
                 window_status = "CLOSED"
                 window_score = 20
         
-        # Upcoming IPO predictions
-        upcoming_ipos = [
-            {"company": "Stripe", "sector": "fintech", "valuation": "$65-70B", "probability": 75, "timing": "Q1 2025", "exchange": "NYSE"},
-            {"company": "Databricks", "sector": "technology", "valuation": "$45-50B", "probability": 65, "timing": "Q2 2025", "exchange": "NASDAQ"},
-            {"company": "Discord", "sector": "technology", "valuation": "$15-18B", "probability": 55, "timing": "Q2 2025", "exchange": "NASDAQ"},
-            {"company": "Klarna", "sector": "fintech", "valuation": "$12-15B", "probability": 70, "timing": "Q1 2025", "exchange": "NYSE"},
-            {"company": "Shein", "sector": "retail", "valuation": "$60-65B", "probability": 45, "timing": "H2 2025", "exchange": "LSE/NYSE"},
-            {"company": "Revolut", "sector": "fintech", "valuation": "$30-35B", "probability": 50, "timing": "Q3 2025", "exchange": "LSE"},
-            {"company": "Canva", "sector": "technology", "valuation": "$25-30B", "probability": 40, "timing": "H2 2025", "exchange": "ASX/NASDAQ"},
-            {"company": "SpaceX", "sector": "aerospace", "valuation": "$180-200B", "probability": 25, "timing": "2026+", "exchange": "NYSE"},
-            {"company": "ByteDance (TikTok)", "sector": "technology", "valuation": "$250-300B", "probability": 20, "timing": "2026+", "exchange": "HKG"},
-            {"company": "Anthropic", "sector": "AI", "valuation": "$20-25B", "probability": 35, "timing": "H2 2025", "exchange": "NASDAQ"},
-        ]
+        # Use AI predictions if available, else use defaults
+        if not upcoming_ipos:
+            upcoming_ipos = [
+                {"company": "Stripe", "sector": "fintech", "expected_valuation": "$65-70B", "expected_date": "Q1 2025", "investor_interest": "high"},
+                {"company": "Databricks", "sector": "technology", "expected_valuation": "$45-50B", "expected_date": "Q2 2025", "investor_interest": "high"},
+                {"company": "Discord", "sector": "technology", "expected_valuation": "$15-18B", "expected_date": "Q2 2025", "investor_interest": "medium"},
+                {"company": "Klarna", "sector": "fintech", "expected_valuation": "$12-15B", "expected_date": "Q1 2025", "investor_interest": "high"},
+                {"company": "Shein", "sector": "retail", "expected_valuation": "$60-65B", "expected_date": "H2 2025", "investor_interest": "medium"},
+            ]
         
         if sector:
-            upcoming_ipos = [i for i in upcoming_ipos if sector.lower() in i["sector"].lower()]
+            upcoming_ipos = [i for i in upcoming_ipos if sector.lower() in i.get("sector", "").lower()]
         
+        # Add recommendations based on interest
         for ipo in upcoming_ipos:
-            ipo["first_day_pop_estimate"] = f"{random.randint(5, 45)}%"
-            ipo["recommendation"] = "SUBSCRIBE" if ipo["probability"] > 60 else "WATCH" if ipo["probability"] > 40 else "PASS"
+            interest = ipo.get("investor_interest", "medium")
+            ipo["recommendation"] = "SUBSCRIBE" if interest == "high" else "WATCH" if interest == "medium" else "PASS"
+            # Estimate first day performance based on interest level
+            pop_estimates = {"high": "15-25%", "medium": "5-15%", "low": "0-10%"}
+            ipo["first_day_pop_estimate"] = pop_estimates.get(interest, "5-15%")
         
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "analysis_type": "AI-Powered",
             "market_window": {
                 "status": window_status,
                 "score": window_score,
