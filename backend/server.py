@@ -2563,7 +2563,15 @@ class LiveDisasterMonitor:
                 "remediation_available": True
             })
         
-        return sorted(disasters, key=lambda x: x.get("timestamp") or "", reverse=True)[:50]
+        # Ensure all timestamps are strings for consistent sorting
+        for d in disasters:
+            ts = d.get("timestamp")
+            if ts is None:
+                d["timestamp"] = ""
+            elif isinstance(ts, (int, float)):
+                d["timestamp"] = datetime.fromtimestamp(ts/1000, tz=timezone.utc).isoformat() if ts > 1e10 else datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+        
+        return sorted(disasters, key=lambda x: str(x.get("timestamp") or ""), reverse=True)[:50]
     
     async def generate_ai_future_predictions(self, timeframe: str = "2025-2026") -> Dict:
         """Generate AI-powered disaster predictions for future periods"""
