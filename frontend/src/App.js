@@ -2007,6 +2007,457 @@ const Astrology = ({ getHeaders, user }) => {
   );
 };
 
+// Space Hazards Component - Real-time NASA & NOAA Space Weather
+const SpaceHazards = ({ getHeaders }) => {
+  const [hazards, setHazards] = useState(null);
+  const [forecast, setForecast] = useState(null);
+  const [neos, setNeos] = useState(null);
+  const [debris, setDebris] = useState(null);
+  const [impacts, setImpacts] = useState(null);
+  const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("overview");
+  const [generatingAnalysis, setGeneratingAnalysis] = useState(false);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [hazardsRes, forecastRes, neosRes, debrisRes, impactsRes] = await Promise.all([
+        axios.get(`${API}/space/current`),
+        axios.get(`${API}/space/forecast?days=7`),
+        axios.get(`${API}/space/neo`),
+        axios.get(`${API}/space/debris`),
+        axios.get(`${API}/space/impacts`),
+      ]);
+      setHazards(hazardsRes.data);
+      setForecast(forecastRes.data);
+      setNeos(neosRes.data);
+      setDebris(debrisRes.data);
+      setImpacts(impactsRes.data);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to load space data");
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const generateAIAnalysis = async () => {
+    setGeneratingAnalysis(true);
+    try {
+      const res = await axios.get(`${API}/space/ai-analysis`, { headers: getHeaders() });
+      setAiAnalysis(res.data);
+      toast.success("AI analysis generated!");
+    } catch (e) {
+      toast.error("Failed to generate analysis");
+    }
+    setGeneratingAnalysis(false);
+  };
+
+  const views = [
+    { id: "overview", label: "OVERVIEW", icon: Home },
+    { id: "neo", label: "ASTEROIDS", icon: Star },
+    { id: "weather", label: "SOLAR STORMS", icon: Activity },
+    { id: "debris", label: "SPACE DEBRIS", icon: AlertTriangle },
+    { id: "impacts", label: "SECTOR IMPACTS", icon: Globe },
+    { id: "forecast", label: "7-DAY FORECAST", icon: Clock },
+  ];
+
+  const getAlertColor = (level) => {
+    switch(level) {
+      case "critical": return "bg-[#FF3333]";
+      case "high": return "bg-[#FF3333]/80";
+      case "elevated": return "bg-[#FFAA00]";
+      case "moderate": return "bg-[#FFD700]";
+      default: return "bg-[#00FF94]";
+    }
+  };
+
+  return (
+    <div className="space-y-6" data-testid="space-hazards-view">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Star className="w-5 h-5 text-[#FFD700]" />
+            SPACE_HAZARDS_MONITOR
+          </h2>
+          <p className="text-xs text-[#888] mt-1">Real-time data from NASA, NOAA SWPC, ESA • Protecting airlines, satellites & infrastructure</p>
+        </div>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="text-xs border-[#FFD700]/30 text-[#FFD700]">
+            <span className="w-2 h-2 bg-[#FFD700] rounded-full mr-1 animate-pulse" />LIVE
+          </Badge>
+          <Button onClick={loadData} variant="outline" size="sm" className="btn-secondary">
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />REFRESH
+          </Button>
+        </div>
+      </div>
+
+      {/* View Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {views.map((v) => (
+          <Button
+            key={v.id}
+            size="sm"
+            variant={activeView === v.id ? "default" : "outline"}
+            onClick={() => setActiveView(v.id)}
+            className={activeView === v.id ? "bg-[#FFD700] text-black" : "border-[#1F1F1F] text-[#888]"}
+          >
+            <v.icon className="w-3 h-3 mr-1" />
+            {v.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* OVERVIEW VIEW */}
+      {activeView === "overview" && hazards && (
+        <div className="space-y-4">
+          {/* Risk Summary */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="terminal-card border-l-2 border-l-[#FFD700]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#FFD700]">{hazards.risk_score || 0}%</div>
+                <div className="text-xs text-[#888]">SPACE RISK</div>
+                <Badge className={getAlertColor(hazards.overall_risk)}>{hazards.overall_risk?.toUpperCase()}</Badge>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-l-2 border-l-[#FF3333]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#FF3333]">Kp {hazards.space_weather?.kp_index || 0}</div>
+                <div className="text-xs text-[#888]">GEOMAGNETIC</div>
+                <Badge className={getAlertColor(hazards.space_weather?.alert_level)}>{hazards.space_weather?.storm_level || "Quiet"}</Badge>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-l-2 border-l-[#9D4EDD]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#9D4EDD]">{neos?.total || 0}</div>
+                <div className="text-xs text-[#888]">NEOs TRACKED</div>
+                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{neos?.potentially_hazardous || 0} HAZARDOUS</Badge>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-l-2 border-l-[#00E5FF]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#00E5FF]">{debris?.total_tracked || 0}</div>
+                <div className="text-xs text-[#888]">DEBRIS REENTRIES</div>
+                <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">UPCOMING</Badge>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Analysis Button & Results */}
+          <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-[#00FF94]" />
+                  AI SPACE WEATHER ANALYSIS
+                </CardTitle>
+                <Button onClick={generateAIAnalysis} disabled={generatingAnalysis} size="sm" className="bg-[#00FF94] text-black hover:bg-[#00FF94]/80">
+                  {generatingAnalysis ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <Sparkles className="w-4 h-4 mr-1" />}
+                  ANALYZE
+                </Button>
+              </div>
+            </CardHeader>
+            {aiAnalysis && (
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-sm font-bold text-[#00FF94] mb-1">Executive Summary</div>
+                    <p className="text-xs text-[#888]">{aiAnalysis.executive_summary}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-xs text-[#888]">Risk Assessment</div>
+                      <Badge className={getAlertColor(aiAnalysis.risk_assessment)}>{aiAnalysis.risk_assessment?.toUpperCase()}</Badge>
+                    </div>
+                    <div className="p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-xs text-[#888]">7-Day Outlook</div>
+                      <div className="text-xs text-[#EDEDED]">{aiAnalysis.forecast_outlook}</div>
+                    </div>
+                  </div>
+                  {aiAnalysis.sector_alerts && (
+                    <div className="space-y-1">
+                      {aiAnalysis.sector_alerts.map((alert, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 bg-[#0A0A0A] rounded">
+                          <span className="text-xs font-bold">{alert.sector}</span>
+                          <Badge className={alert.alert_level === "red" ? "bg-[#FF3333]" : alert.alert_level === "orange" ? "bg-[#FFAA00]" : "bg-[#00FF94]"}>
+                            {alert.alert_level?.toUpperCase()}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {aiAnalysis.astrology_correlation && (
+                    <div className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#9D4EDD]">
+                      <div className="text-xs text-[#9D4EDD] font-bold">Astrology Correlation</div>
+                      <div className="text-xs text-[#888]">{aiAnalysis.astrology_correlation}</div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Sector Impacts Summary */}
+          {impacts && impacts.sector_impacts && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">SECTOR IMPACT STATUS</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {Object.entries(impacts.sector_impacts).map(([sector, data]) => (
+                    <div key={sector} className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold">{sector.replace(/_/g, ' ').toUpperCase()}</span>
+                        <Badge className={getAlertColor(data.risk)}>{data.risk?.toUpperCase()}</Badge>
+                      </div>
+                      <div className="text-xs text-[#888] mt-1 truncate">{data.recommendation}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ASTEROIDS (NEO) VIEW */}
+      {activeView === "neo" && neos && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Star className="w-4 h-4 text-[#9D4EDD]" />
+                NEAR EARTH OBJECTS
+                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">NASA NEO API</Badge>
+              </CardTitle>
+              <CardDescription className="text-xs text-[#888]">
+                Tracking {neos.total} asteroids/comets • {neos.potentially_hazardous} potentially hazardous
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {(neos.objects || []).map((neo, i) => (
+                  <div key={i} className={`p-3 bg-[#0A0A0A] rounded border ${neo.is_hazardous ? 'border-[#FF3333]' : 'border-[#1F1F1F]'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-bold">{neo.name}</div>
+                        <div className="text-xs text-[#888]">Approach: {neo.date}</div>
+                      </div>
+                      <div className="text-right">
+                        {neo.is_hazardous && <Badge className="bg-[#FF3333] mb-1">HAZARDOUS</Badge>}
+                        <div className="text-xs text-[#00E5FF]">{(neo.miss_distance_km / 1000000).toFixed(2)}M km</div>
+                        <div className="text-xs text-[#888]">{(neo.velocity_kph / 1000).toFixed(1)}k km/h</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-[#888] mt-1">Diameter: ~{neo.diameter_km?.toFixed(3)} km</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* SOLAR STORMS VIEW */}
+      {activeView === "weather" && impacts && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#FFAA00]">Kp {impacts.current_kp_index || 0}</div>
+                <div className="text-xs text-[#888]">CURRENT Kp INDEX</div>
+                <Progress value={(impacts.current_kp_index || 0) * 11} className="mt-2" />
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl font-bold text-[#FF3333]">{impacts.max_kp_24h || 0}</div>
+                <div className="text-xs text-[#888]">MAX Kp (24H)</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card">
+              <CardContent className="p-4 text-center">
+                <Badge className={getAlertColor(impacts.alert_level)} style={{fontSize: '16px', padding: '8px 16px'}}>
+                  {impacts.storm_level || "Quiet"}
+                </Badge>
+                <div className="text-xs text-[#888] mt-2">STORM LEVEL</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="terminal-card">
+            <CardHeader>
+              <CardTitle className="text-sm">GEOMAGNETIC STORM SCALE</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {[
+                  {level: "G5", kp: "9", desc: "Extreme - Widespread power blackouts, satellite damage", color: "#FF0000"},
+                  {level: "G4", kp: "8-9", desc: "Severe - Power grid problems, GPS errors hours", color: "#FF3333"},
+                  {level: "G3", kp: "7", desc: "Strong - Power grid fluctuations, GPS issues", color: "#FF6600"},
+                  {level: "G2", kp: "6", desc: "Moderate - High-latitude power systems affected", color: "#FFAA00"},
+                  {level: "G1", kp: "5", desc: "Minor - Weak power grid fluctuations", color: "#FFD700"},
+                ].map((scale, i) => (
+                  <div key={i} className={`p-2 rounded flex items-center justify-between ${impacts.current_kp_index >= parseInt(scale.kp) ? 'bg-[#0A0A0A] border border-[#1F1F1F]' : 'opacity-50'}`}>
+                    <div className="flex items-center gap-2">
+                      <Badge style={{backgroundColor: scale.color}}>{scale.level}</Badge>
+                      <span className="text-xs">Kp {scale.kp}</span>
+                    </div>
+                    <span className="text-xs text-[#888]">{scale.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* SPACE DEBRIS VIEW */}
+      {activeView === "debris" && debris && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#FFAA00]" />
+                UPCOMING SPACE DEBRIS REENTRIES
+              </CardTitle>
+              <CardDescription className="text-xs text-[#888]">
+                Tracking satellite and rocket debris returning to Earth
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(debris.upcoming_reentries || []).map((item, i) => (
+                  <div key={i} className={`p-3 bg-[#0A0A0A] rounded border ${item.risk_level === 'high' ? 'border-[#FF3333]' : item.risk_level === 'medium' ? 'border-[#FFAA00]' : 'border-[#1F1F1F]'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-bold">{item.object}</div>
+                        <div className="text-xs text-[#888]">Type: {item.type?.replace(/_/g, ' ')}</div>
+                        <div className="text-xs text-[#00E5FF]">Est. Reentry: {new Date(item.estimated_date).toLocaleDateString()}</div>
+                      </div>
+                      <div className="text-right">
+                        <Badge className={item.risk_level === 'high' ? 'bg-[#FF3333]' : item.risk_level === 'medium' ? 'bg-[#FFAA00]' : 'bg-[#00FF94]'}>
+                          {item.risk_level?.toUpperCase()} RISK
+                        </Badge>
+                        <div className="text-xs text-[#888] mt-1">{item.debris_mass_kg?.toLocaleString()} kg</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* SECTOR IMPACTS VIEW */}
+      {activeView === "impacts" && impacts && impacts.sector_impacts && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(impacts.sector_impacts).map(([sector, data]) => (
+              <Card key={sector} className={`terminal-card border-l-4 ${data.risk === 'high' ? 'border-l-[#FF3333]' : data.risk === 'moderate' ? 'border-l-[#FFAA00]' : 'border-l-[#00FF94]'}`}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">{sector.replace(/_/g, ' ').toUpperCase()}</CardTitle>
+                    <Badge className={getAlertColor(data.risk)}>{data.risk?.toUpperCase()}</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="text-xs text-[#888]"><strong>Recommendation:</strong> {data.recommendation}</div>
+                    {data.affected_routes && data.affected_routes.length > 0 && (
+                      <div className="text-xs"><strong className="text-[#FFAA00]">Affected:</strong> {data.affected_routes.join(", ")}</div>
+                    )}
+                    {data.affected_regions && data.affected_regions.length > 0 && (
+                      <div className="text-xs"><strong className="text-[#FFAA00]">Regions:</strong> {data.affected_regions.join(", ")}</div>
+                    )}
+                    {data.accuracy_degradation && (
+                      <div className="text-xs"><strong className="text-[#FF3333]">Accuracy degradation:</strong> {data.accuracy_degradation}</div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 7-DAY FORECAST VIEW */}
+      {activeView === "forecast" && forecast && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Clock className="w-4 h-4 text-[#00E5FF]" />
+                7-DAY SPACE WEATHER FORECAST
+              </CardTitle>
+              <CardDescription className="text-xs text-[#888]">
+                Peak activity expected: {forecast.peak_activity_date}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(forecast.daily_forecasts || []).map((day, i) => (
+                  <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="text-sm font-bold">{new Date(day.date).toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'})}</div>
+                        <Badge className={day.kp_forecast >= 6 ? 'bg-[#FF3333]' : day.kp_forecast >= 4 ? 'bg-[#FFAA00]' : 'bg-[#00FF94]'}>
+                          Kp {day.kp_forecast}
+                        </Badge>
+                        {day.hazardous_neo && <Badge className="bg-[#9D4EDD]">NEO ALERT</Badge>}
+                      </div>
+                      <div className="text-right text-xs">
+                        <div className="text-[#888]">Storm: {day.storm_probability}%</div>
+                        <div className={day.aviation_impact === "significant" ? "text-[#FF3333]" : "text-[#888]"}>Aviation: {day.aviation_impact}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 mt-2 text-xs text-[#888]">
+                      <span>Aurora: {day.aurora_visibility}</span>
+                      <span>NEOs: {day.neo_approaches}</span>
+                      <span>Satellites: {day.satellite_risk}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recommendations */}
+          {forecast.recommendations && forecast.recommendations.length > 0 && (
+            <Card className="terminal-card border-l-4 border-l-[#FFAA00]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">SECTOR RECOMMENDATIONS</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {forecast.recommendations.map((rec, i) => (
+                    <div key={i} className="p-2 bg-[#0A0A0A] rounded flex items-center justify-between">
+                      <div>
+                        <div className="text-xs font-bold">{rec.sector}</div>
+                        <div className="text-xs text-[#888]">{rec.action}</div>
+                      </div>
+                      <Badge className={rec.urgency === 'high' ? 'bg-[#FF3333]' : 'bg-[#FFAA00]'}>{rec.urgency?.toUpperCase()}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="text-xs text-[#444] text-center">
+        Data sources: NASA NEO API • NOAA Space Weather Prediction Center • ESA Space Debris Office • Updated every 15 minutes
+      </div>
+    </div>
+  );
+};
+
 // Tabular Predictions Component
 const TabularPredictions = () => {
   const [tables, setTables] = useState(null);
