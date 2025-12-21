@@ -969,14 +969,18 @@ const Disasters = ({ getHeaders }) => {
 
   const loadLiveDisasters = useCallback(async () => {
     try {
-      const [liveRes, briefingRes] = await Promise.all([
-        axios.get(`${API}/disasters/live`),
-        axios.get(`${API}/disasters/daily-briefing`),
-      ]);
+      const liveRes = await axios.get(`${API}/disasters/live`);
       setLiveDisasters(liveRes.data);
+    } catch (e) {
+      console.error("Live disasters error:", e);
+    }
+    
+    // Load briefing separately (it may be slow due to AI)
+    try {
+      const briefingRes = await axios.get(`${API}/disasters/daily-briefing`);
       setDailyBriefing(briefingRes.data);
     } catch (e) {
-      console.error(e);
+      console.error("Daily briefing error:", e);
     }
   }, []);
 
