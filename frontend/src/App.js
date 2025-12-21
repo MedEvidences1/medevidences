@@ -955,6 +955,7 @@ const Disasters = ({ getHeaders }) => {
     { id: "overview", label: "OVERVIEW", icon: Home },
     { id: "live", label: "LIVE NOW", icon: Radio },
     { id: "predictions", label: "2025-2026", icon: TrendingUp },
+    { id: "longrange", label: "2026-2040", icon: Clock },
     { id: "remediation", label: "REMEDIATION", icon: Shield },
     { id: "agencies", label: "AGENCIES", icon: Globe },
     { id: "sensors", label: "SENSORS", icon: Cpu },
@@ -964,8 +965,12 @@ const Disasters = ({ getHeaders }) => {
   // State for live disasters and predictions
   const [liveDisasters, setLiveDisasters] = useState(null);
   const [futurePredictions, setFuturePredictions] = useState(null);
+  const [longRangeForecasts, setLongRangeForecasts] = useState(null);
+  const [yearForecast, setYearForecast] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(2030);
   const [dailyBriefing, setDailyBriefing] = useState(null);
   const [loadingPredictions, setLoadingPredictions] = useState(false);
+  const [loadingLongRange, setLoadingLongRange] = useState(false);
 
   const loadLiveDisasters = useCallback(async () => {
     try {
