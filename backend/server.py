@@ -8602,6 +8602,82 @@ async def get_disaster_economic_impact():
     }
 
 # =============================================================================
+# API ENDPOINTS - SPACE HAZARDS (Real-Time NASA, NOAA SWPC Data)
+# =============================================================================
+
+@api_router.get("/space/current", tags=["Space Hazards"])
+async def get_current_space_hazards():
+    """
+    Get current space weather conditions and hazards
+    Data from: NASA, NOAA Space Weather Prediction Center
+    """
+    return await space_hazards_engine.get_current_hazards()
+
+@api_router.get("/space/forecast", tags=["Space Hazards"])
+async def get_space_forecast(days: int = 7):
+    """
+    Get space weather forecast for upcoming days
+    Includes: Geomagnetic storms, Solar flares, NEO approaches
+    """
+    return await space_hazards_engine.get_space_forecast(days)
+
+@api_router.get("/space/impacts", tags=["Space Hazards"])
+async def get_space_weather_impacts():
+    """
+    Get sector-specific impact analysis
+    Sectors: Aviation, Power Grid, Satellites, GPS, Communications, Internet
+    """
+    return await space_hazards_engine.analyze_space_weather_impacts()
+
+@api_router.get("/space/neo", tags=["Space Hazards"])
+async def get_near_earth_objects():
+    """
+    Get Near Earth Objects from NASA
+    Tracks asteroids and comets approaching Earth
+    """
+    neos = await space_hazards_engine.fetch_nasa_neo()
+    hazardous = [n for n in neos if n.get("is_hazardous")]
+    return {
+        "total": len(neos),
+        "potentially_hazardous": len(hazardous),
+        "objects": neos,
+        "closest_approach": neos[0] if neos else None,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/space/debris", tags=["Space Hazards"])
+async def get_space_debris():
+    """
+    Get upcoming satellite and debris reentries
+    Tracks: Satellites, Rocket stages, Space debris
+    """
+    reentries = await space_hazards_engine.fetch_satellite_reentries()
+    return {
+        "upcoming_reentries": reentries,
+        "total_tracked": len(reentries),
+        "next_major_event": next((r for r in reentries if r.get("risk_level") in ["medium", "high"]), None),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/space/ai-analysis", tags=["Space Hazards"])
+async def get_space_ai_analysis():
+    """
+    AI-powered space weather analysis
+    Provides executive summary and sector alerts
+    """
+    return await space_hazards_engine.generate_ai_space_analysis()
+
+@api_router.get("/space/hazard-types", tags=["Space Hazards"])
+async def get_space_hazard_types():
+    """Get all supported space hazard types and impact sectors"""
+    return {
+        "hazard_types": space_hazards_engine.HAZARD_TYPES,
+        "impact_sectors": space_hazards_engine.IMPACT_SECTORS,
+        "data_sources": ["NASA NEO API", "NOAA SWPC", "Space-Track.org", "ESA Space Debris Office"],
+        "update_frequency": "Real-time for alerts, 5-minute cache for forecasts"
+    }
+
+# =============================================================================
 # API ENDPOINTS - OSINT
 # =============================================================================
 
