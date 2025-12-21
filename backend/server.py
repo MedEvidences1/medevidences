@@ -2558,12 +2558,12 @@ class LiveDisasterMonitor:
                 "severity": "critical" if alert.get("severity") == "Extreme" else "high",
                 "status": "ACTIVE",
                 "source": "NOAA",
-                "timestamp": alert.get("effective"),
+                "timestamp": alert.get("effective") or datetime.now(timezone.utc).isoformat(),
                 "expires": alert.get("expires"),
                 "remediation_available": True
             })
         
-        return sorted(disasters, key=lambda x: x.get("timestamp", ""), reverse=True)[:50]
+        return sorted(disasters, key=lambda x: x.get("timestamp") or "", reverse=True)[:50]
     
     async def generate_ai_future_predictions(self, timeframe: str = "2025-2026") -> Dict:
         """Generate AI-powered disaster predictions for future periods"""
