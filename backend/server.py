@@ -2499,13 +2499,19 @@ class DisasterRemediationEngine:
     """
     
     DISASTER_TYPES = [
+        # Natural Disasters
         "earthquake", "hurricane", "flood", "wildfire", "tornado", 
-        "tsunami", "volcanic_eruption", "landslide", "drought", "extreme_heat"
+        "tsunami", "volcanic_eruption", "landslide", "drought", "extreme_heat",
+        # Space Hazards
+        "solar_storm", "geomagnetic_storm", "space_debris_reentry", 
+        "satellite_failure", "communication_blackout", "gps_disruption",
+        "near_earth_object", "cosmic_radiation_event"
     ]
     
     AGENCY_TYPES = [
         "emergency_management", "fire_department", "police", "medical_services",
-        "national_guard", "red_cross", "utility_companies", "transportation"
+        "national_guard", "red_cross", "utility_companies", "transportation",
+        "space_agency", "aviation_authority", "telecommunications", "power_grid_operator"
     ]
     
     def __init__(self):
