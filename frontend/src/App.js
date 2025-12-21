@@ -1001,6 +1001,30 @@ const Disasters = ({ getHeaders }) => {
     setLoadingPredictions(false);
   };
 
+  const loadLongRangeForecasts = async () => {
+    setLoadingLongRange(true);
+    try {
+      const res = await axios.get(`${API}/forecast/long-range`);
+      setLongRangeForecasts(res.data);
+      toast.success("2026-2040 forecasts loaded!");
+    } catch (e) {
+      toast.error("Failed to load long-range forecasts");
+    }
+    setLoadingLongRange(false);
+  };
+
+  const loadYearForecast = async (year) => {
+    setLoadingLongRange(true);
+    try {
+      const res = await axios.get(`${API}/forecast/year/${year}`);
+      setYearForecast(res.data);
+      setSelectedYear(year);
+    } catch (e) {
+      toast.error(`Failed to load ${year} forecast`);
+    }
+    setLoadingLongRange(false);
+  };
+
   const generateRemediationFromLive = async (disaster) => {
     setIsGenerating(true);
     setRemediationForm({
