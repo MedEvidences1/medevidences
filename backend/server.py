@@ -8776,6 +8776,91 @@ async def get_remediation_plan(disaster_type: str = "earthquake", region: str = 
     }
 
 # =============================================================================
+# API ENDPOINTS - LIVE DISASTERS & AI FUTURE PREDICTIONS
+# =============================================================================
+
+@api_router.get("/disasters/live", tags=["Live Disasters"])
+async def get_live_disasters():
+    """
+    Get ALL disasters happening RIGHT NOW on Earth
+    Sources: GDACS, USGS, NOAA - Real-time data
+    """
+    disasters = await live_disaster_monitor.fetch_live_disasters()
+    
+    # Group by type
+    by_type = {}
+    for d in disasters:
+        dtype = d["type"]
+        if dtype not in by_type:
+            by_type[dtype] = []
+        by_type[dtype].append(d)
+    
+    return {
+        "total_active": len(disasters),
+        "by_type": {k: len(v) for k, v in by_type.items()},
+        "disasters": disasters,
+        "sources": ["GDACS", "USGS", "NOAA"],
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/disasters/predictions", tags=["Live Disasters"])
+async def get_future_predictions(timeframe: str = "2025-2026"):
+    """
+    Get AI-powered disaster predictions for 2025-2026+
+    Based on current trends, climate models, and historical patterns
+    """
+    predictions = await live_disaster_monitor.generate_ai_future_predictions(timeframe)
+    return predictions
+
+@api_router.get("/disasters/daily-briefing", tags=["Live Disasters"])
+async def get_daily_briefing():
+    """
+    Get AI-generated daily disaster intelligence briefing
+    Executive summary of current situation and 24-hour outlook
+    """
+    briefing = await live_disaster_monitor.get_daily_disaster_briefing()
+    return briefing
+
+@api_router.get("/disasters/remediation-suggestions", tags=["Live Disasters"])
+async def get_remediation_suggestions():
+    """
+    Get remediation suggestions linked to current active disasters
+    One-click generation of remediation plans for live events
+    """
+    suggestions = await live_disaster_monitor.get_linked_remediation_suggestions()
+    return {
+        "total_suggestions": len(suggestions),
+        "suggestions": suggestions,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.post("/disasters/generate-from-live", tags=["Live Disasters"])
+async def generate_remediation_from_live(disaster_id: str, user: dict = Depends(get_optional_user)):
+    """
+    Generate remediation plan directly from a live disaster event
+    Links real-time disasters to AI-powered response planning
+    """
+    # Get live disasters
+    disasters = await live_disaster_monitor.fetch_live_disasters()
+    
+    # Find the specific disaster
+    target = next((d for d in disasters if d["id"] == disaster_id), None)
+    if not target:
+        raise HTTPException(status_code=404, detail="Disaster not found")
+    
+    # Generate remediation plan
+    plan = await remediation_engine.generate_remediation_plan(
+        disaster_type=target["type"],
+        severity=target["severity"],
+        location=target["location"],
+        population_affected=target.get("affected_population", 10000),
+        model_preference="ensemble"
+    )
+    
+    plan["linked_disaster"] = target
+    return plan
+
+# =============================================================================
 # API ENDPOINTS - AI-POWERED DISASTER REMEDIATION PLANNING
 # =============================================================================
 
