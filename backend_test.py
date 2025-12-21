@@ -472,6 +472,134 @@ class PlutusAPITester:
             self.log_result("Multi-LLM Integration", False, f"Exception: {str(e)}")
             return False
 
+    def test_space_hazards_current(self):
+        """Test NEW: Space Hazards - Current space weather data"""
+        try:
+            response = requests.get(f"{self.api_url}/space/current", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Hazards Current", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Overall risk: {data.get('overall_risk', 'unknown')}")
+                space_weather = data.get('space_weather', {})
+                print(f"   Kp index: {space_weather.get('kp_index', 'N/A')}")
+                print(f"   Storm level: {space_weather.get('storm_level', 'N/A')}")
+                neos = data.get('near_earth_objects', [])
+                print(f"   Near Earth Objects: {len(neos)}")
+                debris = data.get('space_debris', [])
+                print(f"   Space debris entries: {len(debris)}")
+            return success
+        except Exception as e:
+            self.log_result("Space Hazards Current", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_hazards_forecast(self):
+        """Test NEW: Space Hazards - 7-day forecast"""
+        try:
+            response = requests.get(f"{self.api_url}/space/forecast?days=7", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Hazards Forecast", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                forecast_days = data.get('forecast_days', [])
+                print(f"   Forecast days: {len(forecast_days)}")
+                if forecast_days:
+                    first_day = forecast_days[0]
+                    print(f"   Day 1 Kp forecast: {first_day.get('kp_forecast', 'N/A')}")
+                    print(f"   Day 1 risk level: {first_day.get('risk_level', 'N/A')}")
+            return success
+        except Exception as e:
+            self.log_result("Space Hazards Forecast", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_hazards_impacts(self):
+        """Test NEW: Space Hazards - Sector impact analysis"""
+        try:
+            response = requests.get(f"{self.api_url}/space/impacts", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Hazards Impacts", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                impacts = data.get('sector_impacts', {})
+                print(f"   Sectors analyzed: {len(impacts)}")
+                for sector, impact in list(impacts.items())[:3]:  # Show first 3
+                    print(f"   - {sector}: {impact.get('risk_level', 'N/A')} risk")
+            return success
+        except Exception as e:
+            self.log_result("Space Hazards Impacts", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_hazards_neo(self):
+        """Test NEW: Space Hazards - Near Earth Objects"""
+        try:
+            response = requests.get(f"{self.api_url}/space/neo", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Hazards NEO", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                neos = data.get('near_earth_objects', [])
+                print(f"   Near Earth Objects: {len(neos)}")
+                if neos:
+                    closest = neos[0]
+                    print(f"   Closest: {closest.get('name', 'Unknown')} - {closest.get('miss_distance_km', 'N/A')} km")
+            return success
+        except Exception as e:
+            self.log_result("Space Hazards NEO", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_hazards_debris(self):
+        """Test NEW: Space Hazards - Space debris reentries"""
+        try:
+            response = requests.get(f"{self.api_url}/space/debris", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Hazards Debris", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                debris = data.get('debris_reentries', [])
+                print(f"   Debris reentries: {len(debris)}")
+                if debris:
+                    next_reentry = debris[0]
+                    print(f"   Next: {next_reentry.get('object_name', 'Unknown')} - {next_reentry.get('reentry_date', 'N/A')}")
+            return success
+        except Exception as e:
+            self.log_result("Space Hazards Debris", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_hazards_remediation(self):
+        """Test NEW: Space Hazards - Solar storm remediation plan"""
+        if not self.token:
+            self.log_result("Space Hazards Remediation", False, "No authentication token")
+            return False
+        
+        try:
+            response = requests.post(f"{self.api_url}/disasters/remediation/plan", 
+                                   json={
+                                       "disaster_type": "solar_storm",
+                                       "severity": "high",
+                                       "location": "Global",
+                                       "population_affected": 1000000,
+                                       "model_preference": "ensemble"
+                                   },
+                                   headers=self.get_headers(),
+                                   timeout=45)
+            success = response.status_code == 200
+            self.log_result("Space Hazards Remediation", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Model used: {data.get('model_used', 'unknown')}")
+                print(f"   Risk mitigation: {data.get('risk_mitigation_score', 0)}%")
+                print(f"   Disaster type: {data.get('disaster_info', {}).get('type', 'N/A')}")
+            return success
+        except Exception as e:
+            self.log_result("Space Hazards Remediation", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting Plutus Predict API Tests")
