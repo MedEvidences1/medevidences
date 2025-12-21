@@ -76,6 +76,7 @@ import {
   FolderOpen,
   Clock,
   Bell,
+  Radio,
 } from "lucide-react";
 
 // Recharts
