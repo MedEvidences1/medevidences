@@ -7192,6 +7192,30 @@ class CronJobManager:
         except Exception as e:
             logger.error(f"Tabular update failed: {e}")
     
+    async def refresh_space_hazards(self):
+        """Refresh space weather and hazards data every 15 minutes"""
+        logger.info("Refreshing space hazards data...")
+        
+        try:
+            # Fetch current space weather
+            hazards = await space_hazards_engine.get_current_hazards()
+            
+            # Store snapshot
+            await db.space_hazards_snapshots.insert_one({
+                "id": str(uuid.uuid4()),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                **hazards
+            })
+            
+            # Check for critical alerts
+            if hazards.get("overall_risk") in ["high", "elevated"]:
+                logger.warning(f"Space hazard alert: {hazards.get('overall_risk')} risk, Kp={hazards.get('space_weather', {}).get('kp_index')}")
+            
+            logger.info(f"Space hazards refresh complete: risk={hazards.get('overall_risk')}, NEOs={hazards.get('near_earth_objects', {}).get('total_tracked', 0)}")
+            
+        except Exception as e:
+            logger.error(f"Space hazards refresh failed: {e}")
+    
     def get_status(self) -> Dict:
         """Get scheduler status"""
         if not self.scheduler:
