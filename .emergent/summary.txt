@@ -1,193 +1,182 @@
 <analysis>**original_problem_statement:**
-The user wants to build a Plutus Predict platform, a comprehensive AI Forecasting & Disaster Prediction System.
+The user wants to build Plutus Predict, a comprehensive AI Forecasting & Disaster Prediction System.
 
 **PRODUCT REQUIREMENTS:**
 - **Technology Stack:** FastAPI backend, React frontend, MongoDB database.
 - **Core Features:**
-    - **AI Forecasting Engine:** An ensemble model using multiple LLMs (GPT-4, Claude, Gemini, Mistral, Llama) to provide probabilistic forecasts. It should use Bayesian aggregation.
-    - **OSINT Integration:** Aggregate data from over 1 million sources (GDELT, NewsAPI, Semantic Scholar, SEC EDGAR, USGS, NOAA, etc.).
-    - **Disaster Prediction Engine:** Specialized engine for predicting earthquakes and severe weather, using data from USGS, NOAA, GDACS.
-    - **Vedic Astrology Integration:** Integrate insights from Vedic Astrology YouTube channels (like Abhigya Anand) by fetching video data and transcripts. This data should be reconciled with AI predictions.
-    - **User Authentication & Subscriptions:** Standard user registration/login and Stripe integration for tiered pricing plans.
-- **User Requests during session:**
-    - Use Emergent LLM Key.
-    - Integrate  and  for YouTube data to avoid API keys.
-    - Set up cron jobs for daily automatic data fetching (OSINT & Astrology).
-    - Clone features from Mantic.com (a UK-based forecasting company), including tabular predictions, deep forecasts, and custom dashboards.
-    - The Disasters and Astrology sections should be close neighbors in the UI but have independent identities, with a mechanism to reconcile data between them.
+    - **AI Forecasting Engine:** An ensemble model using multiple LLMs.
+    - **OSINT Integration:** Aggregate data from over 1 million sources.
+    - **Disaster Prediction Engine:** Specialized engine for earthquakes and severe weather.
+    - **Vedic Astrology Integration:** Integrate curated insights.
+    - **User Authentication & Subscriptions:** Standard user registration/login and Stripe integration.
+    - **Investment Banker Suite:** A dedicated module for M&A, IPO, and portfolio risk analysis.
+    - **Admin Panels:** Separate admin panels for the platform Owner and for Enterprise customers.
+    - **Multi-language Support:** English, Spanish, Arabic, French, Indonesian, and Swahili.
+    - **Conversational AI:** An interactive chat interface for platform-specific queries.
+    - **Proprietary Forecasting Model:** A Judgmental Forecasting engine.
+    - **Advanced Architecture:** A multi-agent system and a live OSINT pipeline.
+    - **Public Validation:** A tournament system to validate prediction accuracy.
+    - **Disaster Remediation:** AI-powered planning to help agencies save lives and properties.
 
 **User's preferred language**: English
 
 **what currently exists?**
-A full-stack application has been built with a FastAPI backend and a React frontend. The backend is a single  file and the frontend is a single  file.
+A large, monolithic full-stack application. The backend () and frontend () files, while still massive, have seen the beginning of a major refactoring, with new modular directories (, , , ) being created.
 
-- **Backend:**
-    - In-memory Python dictionary acts as a mock database for users, forecasts, sessions, etc.
-    - Endpoints for user authentication (register, login, me).
-    - LLM ensemble forecasting using Emergent LLM keys.
-    - OSINT aggregation from various sources (GDELT, NewsAPI, etc.).
-    - Disaster prediction endpoints for earthquake and weather risk.
-    - Astrology integration using  and .
-    - Mantic-style features like tabular predictions.
-    - A cron job manager () is set up to run daily data fetches for OSINT and astrology.
-- **Frontend:**
-    - A Void Terminal dark-themed UI.
-    - Tabs for Dashboard, AI Forecast, Disasters, Astrology, Tabular Predictions, Backtesting, Risk Grids, and OSINT search.
-    - Components for displaying live data, generating forecasts, and user authentication.
-    - The Disasters and Astrology tabs are implemented as separate, neighboring sections.
+- **Backend ():**
+    - Contains the logic for all features. The initial startup crash has been fixed.
+    - **ENHANCED:** The Investment Banking Suite (M&A, IPO, Portfolio Risk) has been upgraded from mocked, random data to using real LLM-powered analysis.
+    - **NEW:** Enterprise Admin features have been added: Usage Quotas, a paid White-Labeling system, and a Support Ticket system.
+    - **IN PROGRESS:** A new **Disaster Remediation Planning** system has been partially added to the  class. The API endpoints for this are not yet complete.
+
+- **Frontend ():**
+    - Contains most of the UI logic, but some components (, ) have been extracted into separate page files.
+    - **NEW:** A **Pricing Page** UI has been added.
+    - **NEW:** The **OSINT Page** has been enhanced with a live data stream component.
+    - **NEW:** The **Admin Panel** has been updated with UIs for the new Enterprise features (Usage, White-Label, Support).
+    - **NEW:** A dedicated  route has been added for direct access to the admin login.
 
 **Last working item**:
--   **Last item agent was working:** The user gave a vague message, Talking about astrology click. The agent interpreted this as a potential issue with the Astrology page. To investigate, the agent navigated to the Astrology tab and took a screenshot, which showed the page and its components (channel list, video search results, action buttons) loading correctly. The agent was in the process of asking the user for clarification on which specific element or functionality was failing.
--   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** Y
--   **Which testing method agent to use?** Frontend testing agent. The agent should be instructed to test the functionality of the FETCH_DAILY and RECONCILE_WITH_AI buttons on the Astrology page, as these are the most likely points of failure.
+-   **Last item agent was working:** The agent was implementing a new **AI-Powered Disaster Remediation Planning** system, as requested by the user. The backend Python class logic was added to , but the work was stopped before the corresponding API endpoints could be created and wired up.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** backend testing agent. Use  to test the new remediation API endpoints once they are created. After the frontend UI is built, use the frontend testing agent.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Potential recurring login failure (P0)**
-    -   **Description:** The user reported still invalid credentials multiple times, even after the agent implemented fixes. The core issue was a dynamically generated  on each server restart, which invalidated password hashes. The agent fixed this by setting a static secret key in  and confirmed the fix with API calls and a Playwright test showing a Login successful toast. However, given the user's repeated reports, the issue might persist on their end (e.g., browser cache).
-    -   **Attempted fixes:**
-        1.  Checked user existence in the mock DB.
-        2.  Debugged password hash generation.
-        3.  Set a static  in .
-        4.  Reset the admin user with the correct hash.
-        5.  Verified fix via  and Playwright screenshot.
+-   **Issue 1: Incomplete Disaster Remediation Feature (P0)**
+    -   **Description:** The new Disaster Remediation feature is only partially implemented on the backend. It requires API endpoints and a frontend UI to be functional.
+    -   **Attempted fixes:** None. This is new development.
     -   **Next debug checklist:**
-        1.  Confirm with the user if they are still facing the login issue after clearing their browser cache.
-        2.  If the issue persists, use the frontend testing agent to perform a full login flow, checking the browser's local storage for the token and console logs for errors.
-        3.  Review the  function in  and the  endpoint in  one more time.
-    -   **Why fix this issue and what will be achieved with the fix?** Login is a critical-path functionality. Users cannot access any authenticated features without it.
-    -   **Status:** USER VERIFICATION PENDING
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** both
--   **Issue 2: Unspecified issue on Astrology Page (P1)**
-    -   **Description:** The user's last instruction was Talking about astrology click. The agent took a screenshot, which showed the page loading correctly. It's unclear what the user intended. It could be an issue with one of the buttons (, ) or the data being displayed.
-    -   **Attempted fixes:** The agent took a screenshot to verify the UI state.
-    -   **Next debug checklist:**
-        1.  Ask the user for clarification: What happens when you click on the Astrology tab? Are any buttons not working, or is the data incorrect?
-        2.  Based on the user's response, inspect the corresponding frontend component () and backend endpoint () in  and .
-        3.  Use the frontend testing agent to simulate clicks on the buttons and verify the expected behavior.
-    -   **Why fix this issue and what will be achieved with the fix?** The Astrology section is a key feature requested by the user. Ensuring its functionality is crucial for meeting requirements.
-    -   **Status:** BLOCKED (waiting for user input)
+        1.  Open .
+        2.  Add new FastAPI endpoints under the  section to expose the new  and  methods from the .
+        3.  Restart and test the new endpoints using .
+        4.  Modify  to add a new UI section for Disaster Remediation, allowing users to select a disaster type and view the generated plan.
+    -   **Why fix this issue and what will be achieved with the fix?** This will complete a key feature requested by the user to provide actionable insights for disaster response agencies.
+    -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None
 
 **In progress Task List**:
-(None)
+-   **Task 1: Complete Major Codebase Refactoring (P1)**
+    -   **Description:** The refactoring of the monolithic  and  files has begun but is far from complete. The files remain critically large and hard to maintain.
+    -   **Where to resume:** Continue migrating self-contained components and logic out of  into the  and  directories. Similarly, move business logic, Pydantic models, and API routers out of  into the , , and  directories.
+    -   **What will be achieved with this?** Dramatically improve code maintainability, scalability, and reduce the risk of introducing breaking changes.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on something:** None, but should be done incrementally to avoid breaking the application.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **Task 1 (P0):** Implement the core logic for the **reconciliation of astrology predictions with AI disaster forecasts**. The buttons () exist in the UI, and the cron jobs fetch data, but the backend logic to compare and correlate these datasets is missing. This should be implemented in .
-    - **Task 2 (P1):** Fully implement the **Mantic.com clone features**. The Tabular predictions tab is created, but Deep Forecasts and Custom Dashboards are mentioned but not yet implemented. This involves creating new components in  and corresponding endpoints in .
+    - **Task 1 (P1):** Implement full Stripe checkout workflow. The UI is done, but the backend  and frontend checkout session creation need to be fully wired and tested.
+    - **Task 2 (P1):** Complete Multi-Language Support by translating all remaining static UI text.
 - **Future Tasks:**
-    - **Task 3 (P2):** Implement **email alerts** for when astrology predictions match actual events or high-probability AI forecasts.
-    - **Task 4 (P2):** Add a **prediction accuracy tracking dashboard** to visualize the performance of the forecasting models over time.
-    - **Task 5 (P3):** Migrate the in-memory dictionary database to a persistent **MongoDB database**.
+    - **Task 3 (P2):** Implement the Public Tournament Validation system. The backend models and foundational code exist but need a frontend UI and finalized logic.
+    - **Task 4 (P3):** Enhance the 3D/Holographic visualizations.
 
 **Completed work in this session**
-- **Platform Scaffolding:** Created a full-stack FastAPI + React application from scratch.
-- **UI/UX:** Implemented a dark, professional Void Terminal theme based on design guidelines.
-- **Core Engines:**
-    - Implemented a 5-LLM ensemble forecasting engine.
-    - Implemented an OSINT aggregation engine.
-    - Implemented disaster prediction for earthquakes and weather.
-- **Integrations:**
-    - Integrated  and  for keyless YouTube data retrieval.
-    - Set up  for background cron jobs to fetch data daily.
-    - Configured Stripe for payments (using test keys).
-    - Integrated Emergent LLM Keys for AI models.
-- **Features:**
-    - Implemented user authentication (login/registration).
-    - Created Mantic-style Tabular Predictions view.
-    - Arranged UI tabs to place Disasters and Astrology as separate, neighboring features.
-- **Bug Fixes:**
-    - Resolved a critical authentication bug caused by a regenerating , ensuring password hashes are stable across server restarts.
+- **Critical Bug Fix (DONE):** Resolved the backend server crash ().
+- **Feature Enhancement (DONE):** Replaced mocked data in the Investment Banking Suite (M&A, IPO, Portfolio Risk) with real AI-powered analysis.
+- **New Feature (DONE):** Added new Enterprise Admin capabilities: Usage & Quotas, White-Label settings (with payment logic), and a Support Ticket system.
+- **New Feature (DONE):** Implemented a Pricing/Subscription page UI.
+- **New Feature (DONE):** Enhanced the OSINT page with a live data stream component.
+- **Code Refactoring (IN PROGRESS):** Initiated codebase refactoring by creating a modular directory structure (, , , ).
+- **User Request (DONE):** Removed the Competitor Comparison page and all references to Mantic.
+- **UX Improvement (DONE):** Fixed a z-index issue with the login modal.
+- **UX Improvement (DONE):** Added a dedicated  URL route for easier access.
+- **Deployment Support (DONE):** Created a detailed guide and scripts for deploying the application to Hostinger and guided the user on connecting their custom domain.
 
 **Earlier issues found/mentioned but not fixed**
-(Covered in All Pending/In progress Issue list)
+- **Monolithic Codebase:** The most critical technical debt. The refactoring task has been started but is a large, ongoing effort.  is ~8.5k lines and  is ~6k lines.
 
 **Known issue recurrence from previous fork**
-(None, this is the first session.)
+- None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Backend:** FastAPI, Pydantic, In-Memory DB (Python Dict), APScheduler (Cron Jobs), JWT Authentication.
--   **Frontend:** React, TailwindCSS, Chart.js, Shadcn UI.
--   **Architecture:** Monolithic single-file structure for both backend () and frontend ().
--   **Core Logic:** LLM Ensemble Forecasting, OSINT Data Aggregation, Bayesian Probability.
--   **Integrations:** REST APIs, , .
+- **Backend:** FastAPI, Pydantic, MongoDB (Motor),  for LLMs.
+- **Frontend:** React, TailwindCSS, Shadcn UI, Recharts.
+- **Architecture:** **Monolithic**. A refactoring to a modular structure is in progress.
 
 **key DB schema**
-The database is a mock in-memory Python dictionary in .
--   : 
--   : 
--   : 
--   : 
+- ****: 
+- ****: 
+- ****: 
+- ****:  (New)
+- ****:  (New)
+- ****:  (New, pending full implementation)
 
 **changes in tech stack**
-- The user directed the agent to use  and  for YouTube integration, moving away from the official YouTube Data API v3 to avoid needing a key.
+- No new dependencies were installed in this session.
 
 **All files of reference**
--   : Contains the entire backend application, including API endpoints, data models, business logic for all engines, and the in-memory database.
--   : Contains the entire frontend application, including all UI components, state management, and API call logic.
--   : Contains all environment variables, including API keys and the critical static .
+- : The main monolithic backend file. Still contains most of the logic.
+- : The main monolithic frontend file. Still contains most components and state.
+- : Deployment instructions for the user.
 
 **Areas that need refactoring**:
--   ****: This is a massive 1900+ line file. It should be broken down into a proper project structure with routers for different API sections (auth, forecast, disasters), a separate  for Pydantic schemas, and individual files for each engine (forecasting, OSINT, etc.).
--   ****: This is a 1500+ line file containing dozens of components. It should be refactored by moving each React component into its own file within a  directory (e.g., , , ).
+- ** &  (CRITICAL URGENCY):** These files are dangerously large and complex. The refactoring that was started must be continued to ensure the project's long-term stability and maintainability.
 
 **key api endpoints**
--   , 
--    (POST)
--   
--   
--   
--   
--   
--   
+-  (New)
+-  (New)
+-  (New)
+-  (New)
+-  (Upgraded to AI)
+-  (Upgraded to AI)
+-  (Upgraded to AI)
+-  (Pending Implementation)
 
 **Critical Info for New Agent**
--   The entire database is a mock in-memory Python dictionary. It is NOT persistent and will reset on every server restart. Do not treat it like a real MongoDB instance.
--   The login issue was persistent. The fix was to set a static  in . If the user reports login issues again, first suspect a browser cache issue on their end before digging into the code, as the agent has already verified the fix.
--   The user wants a 100% clone of . The agent has started this by implementing tabular predictions, but more features like deep forecasts and custom dashboards are expected.
--   Cron jobs for data fetching are active. You can check their status at the  endpoint.
+- **Resume Work on Disaster Remediation:** Your immediate task is to complete the Disaster Remediation Planning feature. This involves creating the API endpoints in  and then building the corresponding UI in the frontend.
+- **Continue Gradual Refactoring:** The monolithic nature of  and  is the biggest technical risk. Continue the refactoring process incrementally by moving self-contained logic and components into the new modular directory structure. Do not attempt a big bang rewrite.
+- **Real AI vs. Mocked Data:** The agent successfully converted several mocked features (Investment Banking) to use real AI. Continue this pattern. The Vedic Astrology and Metal Prices sections are still mocked and are candidates for future AI upgrades.
+- **Deployment:** The user has been guided on how to deploy via the Emergent platform and connect their custom domain (). Deployment support files for Hostinger exist as a fallback.
 
 **documents and test_reports created in this job**
--   
--   
+- 
+- 
+- 
+- 
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  logins incorrect , though I typed correct
-2.  still invalid credentials
-3.  1 -add superdata 2) set up cron job 3) Cron job for daily and past data OSINT with automatic daily fetches also make sure set up 1 million+ 3) Make sure www.Mantic.com ( Uk based forecsting company clone is 100% there in Plutus predict 4) DisasterAI & Data Astrology , both have to be not together with &, they have to be closest neighbor with independent identity but related to reconclie data for accuracy enhancement of AI disasters prediction
-4.  also you can retrieve youtube video transcripts from Python library ( YouTube-transcript-Api) open source which don't require api key .2) Disasters and Astrology have to be beside each other as astrology is for disasters and war predictions for future , predictions may have been done in past and everyday and future months and years and days need to be automatically retrieved and updated daily and reconciled with AI predictions of disasters
-5.  use Supadata for Youtube api its free
-6.  1) use emergent LLm keys 2) stripe keys we have , we will enter it later 3) pl complete YouTube integrations for astrology part its free API key I think you have to set up retrieval system of past data for future and daily updates for disaster and war related predictions 4) free APIS only 1 million + 5) design preference a
-7.  Start the task now!!
-8.  Talking about astrology click
+1.  And in case of various disasters, can we have remediation planning, which can help agencies save lives. And properties
+2.  use best suited things
+3.  I think you have hardecoded the AI use cases. Like 21% number hardcoded in the AI FOrecast section. why it is so ? you have to use the real models right ? Please think in the right usecase direction
+4.  https://disasterforesight.emergent.host/
+5.  Whats emergent url I need to give them confirm
+6.  It's too technical for me make it easy I can provide access to you and pl connect
+7.  Emergent url already there it has been deployed app is live
+8.  Then I need to click on redeployment button?
+9.  Www.plutospredict.com. correct url on hostinger
+10. Option 2 initiate
 
 **Project Health Check:**
--   **Broken:** User authentication is potentially still failing for the user despite technical verification.
--   **Mocked:** The entire database is an in-memory Python dictionary, which is not suitable for production. It's a mock of MongoDB. Stripe is configured but not fully tested with live plans.
+- **Broken:** None. The backend is stable and all services are running.
+- **Mocked:** Some non-critical features remain mocked with hardcoded or random data, primarily the Vedic Astrology and Metal Prices predictions. Key financial features are now AI-powered.
 
 **3rd Party Integrations**
--   **OpenAI (GPT-4), Anthropic (Claude), Google (Gemini):** Text Generation via Emergent LLM Key.
--   **Stripe:** Payments. Requires user-provided keys, but currently uses a test key from the environment.
--   **Supadata:** YouTube search & metadata. Requires a free API key, which is in .
--   **youtube-transcript-api:** Python library for fetching YouTube transcripts without an API key.
+- **OpenAI (GPT-4), Anthropic (Claude), Google (Gemini):** Text Generation via Emergent LLM Key.
+- **Stripe:** Payments (UI exists, full workflow pending).
+- **Resend:** Email alerts.
+- **gdelt-python, feedparser:** For the live OSINT pipeline.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (once, early in the session).
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None.
--   **Known regressions:** The login functionality regressed due to server restarts before a static secret key was implemented. This is believed to be fixed but requires user verification.
+- **Testing agent used after significant changes:** YES. Multiple test runs were executed. Last run had 100% backend success.
+- **Troubleshoot agent used after agent stuck in loop:** NO
+- **Test files created:** None.
+- **Known regressions:** None.
 
 **Credentials to test flow:**
--   **Email:** 
--   **Password:** 
+- **Email:** 
+- **Password:** 
 
 **What agent forgot to execute**
--   The agent has not fully implemented the **reconciliation logic** between astrology predictions and AI disaster forecasts, even though the UI/backend stubs are in place. This was a key user request.
--   The user asked for a 100% clone of . The agent has only implemented a Tabular predictions feature. Other key features like Deep Forecasts and Custom Dashboards have been mentioned but not implemented.</analysis>
+- The full implementation of the **Public Tournament Validation** system is still pending from the original request.
+- The complete wiring of the **Stripe subscription workflow** (checkout session creation, webhook handling) is not finished, although the UI is in place.
+- The major refactoring task is a large, ongoing effort that is not complete.</analysis>
