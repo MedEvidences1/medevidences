@@ -952,11 +952,72 @@ const Disasters = ({ getHeaders }) => {
 
   const views = [
     { id: "overview", label: "OVERVIEW", icon: Home },
+    { id: "live", label: "LIVE NOW", icon: Radio },
+    { id: "predictions", label: "2025-2026", icon: TrendingUp },
     { id: "remediation", label: "REMEDIATION", icon: Shield },
     { id: "agencies", label: "AGENCIES", icon: Globe },
     { id: "sensors", label: "SENSORS", icon: Cpu },
     { id: "economic", label: "ECONOMIC", icon: DollarSign },
   ];
+
+  // State for live disasters and predictions
+  const [liveDisasters, setLiveDisasters] = useState(null);
+  const [futurePredictions, setFuturePredictions] = useState(null);
+  const [dailyBriefing, setDailyBriefing] = useState(null);
+  const [loadingPredictions, setLoadingPredictions] = useState(false);
+
+  const loadLiveDisasters = useCallback(async () => {
+    try {
+      const [liveRes, briefingRes] = await Promise.all([
+        axios.get(`${API}/disasters/live`),
+        axios.get(`${API}/disasters/daily-briefing`),
+      ]);
+      setLiveDisasters(liveRes.data);
+      setDailyBriefing(briefingRes.data);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const loadFuturePredictions = async () => {
+    setLoadingPredictions(true);
+    try {
+      const res = await axios.get(`${API}/disasters/predictions?timeframe=2025-2026`);
+      setFuturePredictions(res.data);
+      toast.success("AI predictions generated!");
+    } catch (e) {
+      toast.error("Failed to load predictions");
+    }
+    setLoadingPredictions(false);
+  };
+
+  const generateRemediationFromLive = async (disaster) => {
+    setIsGenerating(true);
+    setRemediationForm({
+      disaster_type: disaster.type,
+      severity: disaster.severity,
+      location: disaster.location,
+      population_affected: disaster.affected_population || 10000,
+      model_preference: "ensemble"
+    });
+    setActiveView("remediation");
+    try {
+      const res = await axios.post(`${API}/disasters/remediation/plan`, {
+        disaster_type: disaster.type,
+        severity: disaster.severity,
+        location: disaster.location,
+        population_affected: disaster.affected_population || 10000,
+        model_preference: "ensemble"
+      }, { headers: getHeaders() });
+      setRemediationPlan(res.data);
+      toast.success("Remediation plan generated for live disaster!");
+    } catch (e) {
+      toast.error("Failed to generate plan");
+    }
+    setIsGenerating(false);
+  };
+
+  useEffect(() => { loadLiveDisasters(); }, [loadLiveDisasters]);
 
   return (
     <div className="space-y-6" data-testid="disasters-view">
@@ -972,7 +1033,7 @@ const Disasters = ({ getHeaders }) => {
           <Badge variant="outline" className="text-xs border-[#FF3333]/30 text-[#FF3333]">
             <span className="w-2 h-2 bg-[#FF3333] rounded-full mr-1 animate-pulse" />LIVE
           </Badge>
-          <Button onClick={loadData} variant="outline" size="sm" className="btn-secondary" data-testid="refresh-disasters-btn">
+          <Button onClick={() => { loadData(); loadLiveDisasters(); }} variant="outline" size="sm" className="btn-secondary" data-testid="refresh-disasters-btn">
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />REFRESH
           </Button>
         </div>
@@ -993,6 +1054,224 @@ const Disasters = ({ getHeaders }) => {
           </Button>
         ))}
       </div>
+
+      {/* LIVE NOW VIEW - Real disasters happening right now */}
+      {activeView === "live" && (
+        <div className="space-y-4">
+          {/* Daily Briefing Card */}
+          {dailyBriefing && (
+            <Card className={`terminal-card border-l-4 ${dailyBriefing.alert_level === "red" ? "border-l-[#FF3333]" : dailyBriefing.alert_level === "orange" ? "border-l-[#FFAA00]" : "border-l-[#00FF94]"}`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-[#00FF94]" />
+                    AI DAILY BRIEFING - {dailyBriefing.date || new Date().toLocaleDateString()}
+                  </CardTitle>
+                  <Badge className={dailyBriefing.alert_level === "red" ? "bg-[#FF3333]" : dailyBriefing.alert_level === "orange" ? "bg-[#FFAA00]" : "bg-[#00FF94]"}>
+                    {dailyBriefing.alert_level?.toUpperCase()} ALERT
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-[#EDEDED] mb-3">{dailyBriefing.executive_summary}</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                  <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                    <div className="text-xl font-bold text-[#FF3333]">{dailyBriefing.total_active_disasters || liveDisasters?.total_active || 0}</div>
+                    <div className="text-xs text-[#888]">ACTIVE NOW</div>
+                  </div>
+                  {dailyBriefing.disasters_by_type && Object.entries(dailyBriefing.disasters_by_type).slice(0, 3).map(([type, count]) => (
+                    <div key={type} className="text-center p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-xl font-bold text-[#FFAA00]">{count}</div>
+                      <div className="text-xs text-[#888]">{type.toUpperCase()}</div>
+                    </div>
+                  ))}
+                </div>
+                {dailyBriefing["24_hour_outlook"] && (
+                  <div className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888]">24-HOUR OUTLOOK:</div>
+                    <div className="text-xs text-[#EDEDED]">{dailyBriefing["24_hour_outlook"]}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Live Disasters List */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Radio className="w-4 h-4 text-[#FF3333] animate-pulse" />
+                  DISASTERS HAPPENING NOW
+                  <Badge className="bg-[#FF3333]">{liveDisasters?.total_active || 0} ACTIVE</Badge>
+                </CardTitle>
+              </div>
+              <CardDescription className="text-xs text-[#888]">
+                Real-time data from GDACS, USGS, NOAA • Click to generate remediation plan
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                {(liveDisasters?.disasters || []).map((disaster, i) => (
+                  <div key={i} className={`p-3 bg-[#0A0A0A] rounded border ${disaster.severity === "critical" ? "border-[#FF3333]" : disaster.severity === "high" ? "border-[#FFAA00]" : "border-[#1F1F1F]"}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{disaster.title}</div>
+                        <div className="text-xs text-[#888] mt-1">
+                          📍 {disaster.location} • Source: {disaster.source}
+                        </div>
+                        {disaster.magnitude && (
+                          <div className="text-xs text-[#FF3333] mt-1">Magnitude: {disaster.magnitude}</div>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge className={disaster.severity === "critical" ? "bg-[#FF3333]" : disaster.severity === "high" ? "bg-[#FFAA00]" : "bg-[#00E5FF]"}>
+                          {disaster.severity?.toUpperCase()}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">{disaster.type?.replace(/_/g, ' ')}</Badge>
+                        <Button 
+                          size="sm" 
+                          onClick={() => generateRemediationFromLive(disaster)}
+                          className="mt-1 bg-[#00FF94] text-black hover:bg-[#00FF94]/80 text-xs"
+                        >
+                          <Shield className="w-3 h-3 mr-1" />REMEDIATE
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* FUTURE PREDICTIONS VIEW - AI-powered 2025-2026+ */}
+      {activeView === "predictions" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#9D4EDD]" />
+                  AI DISASTER PREDICTIONS 2025-2026
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">MULTI-LLM</Badge>
+                </CardTitle>
+                <Button onClick={loadFuturePredictions} disabled={loadingPredictions} className="bg-[#9D4EDD] text-white hover:bg-[#9D4EDD]/80">
+                  {loadingPredictions ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <Brain className="w-4 h-4 mr-1" />}
+                  GENERATE PREDICTIONS
+                </Button>
+              </div>
+              <CardDescription className="text-xs text-[#888]">
+                AI-powered predictions based on current trends, climate models, and historical patterns
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {futurePredictions && futurePredictions.predictions && (
+            <>
+              {/* Predictions Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {futurePredictions.predictions.map((pred, i) => (
+                  <Card key={i} className={`terminal-card border-l-2 ${pred.probability > 70 ? "border-l-[#FF3333]" : pred.probability > 50 ? "border-l-[#FFAA00]" : "border-l-[#00E5FF]"}`}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="text-sm font-bold">{pred.title}</div>
+                          <div className="text-xs text-[#888]">{pred.location} • {pred.estimated_timeframe}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-[#FF3333]">{pred.probability}%</div>
+                          <Badge className={pred.severity === "critical" ? "bg-[#FF3333]" : pred.severity === "high" ? "bg-[#FFAA00]" : "bg-[#00E5FF]"}>
+                            {pred.severity?.toUpperCase()}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs"><strong className="text-[#888]">Population:</strong> {pred.affected_population}</div>
+                        <div className="text-xs"><strong className="text-[#888]">Economic Impact:</strong> <span className="text-[#FFD700]">{pred.economic_impact}</span></div>
+                        <div className="text-xs"><strong className="text-[#888]">Confidence:</strong> {pred.confidence_level}</div>
+                      </div>
+                      {pred.key_indicators && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {pred.key_indicators.slice(0, 3).map((ind, j) => (
+                            <Badge key={j} variant="outline" className="text-xs">{ind}</Badge>
+                          ))}
+                        </div>
+                      )}
+                      <Button 
+                        size="sm" 
+                        onClick={() => {
+                          setRemediationForm({
+                            disaster_type: pred.type,
+                            severity: pred.severity,
+                            location: pred.location,
+                            population_affected: parseInt(String(pred.affected_population).replace(/\D/g, '')) || 10000,
+                            model_preference: "ensemble"
+                          });
+                          setActiveView("remediation");
+                        }}
+                        className="mt-2 w-full bg-[#00FF94] text-black hover:bg-[#00FF94]/80 text-xs"
+                      >
+                        <Shield className="w-3 h-3 mr-1" />PREPARE REMEDIATION
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Seasonal Risks */}
+              {futurePredictions.seasonal_risks && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">SEASONAL RISK CALENDAR</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                      {Object.entries(futurePredictions.seasonal_risks).map(([period, risks]) => (
+                        <div key={period} className="p-2 bg-[#0A0A0A] rounded">
+                          <div className="text-xs font-bold text-[#00E5FF]">{period.replace(/_/g, ' ')}</div>
+                          <div className="text-xs text-[#888] mt-1">
+                            {Array.isArray(risks) ? risks.slice(0, 2).join(", ") : risks}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Space Weather Outlook */}
+              {futurePredictions.space_weather_outlook && (
+                <Card className="terminal-card border-l-2 border-l-[#FFD700]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Star className="w-4 h-4 text-[#FFD700]" />
+                      SPACE WEATHER OUTLOOK
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xs text-[#888]">SOLAR CYCLE</div>
+                        <div className="text-sm font-bold text-[#FFD700]">{futurePredictions.space_weather_outlook.solar_cycle_phase}</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xs text-[#888]">MAJOR STORM PROB</div>
+                        <div className="text-sm font-bold text-[#FF3333]">{futurePredictions.space_weather_outlook.major_storm_probability}%</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-xs text-[#888]">SATELLITE RISK</div>
+                        <div className="text-xs text-[#FFAA00]">{futurePredictions.space_weather_outlook.satellite_risk_periods?.join(", ")}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       {/* OVERVIEW VIEW */}
       {activeView === "overview" && (
