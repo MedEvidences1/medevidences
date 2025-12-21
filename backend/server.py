@@ -8039,8 +8039,8 @@ async def get_remediation_plan(disaster_type: str = "earthquake", region: str = 
         "region": region,
         "severity": severity,
         "remediation_plan": selected_plan,
-        "estimated_lives_saved": f"{random.randint(1000, 50000):,} per major event",
-        "estimated_economic_savings": f"${random.randint(5, 50)}B per major event",
+        "estimated_lives_saved": f"{5000 + (10 if severity == 'high' else 5) * 1000:,} per major event",
+        "estimated_economic_savings": f"${15 + (20 if severity == 'high' else 10)}B per major event",
         "key_metrics": {
             "warning_time": "5 seconds to 72 hours depending on hazard",
             "response_time_reduction": "40-60% with AI coordination",
@@ -8057,6 +8057,84 @@ async def get_remediation_plan(disaster_type: str = "earthquake", region: str = 
             "lives_at_risk": "200M+ in high-risk zones",
             "plutus_value_proposition": "Reduce losses by 30-50%, save thousands of lives annually"
         }
+    }
+
+# =============================================================================
+# API ENDPOINTS - AI-POWERED DISASTER REMEDIATION PLANNING
+# =============================================================================
+
+class RemediationPlanRequest(BaseModel):
+    disaster_type: str
+    severity: str = "high"
+    location: str = "Unknown"
+    population_affected: int = 10000
+    current_conditions: Optional[Dict] = None
+
+class AgencyPlanRequest(BaseModel):
+    disaster_type: str
+    agency_type: str
+    location: str
+    severity: str = "high"
+
+class ImpactAssessmentRequest(BaseModel):
+    disaster_type: str
+    magnitude: float
+    location: str
+    population_density: int = 1000
+
+@api_router.post("/disasters/remediation/plan", tags=["Disaster Remediation"])
+async def generate_remediation_plan(request: RemediationPlanRequest, user: dict = Depends(get_optional_user)):
+    """
+    Generate comprehensive AI-powered disaster remediation plan
+    Helps agencies save lives and protect properties
+    """
+    plan = await remediation_engine.generate_remediation_plan(
+        disaster_type=request.disaster_type,
+        severity=request.severity,
+        location=request.location,
+        population_affected=request.population_affected,
+        current_conditions=request.current_conditions
+    )
+    return plan
+
+@api_router.post("/disasters/remediation/agency-plan", tags=["Disaster Remediation"])
+async def generate_agency_plan(request: AgencyPlanRequest, user: dict = Depends(get_optional_user)):
+    """
+    Generate agency-specific action plan
+    Tailored for: emergency_management, fire_department, police, medical_services, etc.
+    """
+    return await remediation_engine.generate_agency_specific_plan(
+        disaster_type=request.disaster_type,
+        agency_type=request.agency_type,
+        location=request.location,
+        severity=request.severity
+    )
+
+@api_router.post("/disasters/remediation/impact-assessment", tags=["Disaster Remediation"])
+async def calculate_impact(request: ImpactAssessmentRequest):
+    """
+    Calculate potential disaster impact and required response scale
+    """
+    return await remediation_engine.calculate_impact_assessment(
+        disaster_type=request.disaster_type,
+        magnitude=request.magnitude,
+        location=request.location,
+        population_density=request.population_density
+    )
+
+@api_router.get("/disasters/remediation/active-plans", tags=["Disaster Remediation"])
+async def get_active_plans(user: dict = Depends(get_current_user)):
+    """Get all active remediation plans from last 7 days"""
+    plans = await remediation_engine.get_active_disaster_plans()
+    return {"plans": plans, "count": len(plans)}
+
+@api_router.get("/disasters/remediation/disaster-types", tags=["Disaster Remediation"])
+async def get_disaster_types():
+    """Get supported disaster types and agency types"""
+    return {
+        "disaster_types": remediation_engine.DISASTER_TYPES,
+        "agency_types": remediation_engine.AGENCY_TYPES,
+        "severity_levels": ["critical", "high", "medium", "low"]
     }
 
 @api_router.get("/disasters/economic-impact", tags=["Disasters"])
