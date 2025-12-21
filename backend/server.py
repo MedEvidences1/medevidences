@@ -2537,7 +2537,7 @@ Be specific with numbers, timelines, and resources. Focus on practical actions t
                 )
                 chat.with_model(provider, model)
             
-            prompt = f"""Create a comprehensive disaster remediation plan:
+                prompt = f"""Create a comprehensive disaster remediation plan:
 
 DISASTER INFORMATION:
 {json.dumps(disaster_info, indent=2)}
@@ -2587,15 +2587,37 @@ Provide a detailed JSON response with:
 
 Respond ONLY with valid JSON."""
 
-            response = await chat.send_message(UserMessage(text=prompt))
-            
-            # Parse response
-            import re
-            json_match = re.search(r'\{[\s\S]*\}', response)
-            if json_match:
-                return json.loads(json_match.group())
+                response = await chat.send_message(UserMessage(text=prompt))
+                json_match = re.search(r'\{[\s\S]*\}', response)
+                if json_match:
+                    plan = json.loads(json_match.group())
+                    plan["model_used"] = f"{provider}:{model}"
+                    return plan
+            except Exception as e:
+                logger.error(f"Remediation AI error ({provider}): {e}")
+                return None
+        
+        try:
+            if model_preference == "ensemble":
+                # Call all 3 LLMs in parallel and use the first successful response
+                tasks = [call_single_llm(p, m) for p, m in models.values()]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                
+                # Use first successful result
+                for result in results:
+                    if result and not isinstance(result, Exception):
+                        result["ensemble_mode"] = True
+                        result["available_models"] = list(models.keys())
+                        return result
+                return None
+            elif model_preference in models:
+                provider, model = models[model_preference]
+                return await call_single_llm(provider, model)
+            else:
+                # Default to OpenAI
+                return await call_single_llm("openai", "gpt-4o")
         except Exception as e:
-            logger.error(f"Remediation AI error: {e}")
+            logger.error(f"Remediation multi-LLM error: {e}")
         return None
     
     async def generate_remediation_plan(
