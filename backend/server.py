@@ -2489,6 +2489,359 @@ class DisasterPredictionEngine:
 disaster_engine = DisasterPredictionEngine()
 
 # =============================================================================
+# DISASTER REMEDIATION PLANNING ENGINE - AI-Powered Life & Property Protection
+# =============================================================================
+
+class DisasterRemediationEngine:
+    """
+    AI-Powered Disaster Remediation Planning System
+    Helps agencies save lives and protect properties with actionable plans
+    """
+    
+    DISASTER_TYPES = [
+        "earthquake", "hurricane", "flood", "wildfire", "tornado", 
+        "tsunami", "volcanic_eruption", "landslide", "drought", "extreme_heat"
+    ]
+    
+    AGENCY_TYPES = [
+        "emergency_management", "fire_department", "police", "medical_services",
+        "national_guard", "red_cross", "utility_companies", "transportation"
+    ]
+    
+    def __init__(self):
+        self.disaster_engine = disaster_engine
+        self.osint = osint_aggregator
+    
+    async def _get_ai_remediation_plan(self, disaster_info: Dict, context: str = "") -> Dict:
+        """Generate AI-powered remediation plan"""
+        if not EMERGENT_LLM_KEY:
+            return None
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"remediation-{uuid.uuid4()}",
+                system_message="""You are an expert emergency management consultant with 20+ years experience in disaster response planning. 
+Your role is to create actionable, life-saving remediation plans for government agencies and emergency responders.
+Be specific with numbers, timelines, and resources. Focus on practical actions that save lives and protect property."""
+            )
+            chat.with_model("openai", "gpt-4o")
+            
+            prompt = f"""Create a comprehensive disaster remediation plan:
+
+DISASTER INFORMATION:
+{json.dumps(disaster_info, indent=2)}
+
+CONTEXT:
+{context}
+
+Provide a detailed JSON response with:
+{{
+  "immediate_actions": [
+    {{"action": "specific action", "responsible_agency": "agency", "timeline": "0-6 hours", "priority": "critical/high/medium", "lives_impacted": number, "resources_needed": ["list"]}}
+  ],
+  "evacuation_plan": {{
+    "zones": [{{"zone_id": "A1", "population": number, "priority": 1-5, "evacuation_route": "route description", "shelter_location": "location"}}],
+    "total_population_at_risk": number,
+    "estimated_evacuation_time": "X hours",
+    "transportation_needs": {{"buses": number, "emergency_vehicles": number, "helicopters": number}}
+  }},
+  "resource_allocation": {{
+    "personnel": {{"firefighters": number, "police": number, "medical": number, "volunteers": number}},
+    "equipment": ["list of critical equipment"],
+    "supplies": {{"water_gallons": number, "food_rations": number, "medical_kits": number, "blankets": number}},
+    "estimated_cost": "$X million"
+  }},
+  "property_protection": [
+    {{"measure": "specific measure", "properties_protected": number, "cost_savings": "$X", "implementation_time": "X hours"}}
+  ],
+  "communication_plan": {{
+    "alert_channels": ["channels"],
+    "message_templates": {{"initial": "message", "update": "message", "all_clear": "message"}},
+    "languages": ["languages needed"]
+  }},
+  "medical_response": {{
+    "triage_stations": number,
+    "hospital_capacity_needed": number,
+    "ambulances_required": number,
+    "medical_personnel": number,
+    "critical_supplies": ["list"]
+  }},
+  "post_disaster_recovery": [
+    {{"phase": "phase name", "timeline": "X days/weeks", "actions": ["actions"], "estimated_cost": "$X"}}
+  ],
+  "risk_mitigation_score": 0-100,
+  "lives_potentially_saved": number,
+  "property_value_protected": "$X million"
+}}
+
+Respond ONLY with valid JSON."""
+
+            response = await chat.send_message(UserMessage(text=prompt))
+            
+            # Parse response
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                return json.loads(json_match.group())
+        except Exception as e:
+            logger.error(f"Remediation AI error: {e}")
+        return None
+    
+    async def generate_remediation_plan(
+        self, 
+        disaster_type: str,
+        severity: str = "high",
+        location: str = "Unknown",
+        population_affected: int = 10000,
+        current_conditions: Dict = None
+    ) -> Dict:
+        """
+        Generate comprehensive remediation plan for a disaster scenario
+        """
+        # Get current disaster data
+        eq_data = await self.disaster_engine.predict_earthquake_risk()
+        weather_data = await self.disaster_engine.predict_weather_risk()
+        
+        # Build disaster info
+        disaster_info = {
+            "type": disaster_type,
+            "severity": severity,
+            "location": location,
+            "population_affected": population_affected,
+            "current_conditions": current_conditions or {},
+            "current_earthquake_risk": eq_data.get("risk_level"),
+            "current_weather_risk": weather_data.get("risk_level"),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Get AI-generated plan
+        ai_plan = await self._get_ai_remediation_plan(disaster_info)
+        
+        # Default plan structure if AI fails
+        if not ai_plan:
+            ai_plan = self._get_default_plan(disaster_type, severity, population_affected)
+        
+        # Add metadata
+        ai_plan["disaster_info"] = disaster_info
+        ai_plan["generated_at"] = datetime.now(timezone.utc).isoformat()
+        ai_plan["analysis_type"] = "AI-Powered"
+        ai_plan["model"] = "GPT-4"
+        
+        # Store plan for reference
+        plan_id = str(uuid.uuid4())[:8].upper()
+        ai_plan["plan_id"] = plan_id
+        
+        await db.remediation_plans.insert_one({
+            "id": plan_id,
+            **ai_plan,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return ai_plan
+    
+    def _get_default_plan(self, disaster_type: str, severity: str, population: int) -> Dict:
+        """Generate default plan when AI is unavailable"""
+        severity_multiplier = {"critical": 1.5, "high": 1.0, "medium": 0.7, "low": 0.4}.get(severity, 1.0)
+        
+        return {
+            "immediate_actions": [
+                {"action": "Activate Emergency Operations Center", "responsible_agency": "emergency_management", "timeline": "0-1 hours", "priority": "critical", "lives_impacted": population, "resources_needed": ["EOC staff", "Communications equipment"]},
+                {"action": "Issue public emergency alerts", "responsible_agency": "emergency_management", "timeline": "0-2 hours", "priority": "critical", "lives_impacted": population, "resources_needed": ["Alert systems", "Media contacts"]},
+                {"action": "Deploy first responders to affected areas", "responsible_agency": "fire_department", "timeline": "0-3 hours", "priority": "critical", "lives_impacted": int(population * 0.3), "resources_needed": ["Fire trucks", "Rescue equipment"]},
+                {"action": "Establish medical triage stations", "responsible_agency": "medical_services", "timeline": "1-4 hours", "priority": "high", "lives_impacted": int(population * 0.1), "resources_needed": ["Medical tents", "Supplies", "Personnel"]},
+                {"action": "Secure critical infrastructure", "responsible_agency": "police", "timeline": "0-6 hours", "priority": "high", "lives_impacted": population, "resources_needed": ["Police units", "Barriers"]}
+            ],
+            "evacuation_plan": {
+                "zones": [
+                    {"zone_id": "A1", "population": int(population * 0.4), "priority": 1, "evacuation_route": "Primary highway north", "shelter_location": "Regional Convention Center"},
+                    {"zone_id": "A2", "population": int(population * 0.3), "priority": 2, "evacuation_route": "Secondary roads east", "shelter_location": "High School Gymnasium"},
+                    {"zone_id": "B1", "population": int(population * 0.3), "priority": 3, "evacuation_route": "Local roads west", "shelter_location": "Community Center"}
+                ],
+                "total_population_at_risk": population,
+                "estimated_evacuation_time": f"{int(population / 5000) + 2} hours",
+                "transportation_needs": {
+                    "buses": max(10, int(population / 500)),
+                    "emergency_vehicles": max(5, int(population / 1000)),
+                    "helicopters": max(2, int(population / 5000))
+                }
+            },
+            "resource_allocation": {
+                "personnel": {
+                    "firefighters": max(50, int(population / 200 * severity_multiplier)),
+                    "police": max(30, int(population / 300 * severity_multiplier)),
+                    "medical": max(40, int(population / 250 * severity_multiplier)),
+                    "volunteers": max(100, int(population / 100))
+                },
+                "equipment": ["Fire trucks", "Ambulances", "Rescue boats", "Generators", "Water pumps", "Communication radios"],
+                "supplies": {
+                    "water_gallons": int(population * 3),
+                    "food_rations": int(population * 6),
+                    "medical_kits": max(100, int(population / 100)),
+                    "blankets": int(population * 1.5)
+                },
+                "estimated_cost": f"${int(population * 0.5 * severity_multiplier / 1000)}M - ${int(population * severity_multiplier / 1000)}M"
+            },
+            "property_protection": [
+                {"measure": "Sandbagging flood-prone areas", "properties_protected": int(population * 0.3), "cost_savings": f"${int(population * 0.05)}M", "implementation_time": "4-8 hours"},
+                {"measure": "Utility shutoffs in danger zones", "properties_protected": int(population * 0.5), "cost_savings": f"${int(population * 0.02)}M", "implementation_time": "1-2 hours"},
+                {"measure": "Emergency building inspections", "properties_protected": int(population * 0.2), "cost_savings": f"${int(population * 0.03)}M", "implementation_time": "6-12 hours"}
+            ],
+            "communication_plan": {
+                "alert_channels": ["Emergency Alert System", "Local TV/Radio", "Social Media", "Door-to-door", "Sirens"],
+                "message_templates": {
+                    "initial": f"EMERGENCY ALERT: {disaster_type.upper()} warning for {location}. Evacuate immediately if in zones A1, A2. Shelter in place otherwise.",
+                    "update": f"UPDATE: {disaster_type.upper()} response ongoing. Shelters open at [locations]. Avoid affected areas.",
+                    "all_clear": f"ALL CLEAR: {disaster_type.upper()} threat has passed. Return home only when authorities confirm safety."
+                },
+                "languages": ["English", "Spanish", "Chinese", "Vietnamese", "Korean"]
+            },
+            "medical_response": {
+                "triage_stations": max(3, int(population / 3000)),
+                "hospital_capacity_needed": max(50, int(population * 0.02)),
+                "ambulances_required": max(10, int(population / 1000)),
+                "medical_personnel": max(50, int(population / 200)),
+                "critical_supplies": ["Trauma kits", "IV fluids", "Medications", "Oxygen", "Defibrillators"]
+            },
+            "post_disaster_recovery": [
+                {"phase": "Search & Rescue", "timeline": "0-72 hours", "actions": ["Grid search", "Debris removal", "Survivor extraction"], "estimated_cost": f"${int(population * 0.1)}M"},
+                {"phase": "Emergency Shelter", "timeline": "1-14 days", "actions": ["Shelter operations", "Food distribution", "Medical care"], "estimated_cost": f"${int(population * 0.2)}M"},
+                {"phase": "Infrastructure Restoration", "timeline": "1-4 weeks", "actions": ["Power restoration", "Water service", "Road clearing"], "estimated_cost": f"${int(population * 0.5)}M"},
+                {"phase": "Long-term Recovery", "timeline": "1-12 months", "actions": ["Housing assistance", "Economic support", "Mental health services"], "estimated_cost": f"${int(population * 1.0)}M"}
+            ],
+            "risk_mitigation_score": int(70 * severity_multiplier),
+            "lives_potentially_saved": int(population * 0.02 * severity_multiplier),
+            "property_value_protected": f"${int(population * 0.1 * severity_multiplier)}M"
+        }
+    
+    async def get_active_disaster_plans(self) -> List[Dict]:
+        """Get all active remediation plans"""
+        plans = await db.remediation_plans.find(
+            {"created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()}},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(50)
+        return plans
+    
+    async def generate_agency_specific_plan(
+        self,
+        disaster_type: str,
+        agency_type: str,
+        location: str,
+        severity: str = "high"
+    ) -> Dict:
+        """Generate plan specific to an agency's responsibilities"""
+        if not EMERGENT_LLM_KEY:
+            return {"error": "AI not available", "agency": agency_type}
+        
+        try:
+            chat = LlmChat(
+                api_key=EMERGENT_LLM_KEY,
+                session_id=f"agency-{uuid.uuid4()}",
+                system_message=f"You are an expert advisor for {agency_type.replace('_', ' ')} responding to disasters. Provide specific, actionable guidance."
+            )
+            chat.with_model("openai", "gpt-4o")
+            
+            prompt = f"""Create a specific action plan for {agency_type.replace('_', ' ').upper()} responding to a {severity} {disaster_type} in {location}.
+
+Provide JSON with:
+{{
+  "agency": "{agency_type}",
+  "disaster_type": "{disaster_type}",
+  "priority_actions": [
+    {{"action": "specific action", "timeline": "X hours", "personnel_needed": number, "equipment": ["list"], "success_metric": "metric"}}
+  ],
+  "coordination_points": [
+    {{"with_agency": "agency name", "purpose": "coordination purpose", "communication_method": "method"}}
+  ],
+  "resource_checklist": ["item1", "item2"],
+  "safety_protocols": ["protocol1", "protocol2"],
+  "estimated_response_time": "X hours",
+  "key_contacts": [{{"role": "role", "responsibility": "responsibility"}}]
+}}
+
+Respond ONLY with valid JSON."""
+
+            response = await chat.send_message(UserMessage(text=prompt))
+            
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response)
+            if json_match:
+                plan = json.loads(json_match.group())
+                plan["generated_at"] = datetime.now(timezone.utc).isoformat()
+                plan["analysis_type"] = "AI-Powered"
+                return plan
+        except Exception as e:
+            logger.error(f"Agency plan error: {e}")
+        
+        return {"error": "Failed to generate plan", "agency": agency_type}
+    
+    async def calculate_impact_assessment(
+        self,
+        disaster_type: str,
+        magnitude: float,
+        location: str,
+        population_density: int = 1000
+    ) -> Dict:
+        """Calculate potential impact and required response scale"""
+        
+        # Impact multipliers by disaster type
+        impact_factors = {
+            "earthquake": {"lives_risk": 0.01, "property_risk": 0.15, "infrastructure_risk": 0.20},
+            "hurricane": {"lives_risk": 0.005, "property_risk": 0.25, "infrastructure_risk": 0.30},
+            "flood": {"lives_risk": 0.002, "property_risk": 0.20, "infrastructure_risk": 0.15},
+            "wildfire": {"lives_risk": 0.003, "property_risk": 0.35, "infrastructure_risk": 0.10},
+            "tornado": {"lives_risk": 0.008, "property_risk": 0.30, "infrastructure_risk": 0.25},
+            "tsunami": {"lives_risk": 0.05, "property_risk": 0.40, "infrastructure_risk": 0.35}
+        }
+        
+        factors = impact_factors.get(disaster_type, {"lives_risk": 0.01, "property_risk": 0.20, "infrastructure_risk": 0.20})
+        
+        # Calculate based on magnitude and population
+        affected_area_sqkm = magnitude ** 2 * 10  # Simplified
+        affected_population = int(affected_area_sqkm * population_density)
+        
+        lives_at_risk = int(affected_population * factors["lives_risk"] * (magnitude / 5))
+        properties_at_risk = int(affected_population * factors["property_risk"] * 0.3)  # Assume 0.3 properties per person
+        property_value_at_risk = properties_at_risk * 250000  # Average property value
+        
+        infrastructure_damage = factors["infrastructure_risk"] * magnitude / 10
+        
+        # Response scale calculation
+        if lives_at_risk > 1000 or affected_population > 100000:
+            response_level = "FEDERAL"
+        elif lives_at_risk > 100 or affected_population > 10000:
+            response_level = "STATE"
+        else:
+            response_level = "LOCAL"
+        
+        return {
+            "disaster_type": disaster_type,
+            "magnitude": magnitude,
+            "location": location,
+            "impact_assessment": {
+                "affected_area_sqkm": round(affected_area_sqkm, 1),
+                "affected_population": affected_population,
+                "lives_at_immediate_risk": lives_at_risk,
+                "lives_requiring_evacuation": int(affected_population * 0.3),
+                "properties_at_risk": properties_at_risk,
+                "property_value_at_risk": f"${property_value_at_risk / 1000000:.1f}M",
+                "infrastructure_damage_estimate": f"{infrastructure_damage * 100:.0f}%",
+                "estimated_economic_impact": f"${property_value_at_risk * (1 + infrastructure_damage) / 1000000:.0f}M"
+            },
+            "response_requirements": {
+                "response_level": response_level,
+                "estimated_responders_needed": max(50, int(affected_population / 200)),
+                "shelters_required": max(2, int(affected_population / 5000)),
+                "medical_facilities_needed": max(1, int(lives_at_risk / 50)),
+                "estimated_response_duration": f"{max(3, int(magnitude))} - {max(7, int(magnitude * 2))} days"
+            },
+            "priority_score": min(100, int((lives_at_risk / 10) + (affected_population / 1000) + (magnitude * 5))),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+remediation_engine = DisasterRemediationEngine()
+
+# =============================================================================
 # VEDIC ASTROLOGY ENGINE (Supadata + YouTube Transcript API - FREE)
 # =============================================================================
 
