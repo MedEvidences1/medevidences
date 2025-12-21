@@ -1084,6 +1084,365 @@ const Disasters = ({ getHeaders }) => {
         </>
       )}
 
+      {/* REMEDIATION VIEW - AI-Powered Disaster Response Planning */}
+      {activeView === "remediation" && (
+        <div className="space-y-4">
+          {/* Configuration Card */}
+          <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#00FF94]" />
+                AI-POWERED REMEDIATION PLANNING
+                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">MULTI-LLM</Badge>
+              </CardTitle>
+              <CardDescription className="text-xs text-[#888]">
+                Generate comprehensive disaster response plans using GPT-4o, Claude, and Gemini ensemble
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                <div>
+                  <label className="text-xs text-[#888] block mb-1">DISASTER TYPE</label>
+                  <select 
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded p-2 text-sm"
+                    value={remediationForm.disaster_type}
+                    onChange={(e) => setRemediationForm(prev => ({...prev, disaster_type: e.target.value}))}
+                  >
+                    {(remediationTypes?.disaster_types || []).map(type => (
+                      <option key={type} value={type}>{type.replace(/_/g, ' ').toUpperCase()}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] block mb-1">SEVERITY</label>
+                  <select 
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded p-2 text-sm"
+                    value={remediationForm.severity}
+                    onChange={(e) => setRemediationForm(prev => ({...prev, severity: e.target.value}))}
+                  >
+                    {(remediationTypes?.severity_levels || ["critical", "high", "medium", "low"]).map(level => (
+                      <option key={level} value={level}>{level.toUpperCase()}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] block mb-1">LOCATION</label>
+                  <Input 
+                    placeholder="City, Region or Country"
+                    className="bg-[#0A0A0A] border-[#1F1F1F]"
+                    value={remediationForm.location}
+                    onChange={(e) => setRemediationForm(prev => ({...prev, location: e.target.value}))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] block mb-1">POPULATION</label>
+                  <Input 
+                    type="number"
+                    placeholder="10000"
+                    className="bg-[#0A0A0A] border-[#1F1F1F]"
+                    value={remediationForm.population_affected}
+                    onChange={(e) => setRemediationForm(prev => ({...prev, population_affected: parseInt(e.target.value) || 10000}))}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] block mb-1">AI MODEL</label>
+                  <select 
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded p-2 text-sm"
+                    value={remediationForm.model_preference}
+                    onChange={(e) => setRemediationForm(prev => ({...prev, model_preference: e.target.value}))}
+                  >
+                    <option value="ensemble">ENSEMBLE (All 3)</option>
+                    <option value="openai">GPT-4o (OpenAI)</option>
+                    <option value="claude">Claude (Anthropic)</option>
+                    <option value="gemini">Gemini (Google)</option>
+                  </select>
+                </div>
+              </div>
+              <Button 
+                onClick={generateRemediationPlan} 
+                disabled={isGenerating || !remediationForm.location}
+                className="bg-[#00FF94] text-black hover:bg-[#00FF94]/80"
+              >
+                {isGenerating ? (
+                  <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />GENERATING PLAN...</>
+                ) : (
+                  <><Shield className="w-4 h-4 mr-2" />GENERATE REMEDIATION PLAN</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Generated Plan Display */}
+          {remediationPlan && (
+            <div className="space-y-4">
+              {/* Plan Header */}
+              <Card className="terminal-card border-l-4 border-l-[#FFD700]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold flex items-center gap-2">
+                        <Target className="w-5 h-5 text-[#FFD700]" />
+                        {remediationPlan.disaster_info?.type?.replace(/_/g, ' ').toUpperCase()} REMEDIATION PLAN
+                      </h3>
+                      <p className="text-xs text-[#888]">
+                        Location: {remediationPlan.disaster_info?.location} | 
+                        Severity: {remediationPlan.disaster_info?.severity?.toUpperCase()} | 
+                        Population: {remediationPlan.disaster_info?.population_affected?.toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-[#00FF94]">{remediationPlan.risk_mitigation_score || 75}%</div>
+                      <div className="text-xs text-[#888]">RISK MITIGATION</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 mt-4">
+                    <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-lg font-bold text-[#00FF94]">{remediationPlan.lives_potentially_saved?.toLocaleString() || "200+"}</div>
+                      <div className="text-xs text-[#888]">LIVES SAVED</div>
+                    </div>
+                    <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-lg font-bold text-[#FFD700]">{remediationPlan.property_value_protected || "$5M"}</div>
+                      <div className="text-xs text-[#888]">PROPERTY PROTECTED</div>
+                    </div>
+                    <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                      <div className="text-lg font-bold text-[#00E5FF]">{remediationPlan.model_used || "ensemble"}</div>
+                      <div className="text-xs text-[#888]">AI MODEL USED</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Immediate Actions */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-[#FF3333]" />
+                    IMMEDIATE ACTIONS
+                    <Badge className="bg-[#FF3333]/20 text-[#FF3333]">CRITICAL</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {(remediationPlan.immediate_actions || []).map((action, i) => (
+                      <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">{action.action}</div>
+                            <div className="text-xs text-[#888] mt-1">
+                              Agency: {action.responsible_agency?.replace(/_/g, ' ')} | Timeline: {action.timeline}
+                            </div>
+                          </div>
+                          <Badge className={action.priority === "critical" ? "bg-[#FF3333]" : action.priority === "high" ? "bg-[#FFAA00]" : "bg-[#00E5FF]"}>
+                            {action.priority?.toUpperCase()}
+                          </Badge>
+                        </div>
+                        {action.lives_impacted && (
+                          <div className="text-xs text-[#00FF94] mt-1">Lives impacted: {action.lives_impacted?.toLocaleString()}</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Evacuation Plan */}
+              {remediationPlan.evacuation_plan && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#FFAA00]" />
+                      EVACUATION PLAN
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                        <div className="text-lg font-bold text-[#FF3333]">{remediationPlan.evacuation_plan.total_population_at_risk?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">AT RISK</div>
+                      </div>
+                      <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                        <div className="text-lg font-bold text-[#FFAA00]">{remediationPlan.evacuation_plan.estimated_evacuation_time}</div>
+                        <div className="text-xs text-[#888]">EVAC TIME</div>
+                      </div>
+                      <div className="text-center p-2 bg-[#0A0A0A] rounded">
+                        <div className="text-lg font-bold text-[#00E5FF]">{remediationPlan.evacuation_plan.zones?.length || 3}</div>
+                        <div className="text-xs text-[#888]">ZONES</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {(remediationPlan.evacuation_plan.zones || []).map((zone, i) => (
+                        <div key={i} className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F] flex items-center justify-between">
+                          <div>
+                            <span className="font-bold text-[#00E5FF]">Zone {zone.zone_id}</span>
+                            <span className="text-xs text-[#888] ml-2">Pop: {zone.population?.toLocaleString()}</span>
+                          </div>
+                          <div className="text-xs text-right">
+                            <div className="text-[#888]">{zone.evacuation_route}</div>
+                            <div className="text-[#00FF94]">→ {zone.shelter_location}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {remediationPlan.evacuation_plan.transportation_needs && (
+                      <div className="mt-3 p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                        <div className="text-xs text-[#888] mb-1">TRANSPORTATION NEEDS:</div>
+                        <div className="flex gap-4 text-xs">
+                          <span>🚌 Buses: {remediationPlan.evacuation_plan.transportation_needs.buses}</span>
+                          <span>🚑 Emergency: {remediationPlan.evacuation_plan.transportation_needs.emergency_vehicles}</span>
+                          <span>🚁 Helicopters: {remediationPlan.evacuation_plan.transportation_needs.helicopters}</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Resource Allocation */}
+              {remediationPlan.resource_allocation && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-[#00E5FF]" />
+                      RESOURCE ALLOCATION
+                      <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{remediationPlan.resource_allocation.estimated_cost}</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                      {remediationPlan.resource_allocation.personnel && Object.entries(remediationPlan.resource_allocation.personnel).map(([role, count]) => (
+                        <div key={role} className="p-2 bg-[#0A0A0A] rounded text-center">
+                          <div className="text-lg font-bold text-[#00FF94]">{count}</div>
+                          <div className="text-xs text-[#888]">{role.toUpperCase()}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {remediationPlan.resource_allocation.supplies && (
+                      <div className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                        <div className="text-xs text-[#888] mb-1">SUPPLIES NEEDED:</div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                          <span>💧 Water: {remediationPlan.resource_allocation.supplies.water_gallons?.toLocaleString()} gal</span>
+                          <span>🍞 Food: {remediationPlan.resource_allocation.supplies.food_rations?.toLocaleString()} rations</span>
+                          <span>🏥 Med Kits: {remediationPlan.resource_allocation.supplies.medical_kits}</span>
+                          <span>🛏️ Blankets: {remediationPlan.resource_allocation.supplies.blankets?.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Medical Response */}
+              {remediationPlan.medical_response && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#FF3333]" />
+                      MEDICAL RESPONSE
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#FF3333]">{remediationPlan.medical_response.triage_stations}</div>
+                        <div className="text-xs text-[#888]">TRIAGE STATIONS</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#FFAA00]">{remediationPlan.medical_response.hospital_capacity_needed}</div>
+                        <div className="text-xs text-[#888]">HOSPITAL BEDS</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#00E5FF]">{remediationPlan.medical_response.ambulances_required}</div>
+                        <div className="text-xs text-[#888]">AMBULANCES</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#00FF94]">{remediationPlan.medical_response.medical_personnel}</div>
+                        <div className="text-xs text-[#888]">MEDICAL STAFF</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Post-Disaster Recovery */}
+              {remediationPlan.post_disaster_recovery && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#9D4EDD]" />
+                      POST-DISASTER RECOVERY PHASES
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {(remediationPlan.post_disaster_recovery || []).map((phase, i) => (
+                        <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-[#9D4EDD]">{phase.phase}</span>
+                            <Badge variant="outline" className="text-xs">{phase.timeline}</Badge>
+                          </div>
+                          <div className="text-xs text-[#888]">{(phase.actions || []).join(" • ")}</div>
+                          {phase.estimated_cost && (
+                            <div className="text-xs text-[#FFD700] mt-1">Est. Cost: {phase.estimated_cost}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Communication Plan */}
+              {remediationPlan.communication_plan && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-[#00E5FF]" />
+                      COMMUNICATION PLAN
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-xs text-[#888] mb-2">ALERT CHANNELS:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {(remediationPlan.communication_plan.alert_channels || []).map((ch, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{ch}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-[#888] mb-2">LANGUAGES:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {(remediationPlan.communication_plan.languages || []).map((lang, i) => (
+                            <Badge key={i} className="bg-[#1F1F1F] text-xs">{lang}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {remediationPlan.communication_plan.message_templates && (
+                      <div className="mt-3 space-y-2">
+                        <div className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#FF3333]">
+                          <div className="text-xs text-[#888]">INITIAL ALERT:</div>
+                          <div className="text-xs mt-1">{remediationPlan.communication_plan.message_templates.initial}</div>
+                        </div>
+                        <div className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#FFAA00]">
+                          <div className="text-xs text-[#888]">UPDATE:</div>
+                          <div className="text-xs mt-1">{remediationPlan.communication_plan.message_templates.update}</div>
+                        </div>
+                        <div className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#00FF94]">
+                          <div className="text-xs text-[#888]">ALL CLEAR:</div>
+                          <div className="text-xs mt-1">{remediationPlan.communication_plan.message_templates.all_clear}</div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* AGENCIES VIEW */}
       {activeView === "agencies" && agencies && (
         <div className="space-y-4">
