@@ -2512,20 +2512,30 @@ class DisasterRemediationEngine:
         self.disaster_engine = disaster_engine
         self.osint = osint_aggregator
     
-    async def _get_ai_remediation_plan(self, disaster_info: Dict, context: str = "") -> Dict:
-        """Generate AI-powered remediation plan"""
+    async def _get_ai_remediation_plan(self, disaster_info: Dict, context: str = "", model_preference: str = "ensemble") -> Dict:
+        """Generate AI-powered remediation plan using multi-LLM ensemble"""
         if not EMERGENT_LLM_KEY:
             return None
         
-        try:
-            chat = LlmChat(
-                api_key=EMERGENT_LLM_KEY,
-                session_id=f"remediation-{uuid.uuid4()}",
-                system_message="""You are an expert emergency management consultant with 20+ years experience in disaster response planning. 
+        # Model configurations
+        models = {
+            "openai": ("openai", "gpt-4o"),
+            "claude": ("anthropic", "claude-4-sonnet-20250514"),
+            "gemini": ("gemini", "gemini-2.5-flash"),
+        }
+        
+        system_message = """You are an expert emergency management consultant with 20+ years experience in disaster response planning. 
 Your role is to create actionable, life-saving remediation plans for government agencies and emergency responders.
 Be specific with numbers, timelines, and resources. Focus on practical actions that save lives and protect property."""
-            )
-            chat.with_model("openai", "gpt-4o")
+        
+        async def call_single_llm(provider: str, model: str) -> Optional[Dict]:
+            try:
+                chat = LlmChat(
+                    api_key=EMERGENT_LLM_KEY,
+                    session_id=f"remediation-{uuid.uuid4()}",
+                    system_message=system_message
+                )
+                chat.with_model(provider, model)
             
             prompt = f"""Create a comprehensive disaster remediation plan:
 
