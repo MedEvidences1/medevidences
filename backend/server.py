@@ -7917,6 +7917,50 @@ async def get_deep_forecast(report_id: str):
 # API ENDPOINTS - JUDGMENTAL FORECASTING (Proprietary)
 # =============================================================================
 
+# Long-Range Forecast Endpoints (2026-2040)
+
+@api_router.get("/forecast/long-range", tags=["Long-Range Forecasting"])
+async def get_long_range_forecasts(category: str = None, region: str = None):
+    """
+    Get AI-powered long-range forecasts for 2026-2040
+    Categories: climate_disasters, geopolitical, economic, tech, pandemic, space
+    Regions: North America, Europe, Asia, Africa, etc.
+    """
+    forecasts = await long_range_forecaster.generate_2026_2040_forecasts(category, region)
+    return forecasts
+
+@api_router.get("/forecast/year/{year}", tags=["Long-Range Forecasting"])
+async def get_year_forecast(year: int):
+    """
+    Get detailed predictions for a specific year (2026-2040)
+    Includes monthly events, economic outlook, climate forecast
+    """
+    if year < 2026 or year > 2040:
+        raise HTTPException(400, "Year must be between 2026 and 2040")
+    
+    forecast = await long_range_forecaster.get_year_specific_forecast(year)
+    return forecast
+
+@api_router.get("/forecast/decade-summary", tags=["Long-Range Forecasting"])
+async def get_decade_summary():
+    """
+    Get strategic decade summary for 2026-2040
+    Includes defining challenges, transformation waves, inflection points
+    """
+    summary = await long_range_forecaster.get_decade_summary()
+    return summary
+
+@api_router.get("/forecast/long-range/categories", tags=["Long-Range Forecasting"])
+async def get_forecast_categories():
+    """Get all available forecast categories and regions"""
+    return {
+        "categories": long_range_forecaster.FORECAST_CATEGORIES,
+        "regions": long_range_forecaster.FORECAST_REGIONS,
+        "timeframes": long_range_forecaster.TIMEFRAMES,
+        "auto_update_interval": "24 hours",
+        "last_update": long_range_forecaster.last_auto_update.isoformat() if long_range_forecaster.last_auto_update else None
+    }
+
 class JudgmentalForecastRequest(BaseModel):
     question: str
     context: Optional[str] = ""
