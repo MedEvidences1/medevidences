@@ -2626,10 +2626,12 @@ Respond ONLY with valid JSON."""
         severity: str = "high",
         location: str = "Unknown",
         population_affected: int = 10000,
-        current_conditions: Dict = None
+        current_conditions: Dict = None,
+        model_preference: str = "ensemble"
     ) -> Dict:
         """
         Generate comprehensive remediation plan for a disaster scenario
+        Uses multi-LLM ensemble (GPT-4o, Claude, Gemini) for robust analysis
         """
         # Get current disaster data
         eq_data = await self.disaster_engine.predict_earthquake_risk()
@@ -2647,8 +2649,8 @@ Respond ONLY with valid JSON."""
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        # Get AI-generated plan
-        ai_plan = await self._get_ai_remediation_plan(disaster_info)
+        # Get AI-generated plan using multi-LLM
+        ai_plan = await self._get_ai_remediation_plan(disaster_info, model_preference=model_preference)
         
         # Default plan structure if AI fails
         if not ai_plan:
