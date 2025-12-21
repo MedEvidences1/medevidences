@@ -5829,8 +5829,14 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
 
 // Main App Component
 const MainApp = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [showAuth, setShowAuth] = useState(false);
+  const location = window.location;
+  const initialTab = location.pathname === "/admin" ? "admin" : 
+                     location.pathname === "/pricing" ? "pricing" :
+                     location.pathname === "/chat" ? "chat" :
+                     location.pathname === "/osint" ? "osint" : "dashboard";
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [showAuth, setShowAuth] = useState(location.pathname === "/admin" && !localStorage.getItem("token"));
   const { user, token, login, register, logout, getHeaders, setUser } = useAuth();
   const { language, setLanguage, t, isRTL } = useLanguage();
 
@@ -5838,12 +5844,28 @@ const MainApp = () => {
   useEffect(() => {
     if (token) {
       axios.get(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-        .then((res) => setUser(res.data))
+        .then((res) => {
+          setUser(res.data);
+          // If on /admin route and now logged in, navigate to admin
+          if (location.pathname === "/admin") {
+            setActiveTab("admin");
+          }
+        })
         .catch(() => {
           localStorage.removeItem("token");
         });
     }
   }, [token, setUser]);
+
+  // Update URL when tab changes (optional - for bookmarking)
+  useEffect(() => {
+    const tabRoutes = { admin: "/admin", pricing: "/pricing", chat: "/chat", osint: "/osint" };
+    if (tabRoutes[activeTab] && window.location.pathname !== tabRoutes[activeTab]) {
+      window.history.replaceState(null, "", tabRoutes[activeTab]);
+    } else if (!tabRoutes[activeTab] && window.location.pathname !== "/") {
+      window.history.replaceState(null, "", "/");
+    }
+  }, [activeTab]);
 
   const renderContent = () => {
     switch (activeTab) {
