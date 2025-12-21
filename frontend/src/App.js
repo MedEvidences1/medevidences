@@ -890,11 +890,23 @@ const Disasters = ({ getHeaders }) => {
   const [economicImpact, setEconomicImpact] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState("overview");
+  
+  // Remediation state
+  const [remediationTypes, setRemediationTypes] = useState(null);
+  const [remediationPlan, setRemediationPlan] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [remediationForm, setRemediationForm] = useState({
+    disaster_type: "earthquake",
+    severity: "high",
+    location: "",
+    population_affected: 10000,
+    model_preference: "ensemble"
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes] = await Promise.all([
+      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes] = await Promise.all([
         axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=20`),
         axios.get(`${API}/disasters/weather-alerts`),
         axios.get(`${API}/disasters/global`),
@@ -902,6 +914,7 @@ const Disasters = ({ getHeaders }) => {
         axios.get(`${API}/disasters/agencies`),
         axios.get(`${API}/disasters/sensors`),
         axios.get(`${API}/disasters/economic-impact`),
+        axios.get(`${API}/disasters/remediation/disaster-types`),
       ]);
       setEarthquakes(eqRes.data.earthquakes || []);
       setWeatherAlerts(wxRes.data.alerts || []);
@@ -910,6 +923,7 @@ const Disasters = ({ getHeaders }) => {
       setAgencies(agencyRes.data);
       setSensors(sensorRes.data);
       setEconomicImpact(econRes.data);
+      setRemediationTypes(remTypesRes.data);
     } catch (e) {
       console.error(e);
     }
@@ -917,9 +931,27 @@ const Disasters = ({ getHeaders }) => {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+  
+  const generateRemediationPlan = async () => {
+    if (!remediationForm.location) {
+      toast.error("Please enter a location");
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const res = await axios.post(`${API}/disasters/remediation/plan`, remediationForm, { headers: getHeaders() });
+      setRemediationPlan(res.data);
+      toast.success("Remediation plan generated successfully!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate plan");
+    }
+    setIsGenerating(false);
+  };
 
   const views = [
     { id: "overview", label: "OVERVIEW", icon: Home },
+    { id: "remediation", label: "REMEDIATION", icon: Shield },
     { id: "agencies", label: "AGENCIES", icon: Globe },
     { id: "sensors", label: "SENSORS", icon: Cpu },
     { id: "economic", label: "ECONOMIC", icon: DollarSign },
