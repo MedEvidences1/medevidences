@@ -6271,6 +6271,8 @@ const MainApp = () => {
         return <InvestmentBankerSuite />;
       case "disasters":
         return <Disasters getHeaders={getHeaders} />;
+      case "space":
+        return <SpaceHazards getHeaders={getHeaders} />;
       case "astrology":
         return <Astrology getHeaders={getHeaders} user={user} />;
       case "tabular":
