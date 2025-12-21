@@ -341,6 +341,137 @@ class PlutusAPITester:
             self.log_result("Support Tickets CRUD", False, f"Exception: {str(e)}")
             return False
 
+    def test_disaster_remediation_types(self):
+        """Test NEW: Disaster Remediation - Get supported disaster types"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/remediation/disaster-types", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Disaster Remediation Types", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                disaster_types = data.get("disaster_types", [])
+                severity_levels = data.get("severity_levels", [])
+                print(f"   Disaster types: {len(disaster_types)}")
+                print(f"   Severity levels: {len(severity_levels)}")
+                if disaster_types:
+                    print(f"   Types: {', '.join(disaster_types[:5])}")
+                if severity_levels:
+                    print(f"   Severities: {', '.join(severity_levels)}")
+            return success
+        except Exception as e:
+            self.log_result("Disaster Remediation Types", False, f"Exception: {str(e)}")
+            return False
+
+    def test_disaster_remediation_plan_generation(self):
+        """Test NEW: Disaster Remediation - Generate AI-powered remediation plan"""
+        if not self.token:
+            self.log_result("Disaster Remediation Plan", False, "No authentication token")
+            return False
+        
+        try:
+            # Test with different disaster types and AI models
+            test_cases = [
+                {
+                    "disaster_type": "earthquake",
+                    "severity": "high", 
+                    "location": "Tokyo, Japan",
+                    "population_affected": 50000,
+                    "model_preference": "ensemble"
+                },
+                {
+                    "disaster_type": "hurricane",
+                    "severity": "critical",
+                    "location": "Miami, Florida",
+                    "population_affected": 100000,
+                    "model_preference": "openai"
+                },
+                {
+                    "disaster_type": "wildfire",
+                    "severity": "high",
+                    "location": "Los Angeles, California", 
+                    "population_affected": 25000,
+                    "model_preference": "claude"
+                }
+            ]
+            
+            successful_tests = 0
+            for i, test_case in enumerate(test_cases):
+                try:
+                    response = requests.post(f"{self.api_url}/disasters/remediation/plan", 
+                                           json=test_case,
+                                           headers=self.get_headers(),
+                                           timeout=45)  # Longer timeout for AI generation
+                    
+                    if response.status_code == 200:
+                        successful_tests += 1
+                        data = response.json()
+                        print(f"   Test {i+1} ({test_case['disaster_type']}): ✅")
+                        print(f"     Model used: {data.get('model_used', 'unknown')}")
+                        print(f"     Risk mitigation: {data.get('risk_mitigation_score', 0)}%")
+                        print(f"     Lives saved: {data.get('lives_potentially_saved', 'N/A')}")
+                        
+                        # Check for required plan sections
+                        required_sections = ['immediate_actions', 'evacuation_plan', 'resource_allocation', 'medical_response']
+                        sections_found = sum(1 for section in required_sections if section in data)
+                        print(f"     Plan sections: {sections_found}/{len(required_sections)}")
+                        
+                    else:
+                        print(f"   Test {i+1} ({test_case['disaster_type']}): ❌ Status {response.status_code}")
+                        
+                except Exception as e:
+                    print(f"   Test {i+1} ({test_case['disaster_type']}): ❌ Exception: {str(e)}")
+            
+            success = successful_tests >= 2  # At least 2 out of 3 should work
+            self.log_result("Disaster Remediation Plan", success, 
+                          f"{successful_tests}/{len(test_cases)} test cases passed")
+            
+            return success
+        except Exception as e:
+            self.log_result("Disaster Remediation Plan", False, f"Exception: {str(e)}")
+            return False
+
+    def test_multi_llm_integration(self):
+        """Test NEW: Multi-LLM Integration (GPT-4o, Claude, Gemini)"""
+        if not self.token:
+            self.log_result("Multi-LLM Integration", False, "No authentication token")
+            return False
+        
+        try:
+            # Test judgmental forecasting with different models
+            models_to_test = ["ensemble", "openai", "claude", "gemini"]
+            successful_models = 0
+            
+            for model in models_to_test:
+                try:
+                    # Test with a simple forecasting question
+                    response = requests.post(f"{self.api_url}/judgmental-forecast", 
+                                           json={
+                                               "question": "Will there be a major earthquake in California by 2025?",
+                                               "model_preference": model
+                                           },
+                                           headers=self.get_headers(),
+                                           timeout=30)
+                    
+                    if response.status_code == 200:
+                        successful_models += 1
+                        data = response.json()
+                        print(f"   {model.upper()}: ✅ Probability: {data.get('probability', 0)}%")
+                    else:
+                        print(f"   {model.upper()}: ❌ Status {response.status_code}")
+                        
+                except Exception as e:
+                    print(f"   {model.upper()}: ❌ Exception: {str(e)}")
+            
+            success = successful_models >= 2  # At least 2 models should work
+            self.log_result("Multi-LLM Integration", success, 
+                          f"{successful_models}/{len(models_to_test)} models working")
+            
+            return success
+        except Exception as e:
+            self.log_result("Multi-LLM Integration", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting Plutus Predict API Tests")
