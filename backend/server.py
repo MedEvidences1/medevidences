@@ -2588,11 +2588,28 @@ Provide a detailed JSON response with:
 Respond ONLY with valid JSON."""
 
                 response = await chat.send_message(UserMessage(text=prompt))
+                # Try to extract and parse JSON from response
                 json_match = re.search(r'\{[\s\S]*\}', response)
                 if json_match:
-                    plan = json.loads(json_match.group())
-                    plan["model_used"] = f"{provider}:{model}"
-                    return plan
+                    json_str = json_match.group()
+                    # Clean common JSON issues
+                    json_str = re.sub(r',\s*}', '}', json_str)  # Remove trailing commas before }
+                    json_str = re.sub(r',\s*]', ']', json_str)  # Remove trailing commas before ]
+                    try:
+                        plan = json.loads(json_str)
+                        plan["model_used"] = f"{provider}:{model}"
+                        return plan
+                    except json.JSONDecodeError as je:
+                        logger.error(f"JSON parse error ({provider}): {je}")
+                        # Try a simpler extraction
+                        try:
+                            # Use ast.literal_eval as fallback
+                            import ast
+                            plan = ast.literal_eval(json_str)
+                            plan["model_used"] = f"{provider}:{model}"
+                            return plan
+                        except Exception:
+                            pass
             except Exception as e:
                 logger.error(f"Remediation AI error ({provider}): {e}")
                 return None
