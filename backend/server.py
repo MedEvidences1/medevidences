@@ -7783,6 +7783,33 @@ class CronJobManager:
         except Exception as e:
             logger.error(f"Space hazards refresh failed: {e}")
     
+    async def update_long_range_forecasts(self):
+        """Auto-update long-range forecasts for 2026-2040 (daily)"""
+        logger.info("Updating long-range forecasts (2026-2040)...")
+        
+        try:
+            success = await long_range_forecaster.auto_update_forecasts()
+            
+            if success:
+                self.job_history.append({
+                    "job": "long_range_forecasts",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "status": "completed",
+                    "result": "2026-2040 forecasts updated successfully"
+                })
+                logger.info("Long-range forecasts (2026-2040) updated successfully")
+            else:
+                logger.warning("Long-range forecast update returned no data")
+                
+        except Exception as e:
+            logger.error(f"Long-range forecast update failed: {e}")
+            self.job_history.append({
+                "job": "long_range_forecasts",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "failed",
+                "error": str(e)
+            })
+    
     def get_status(self) -> Dict:
         """Get scheduler status"""
         if not self.scheduler:
