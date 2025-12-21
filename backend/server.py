@@ -2654,13 +2654,13 @@ Respond ONLY with valid JSON."""
         
         # Default plan structure if AI fails
         if not ai_plan:
-            ai_plan = self._get_default_plan(disaster_type, severity, population_affected)
+            ai_plan = self._get_default_plan(disaster_type, severity, population_affected, location)
         
         # Add metadata
         ai_plan["disaster_info"] = disaster_info
         ai_plan["generated_at"] = datetime.now(timezone.utc).isoformat()
-        ai_plan["analysis_type"] = "AI-Powered"
-        ai_plan["model"] = "GPT-4"
+        ai_plan["analysis_type"] = "AI-Powered" if ai_plan.get("model_used") else "Fallback"
+        ai_plan["model"] = ai_plan.get("model_used", "default")
         
         # Store plan for reference
         plan_id = str(uuid.uuid4())[:8].upper()
