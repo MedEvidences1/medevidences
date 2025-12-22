@@ -9503,7 +9503,7 @@ async def list_judgmental_forecasts(limit: int = 50, user_id: Optional[str] = No
 class DisasterForecastRequest(BaseModel):
     disaster_type: str = Field(..., description="Type of disaster (earthquake, hurricane, flood, wildfire, etc.)")
     location: str = Field(..., description="Geographic location for the forecast")
-    timeframe: str = Field(default="2025", description="Target year or date range")
+    timeframe: str = Field(default="2026", description="Target year or date range (2026-2040)")
     severity: str = Field(default="any", description="Severity filter: any, minor, moderate, major, catastrophic")
 
 @api_router.post("/judgmental-forecast/disaster", tags=["Judgmental Forecasting", "Disasters"])
