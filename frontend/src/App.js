@@ -476,9 +476,20 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, setShowChangeP
                 <Button variant="ghost" className="text-sm" data-testid="user-menu-btn">
                   <User className="w-4 h-4 mr-2" />
                   {user.name}
+                  {(user.role === "owner" || user.role === "enterprise_admin") && (
+                    <Badge variant="outline" className="ml-2 text-[10px] border-[#9D4EDD] text-[#9D4EDD]">
+                      {user.role === "owner" ? "OWNER" : "ADMIN"}
+                    </Badge>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-[#0A0A0A] border-[#1F1F1F]">
+                {(user.role === "owner" || user.role === "enterprise_admin" || user.role === "admin") && (
+                  <DropdownMenuItem onClick={() => setShowChangePassword(true)} className="cursor-pointer">
+                    <Key className="w-4 h-4 mr-2" />
+                    Change Password
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={logout} className="cursor-pointer">
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout
