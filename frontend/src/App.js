@@ -3559,6 +3559,22 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         <div className="space-y-4">
           <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
             <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Satellite className="w-4 h-4 text-[#9D4EDD]" />
+                  SATELLITES & IoT NETWORK
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">SENSOR NETWORK</Badge>
+                </CardTitle>
+                <Button onClick={() => { setSatelliteIotData(null); loadSatelliteIot(); }} size="sm" variant="outline" className="text-xs">
+                  <RefreshCw className={`w-3 h-3 mr-1 ${satelliteLoading ? "animate-spin" : ""}`} />REFRESH
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Weather satellites, Seismic sensors, IoT flood gauges, Air quality monitors</p>
+            </CardContent>
+          </Card>
+            <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Satellite className="w-4 h-4 text-[#9D4EDD]" />
                 SATELLITE & IOT SENSOR NETWORK
