@@ -1,28 +1,36 @@
 {
   "identity": {
     "name": "Plutus Predict",
-    "persona": "The Void Terminal",
-    "description": "A hyper-dense, institutional-grade forecasting platform that merges hard financial data with disaster intelligence and vedic astrology. The aesthetic is 'Bloomberg Terminal meets Cyberpunk Control Room'.",
-    "emotional_tone": "Authority, Precision, Urgency, Insight",
-    "theme_mode": "dark"
+    "persona": "E1 - The Anti-AI Designer",
+    "vibe": "Control Room / Retro-Futurism / High-Frequency Trading Terminal",
+    "principles": [
+      "Fusion over Imitation: Mix Terminal aesthetics with modern Fintech usability.",
+      "Emotion First: Evoke 'Precision', 'Insight', and 'Urgency'.",
+      "Content is King: Data is the hero. Use monospaced fonts for all metrics.",
+      "Zoom In: Focus on the probability percentages.",
+      "Negative Space: Use dense grids but leave breathing room within cells.",
+      "Contrast: High contrast neon against deep void backgrounds."
+    ]
   },
   "typography": {
-    "font_family": {
-      "headings": "IBM Plex Sans, sans-serif",
-      "body": "Inter, sans-serif",
-      "data": "JetBrains Mono, monospace"
+    "headings": {
+      "font_family": "Azeret Mono, monospace",
+      "weights": ["500", "700"],
+      "usage": "Page titles, Section headers, Card titles",
+      "letter_spacing": "tracking-tight"
     },
-    "weights": {
-      "headings": "600",
-      "body": "400",
-      "data": "500"
+    "body": {
+      "font_family": "Manrope, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Descriptions, UI labels, Navigation",
+      "letter_spacing": "tracking-normal"
     },
-    "usage_rules": [
-      "Use 'JetBrains Mono' for ALL numbers, dates, probabilities, and grid data.",
-      "Use 'IBM Plex Sans' for section headers and navigation.",
-      "Use 'Inter' for long-form text (news summaries, analysis).",
-      "Headings must be uppercase with tracking-widest (e.g., 'RISK_GRID')."
-    ]
+    "data": {
+      "font_family": "JetBrains Mono, monospace",
+      "weights": ["400", "700"],
+      "usage": "Probabilities, Dates, Prices, Code snippets",
+      "letter_spacing": "tracking-wide"
+    }
   },
   "colors": {
     "palette": {
@@ -31,93 +39,119 @@
       "surface_highlight": "#141414",
       "border": "#1F1F1F",
       "primary": "#00E5FF",
-      "secondary": "#FF3333",
-      "tertiary": "#FFD700",
+      "secondary": "#00FF94",
+      "accent": "#FFD700",
+      "destructive": "#FF3333",
       "text_primary": "#EDEDED",
       "text_secondary": "#888888",
       "text_muted": "#444444"
     },
-    "semantic": {
-      "success": "#00FF94",
-      "warning": "#FFAA00",
-      "error": "#FF3333",
-      "info": "#00E5FF",
-      "profit": "#00FF94",
-      "loss": "#FF3333",
-      "astrology": "#9D4EDD"
-    },
-    "gradients": {
-      "glow_primary": "radial-gradient(circle at center, rgba(0, 229, 255, 0.15) 0%, rgba(0, 0, 0, 0) 70%)",
-      "glow_danger": "radial-gradient(circle at center, rgba(255, 51, 51, 0.15) 0%, rgba(0, 0, 0, 0) 70%)"
-    }
+    "usage_rules": [
+      "Never use pure black (#000000) for backgrounds, use #050505.",
+      "Use Primary (#00E5FF) for active states, main actions, and high-probability indicators.",
+      "Use Secondary (#00FF94) for success states and positive trends.",
+      "Use Destructive (#FF3333) for high-risk warnings and negative trends.",
+      "Use Accent (#FFD700) for 'Featured' or 'Premium' items."
+    ]
   },
   "layout": {
-    "grid_system": "The Control Room Grid (Mode B)",
-    "spacing": {
-      "container_padding": "p-4 md:p-6",
-      "item_gap": "gap-2",
-      "internal_padding": "p-3"
-    },
-    "rules": [
-      "Density is King. Minimize whitespace between cards.",
-      "Use 'border-r' and 'border-b' to create a grid-line aesthetic instead of separated cards where possible.",
-      "Dashboard widgets must fill 100% height of their grid cell.",
-      "Sidebar should be collapsible or icon-only on smaller screens to maximize data real estate."
+    "grid_system": "The Control Room Grid",
+    "container_padding": "p-4 md:p-8 lg:p-12",
+    "gap": "gap-4 md:gap-6",
+    "strategies": [
+      "Dashboard: Dense grid (grid-cols-12). Hero widgets span 8 cols, feeds span 4.",
+      "Cards: 'Tracing Beam' style. 1px border that glows on hover.",
+      "Spacing: Use generous internal padding (p-6) within bordered containers."
     ]
   },
   "components": {
-    "cards": {
-      "style": "Sharp edges (rounded-none or rounded-sm), 1px border (#1F1F1F), dark background (#0A0A0A).",
-      "hover": "Border color shifts to Primary (#00E5FF) or White (#FFF) on hover. No lift/shadow."
-    },
     "buttons": {
-      "primary": "bg-primary text-black font-bold uppercase tracking-wider rounded-sm hover:bg-white transition-colors",
-      "secondary": "border border-border text-primary hover:bg-primary/10 rounded-sm",
-      "destructive": "bg-red-900/20 text-red-500 border border-red-900 hover:bg-red-900/40"
+      "style": "Sharp edges (rounded-sm or rounded-none). Uppercase text.",
+      "primary": "bg-primary text-black hover:bg-white transition-all",
+      "secondary": "border border-border text-primary hover:bg-primary/10"
+    },
+    "cards": {
+      "style": "bg-surface border border-border hover:border-primary/50 transition-colors",
+      "content": "Always include a header, body, and footer section."
     },
     "inputs": {
-      "style": "bg-black border-border rounded-sm focus:ring-1 focus:ring-primary focus:border-primary font-mono text-sm"
+      "style": "bg-black border border-border focus:border-primary focus:ring-1 focus:ring-primary font-mono rounded-none"
     },
     "charts": {
       "library": "Recharts (via Shadcn)",
-      "style": "Minimalist. Hide grid lines or make them very subtle (#222). Use neon stroke colors. Tooltips must be dark high-contrast."
-    },
-    "maps": {
-      "style": "Dark mode vector map. Land: #111, Water: #050505, Borders: #333. Data points: Glowing dots."
+      "style": "Minimalist. Hide axes lines if possible. Use neon strokes. Add grid lines (stroke='#1F1F1F')."
     }
   },
   "visual_enhancers": {
-    "scanlines": "Overlay a repeating linear gradient (opacity 0.02) to simulate a CRT monitor.",
-    "tracing_beam": "Use for the 'AI Forecasting' active state.",
-    "glassmorphism": "Minimal usage. Only for floating modals/toasts. High blur (backdrop-blur-xl), low opacity bg.",
-    "borders": "All borders should be 1px solid #1F1F1F. Active elements get #00E5FF."
-  },
-  "assets": {
-    "images": {
-      "hero_bg": "https://images.unsplash.com/photo-1713098965471-d324f294a71d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwzfHxnbG9iYWwlMjBkaXNhc3RlciUyMG1hcmtldCUyMGRhdGElMjBzY3JlZW4lMjBkYXJrJTIwbW9kZXxlbnwwfHx8Ymx1ZXwxNzY2MTc2MzU0fDA&ixlib=rb-4.1.0&q=85",
-      "finance_texture": "https://images.unsplash.com/photo-1647067517631-aa36cda58a17?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxzdG9jayUyMG1hcmtldCUyMGRhdGElMjBzY3JlZW4lMjBkYXJrJTIwbW9kZXxlbnwwfHx8YmxhY2t8MTc2NjE3NjM1MHww&ixlib=rb-4.1.0&q=85",
-      "astrology_placeholder": "https://images.unsplash.com/photo-1582744709859-2d89c6920cfb?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxQcmFzaGFudCUyMEthcG9vciUyMGFzdHJvbG9nZXJ8ZW58MHx8fHwxNzY2MTc2MzUzfDA&ixlib=rb-4.1.0&q=85"
-    },
-    "icons": "Lucide React (default). Use thin strokes (stroke-width={1.5}) for elegance."
-  },
-  "motion": {
-    "type": "Technical / Instant",
-    "duration": "duration-150",
-    "easing": "ease-out",
-    "rules": [
-      "Avoid bouncy springs.",
-      "Use 'opacity' and 'color' transitions.",
-      "Data updates should 'flash' (bg-color highlight then fade) to signal real-time changes."
+    "textures": [
+      "Scanline overlay (pointer-events-none fixed inset-0 z-50 opacity-[0.03])",
+      "Grid background (linear-gradient for grid lines)"
+    ],
+    "effects": [
+      "Glow: box-shadow: 0 0 20px rgba(0, 229, 255, 0.15)",
+      "Glitch: On hover for key headers (optional)"
     ]
   },
-  "universal_guidelines": [
-    "DARK MODE ONLY. Do not implement a light mode toggle.",
-    "Data Density > Whitespace. This is a tool for pros, not a marketing page.",
-    "All numbers must be monospaced.",
-    "Use 'data-testid' on all interactive elements.",
-    "Do not use gradients for text. Keep text high-contrast solid colors.",
-    "Ensure all charts have tooltips.",
-    "For the 'Vedic Astrology' section, use a purple/gold accent theme to differentiate it from the main financial data."
+  "image_urls": {
+    "economics": {
+      "url": "https://images.unsplash.com/photo-1684610529682-553625a1ffed",
+      "alt": "Abstract particles in sphere representing economics"
+    },
+    "geopolitical": {
+      "url": "https://images.unsplash.com/photo-1570106413982-7f2897b8d0c5",
+      "alt": "World map with connection dots"
+    },
+    "technology": {
+      "url": "https://images.unsplash.com/photo-1744640326166-433469d102f2",
+      "alt": "Glowing AI chip on circuit board"
+    },
+    "finance": {
+      "url": "https://images.unsplash.com/photo-1592495989226-03f88104f8cc",
+      "alt": "Abstract digital finance illustration"
+    },
+    "natural_disasters": {
+      "url": "https://images.unsplash.com/photo-1695605117525-67a53b26e2ea",
+      "alt": "Tornado silhouette"
+    },
+    "politics": {
+      "url": "https://images.unsplash.com/photo-1570492912464-4b6ca4a2bb9c",
+      "alt": "US Capitol building"
+    },
+    "corporate": {
+      "url": "https://images.unsplash.com/photo-1748811371852-b27529c29546",
+      "alt": "Modern high-rise skyscraper"
+    },
+    "health": {
+      "url": "https://images.unsplash.com/photo-1706205041897-c1e3d8cdb7b7",
+      "alt": "Microscopic virus particles"
+    },
+    "energy": {
+      "url": "https://images.unsplash.com/photo-1762381157166-f51ac99ab412",
+      "alt": "Wind turbines and solar panels"
+    },
+    "space": {
+      "url": "https://images.unsplash.com/photo-1562780361-3bffcc78f1da",
+      "alt": "Solar system illustration"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Implement the 'Control Room' grid layout for the main dashboard.",
+    "Use the provided image URLs for the category cards.",
+    "Ensure all text contrast meets APCA standards.",
+    "Use 'Azeret Mono' for all headings to enforce the terminal aesthetic.",
+    "Use 'Manrope' for body text to ensure readability.",
+    "Keep the existing 'Scanline' effect in index.css.",
+    "Update the Tailwind config to include the new colors if needed (though they seem to match existing variables).",
+    "Create a 'PredictionCard' component that uses the 'Tracing Beam' border effect.",
+    "Ensure the 'Live Events' feed looks like a scrolling terminal log."
   ],
-  "instructions_to_main_agent": "You are building a high-density financial dashboard. Start by setting up the global CSS variables in index.css to match the 'colors' section. Then, customize the Shadcn 'Card' and 'Button' components to remove rounded corners and add the specific border styles. Use the 'Control Room' grid layout for the main dashboard view."
+  "universal_guidelines": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts. Use asymmetry.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for overlays.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "All interactive elements MUST include data-testid attribute."
+  ]
 }
