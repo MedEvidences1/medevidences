@@ -14393,86 +14393,88 @@ async def startup():
         await asyncio.wait_for(db.forecasts.create_index("id", unique=True), timeout=10)
         await asyncio.wait_for(db.predictions.create_index("id", unique=True), timeout=10)
     
-    # New indexes for accuracy tracking, dashboards, and alerts
-    await db.prediction_outcomes.create_index("id", unique=True)
-    await db.prediction_outcomes.create_index("prediction_id")
-    await db.prediction_outcomes.create_index("verified_at")
-    await db.custom_dashboards.create_index("id", unique=True)
-    await db.custom_dashboards.create_index("user_id")
-    await db.astrology_predictions.create_index("id", unique=True)
-    await db.astrology_predictions.create_index("reconciled")
-    await db.deep_forecasts.create_index("id", unique=True)
+        # New indexes for accuracy tracking, dashboards, and alerts
+        await db.prediction_outcomes.create_index("id", unique=True)
+        await db.prediction_outcomes.create_index("prediction_id")
+        await db.prediction_outcomes.create_index("verified_at")
+        await db.custom_dashboards.create_index("id", unique=True)
+        await db.custom_dashboards.create_index("user_id")
+        await db.astrology_predictions.create_index("id", unique=True)
+        await db.astrology_predictions.create_index("reconciled")
+        await db.deep_forecasts.create_index("id", unique=True)
     
-    # Create/Update owner admin user
-    owner_admin = await db.users.find_one({"role": "owner"})
-    if not owner_admin:
-        # Check if old admin exists
-        old_admin = await db.users.find_one({"email": "admin@plutuspredict.com"})
-        if old_admin:
-            # Update old admin to owner role with new credentials
-            await db.users.update_one(
-                {"email": "admin@plutuspredict.com"},
-                {"$set": {
+        # Create/Update owner admin user
+        owner_admin = await db.users.find_one({"role": "owner"})
+        if not owner_admin:
+            # Check if old admin exists
+            old_admin = await db.users.find_one({"email": "admin@plutuspredict.com"})
+            if old_admin:
+                # Update old admin to owner role with new credentials
+                await db.users.update_one(
+                    {"email": "admin@plutuspredict.com"},
+                    {"$set": {
+                        "email": "parimal@plutuspredict.com",
+                        "password_hash": hash_password("Brickell123$"),
+                        "role": "owner",
+                        "name": "Owner Admin",
+                        "plan": "enterprise",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                logger.info("Owner admin updated: parimal@plutuspredict.com")
+            else:
+                # Create new owner admin
+                admin_id = str(uuid.uuid4())
+                await db.users.insert_one({
+                    "id": admin_id,
                     "email": "parimal@plutuspredict.com",
                     "password_hash": hash_password("Brickell123$"),
-                    "role": "owner",
                     "name": "Owner Admin",
+                    "role": "owner",
                     "plan": "enterprise",
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
-            )
-            logger.info("Owner admin updated: parimal@plutuspredict.com")
+                    "alert_preferences": {"reconciliation": True, "high_risk": True},
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+                logger.info("Owner admin created: parimal@plutuspredict.com")
         else:
-            # Create new owner admin
-            admin_id = str(uuid.uuid4())
-            await db.users.insert_one({
-                "id": admin_id,
-                "email": "parimal@plutuspredict.com",
-                "password_hash": hash_password("Brickell123$"),
-                "name": "Owner Admin",
-                "role": "owner",
-                "plan": "enterprise",
-                "alert_preferences": {"reconciliation": True, "high_risk": True},
-                "created_at": datetime.now(timezone.utc).isoformat()
-            })
-            logger.info("Owner admin created: parimal@plutuspredict.com")
-    else:
-        # Ensure owner admin has correct email and password
-        if owner_admin.get("email") != "parimal@plutuspredict.com":
-            await db.users.update_one(
-                {"role": "owner"},
-                {"$set": {
-                    "email": "parimal@plutuspredict.com",
-                    "password_hash": hash_password("Brickell123$"),
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }}
-            )
-            logger.info("Owner admin credentials updated")
+            # Ensure owner admin has correct email and password
+            if owner_admin.get("email") != "parimal@plutuspredict.com":
+                await db.users.update_one(
+                    {"role": "owner"},
+                    {"$set": {
+                        "email": "parimal@plutuspredict.com",
+                        "password_hash": hash_password("Brickell123$"),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                logger.info("Owner admin credentials updated")
     
-    # Create sample predictions
-    count = await db.predictions.count_documents({})
-    if count == 0:
-        samples = [
-            ("Will Fed cut rates 3+ times in 2025?", "economics", 45),
-            ("Major M7+ earthquake in Pacific Ring by 2025?", "disaster", 28),
-            ("Will GPT-5 release by mid-2025?", "technology", 65),
-            ("China-Taiwan military incident by 2027?", "geopolitics", 12),
-            ("US recession in 2025?", "economics", 28),
-        ]
-        for title, cat, prob in samples:
-            await db.predictions.insert_one({
-                "id": str(uuid.uuid4()),
-                "title": title,
-                "category": cat,
-                "probability": prob,
-                "rationale": "",
-                "created_by": "system",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "status": "active"
-            })
-        logger.info("Sample predictions created")
+        # Create sample predictions
+        count = await db.predictions.count_documents({})
+        if count == 0:
+            samples = [
+                ("Will Fed cut rates 3+ times in 2025?", "economics", 45),
+                ("Major M7+ earthquake in Pacific Ring by 2025?", "disaster", 28),
+                ("Will GPT-5 release by mid-2025?", "technology", 65),
+                ("China-Taiwan military incident by 2027?", "geopolitics", 12),
+                ("US recession in 2025?", "economics", 28),
+            ]
+            for title, cat, prob in samples:
+                await db.predictions.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "title": title,
+                    "category": cat,
+                    "probability": prob,
+                    "rationale": "",
+                    "created_by": "system",
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "status": "active"
+                })
+            logger.info("Sample predictions created")
+    except Exception as e:
+        logger.error(f"Error during startup initialization: {e}")
     
-    # Initialize cron job scheduler
+    # Initialize cron job scheduler (outside try block - should always try)
     cron_manager.initialize()
     
     logger.info("=" * 60)
