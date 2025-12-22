@@ -91,7 +91,6 @@ import {
   Droplet,
   Archive,
   Satellite,
-  Activity,
   Wind,
   Phone,
   MessageCircle,
