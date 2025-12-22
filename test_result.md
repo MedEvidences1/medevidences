@@ -4,42 +4,37 @@
 
 ### New Features Added:
 
-1. **LONG-RANGE FORECASTING 2026-2040** (New Tab)
-   - AI-powered 15-year forecasts
-   - Year-by-year detailed predictions (click any year 2026-2040)
-   - Economic outlook, climate outlook, predicted events
-   - Mega trends, solar cycle impacts, black swan scenarios
-   - Auto-updates daily at 6 AM UTC (7 cron jobs total)
+1. **Advertisement System**
+   - Banner ads (homepage_banner, sidebar, in_feed, between_sections, footer)
+   - Video ads (30 sec max, skippable after 5 sec)
+   - Ad analytics dashboard
+   - POST /api/ads/create, GET /api/ads/placement/{placement}
 
-2. **LIVE NOW Tab** - Real-time disasters worldwide
-   - 42+ active disasters from GDACS, USGS, NOAA
-   - One-click REMEDIATE button for each disaster
-   - AI Daily Briefing
+2. **Live Video Integration**
+   - YouTube Live search and embed
+   - Twitter/X video search
+   - News feeds (Reuters, AP)
+   - Weather Cams for weather disasters
+   - GET /api/video/live/{disaster_type}
+   - GET /api/video/trending
 
-3. **2025-2026 Predictions Tab** - Near-term forecasts
-   - South Asia flooding, Hurricane season, Wildfires
-   - PREPARE REMEDIATION links
+3. **Long-Range Forecasting 2026-2040**
+   - Year-by-year forecasts
+   - Auto-updates daily at 6 AM UTC
+   - Economic, climate, tech outlooks
 
-4. **SPACE HAZARDS Tab** - Complete
-   - NASA NEO, NOAA Space Weather
-   - All 6 sub-views working
-
-5. **Disaster Remediation** - 18 types including space hazards
+4. **Live Disasters (46+ active)**
+   - Real-time from GDACS, USGS, NOAA
+   - One-click remediation
+   - Live video feeds linked
 
 ### Features to Test:
-- DISASTERS > 2026-2040 tab
-- Year buttons (2026-2040) load year-specific forecasts
-- GENERATE 15-YEAR FORECAST button
-- Predicted events show probability and sectors
-- GET /api/forecast/long-range
-- GET /api/forecast/year/2030
+- LIVE VIDEO FEEDS section in DISASTERS > LIVE NOW
+- YouTube, Twitter, Reuters, AP, Weather Cam sources
+- Ad placements API: GET /api/ads/placements
+- Video search API: GET /api/video/live/hurricane?location=Florida
+- 2026-2040 forecasts: GET /api/forecast/year/2030
 
 ### Test Credentials:
 - Email: admin@plutuspredict.com
 - Password: admin123
-
-### API Endpoints:
-- GET /api/forecast/long-range - 2026-2040 forecasts
-- GET /api/forecast/year/{year} - Year-specific forecast
-- GET /api/forecast/decade-summary - Decade overview
-- GET /api/forecast/long-range/categories - Categories and regions
