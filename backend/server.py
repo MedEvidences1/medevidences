@@ -8061,6 +8061,15 @@ Respond ONLY with valid JSON."""
             pop_estimates = {"high": "15-25%", "medium": "5-15%", "low": "0-10%"}
             ipo["first_day_pop_estimate"] = pop_estimates.get(interest, "5-15%")
         
+        # Calculate total pipeline value
+        total_pipeline = 0
+        for ipo in upcoming_ipos:
+            val_str = ipo.get("expected_valuation", "$0B").replace("$", "").replace("B", "").replace("-", " ").split()[0]
+            try:
+                total_pipeline += float(val_str)
+            except:
+                total_pipeline += 10
+        
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "analysis_type": "AI-Powered",
@@ -8076,6 +8085,7 @@ Respond ONLY with valid JSON."""
             },
             "upcoming_ipos": upcoming_ipos,
             "best_sectors": best_sectors,
+            "total_pipeline_value": f"${total_pipeline:.0f}B+",
             "sector_outlook": {
                 "hot": ["AI/ML", "Fintech", "Clean Energy"],
                 "cooling": ["Traditional Retail", "Real Estate"],
