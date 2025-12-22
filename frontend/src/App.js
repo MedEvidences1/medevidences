@@ -8896,8 +8896,36 @@ const MainApp = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showAuth, setShowAuth] = useState(location.pathname === "/admin" && !localStorage.getItem("token"));
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [trialStatus, setTrialStatus] = useState(null);
+  const [showPaymentRequired, setShowPaymentRequired] = useState(false);
   const { user, token, login, register, logout, getHeaders, setUser } = useAuth();
   const { language, setLanguage, t, isRTL } = useLanguage();
+
+  // Check trial status periodically
+  useEffect(() => {
+    const checkTrialStatus = async () => {
+      if (!token) return;
+      
+      try {
+        const res = await axios.get(`${API}/auth/trial-status`, { 
+          headers: { Authorization: `Bearer ${token}` } 
+        });
+        setTrialStatus(res.data);
+        
+        // Show payment modal if trial expired
+        if (res.data.requires_payment && !res.data.has_unlimited_access) {
+          setShowPaymentRequired(true);
+        }
+      } catch (e) {
+        console.error("Trial status check failed:", e);
+      }
+    };
+    
+    checkTrialStatus();
+    // Check every 10 seconds
+    const interval = setInterval(checkTrialStatus, 10000);
+    return () => clearInterval(interval);
+  }, [token]);
 
   // Check auth on load
   useEffect(() => {
