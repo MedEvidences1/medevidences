@@ -8197,62 +8197,281 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  // Admin verification state
+  const [requiresVerification, setRequiresVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [adminType, setAdminType] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
 
   const handleSubmit = async () => {
     setLoading(true);
-    const success = isLogin ? await login(email, password) : await register(name, email, password);
+    
+    if (requiresVerification) {
+      // Step 2: Verify admin login
+      try {
+        const res = await axios.post(`${API}/auth/admin/verify`, {
+          email: pendingEmail,
+          verification_code: verificationCode
+        });
+        
+        if (res.data.token) {
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data));
+          toast.success(`${adminType} login verified successfully`);
+          setRequiresVerification(false);
+          setVerificationCode("");
+          onClose();
+          window.location.reload();
+        }
+      } catch (e) {
+        toast.error(e.response?.data?.detail || "Verification failed");
+      }
+      setLoading(false);
+      return;
+    }
+    
+    // Step 1: Regular login or admin login request
+    try {
+      const res = await axios.post(`${API}/auth/admin/login-request`, { email, password });
+      
+      if (res.data.requires_verification) {
+        // Admin needs email verification
+        setRequiresVerification(true);
+        setAdminType(res.data.admin_type);
+        setPendingEmail(email);
+        
+        if (res.data.simulated && res.data.verification_code) {
+          // For demo/testing - show the code
+          toast.info(`Demo mode: Verification code is ${res.data.verification_code}`);
+        } else {
+          toast.success(`Verification code sent to ${email}`);
+        }
+      } else if (res.data.token) {
+        // Regular user - direct login
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data));
+        toast.success("Login successful");
+        onClose();
+        window.location.reload();
+      }
+    } catch (e) {
+      // Fallback to regular login endpoint
+      const success = isLogin ? await login(email, password) : await register(name, email, password);
+      if (success) onClose();
+    }
     setLoading(false);
-    if (success) onClose();
+  };
+
+  const resetForm = () => {
+    setRequiresVerification(false);
+    setVerificationCode("");
+    setAdminType("");
+    setPendingEmail("");
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetForm(); onClose(); }}>
       <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] max-w-md" data-testid="auth-modal">
         <DialogHeader>
-          <DialogTitle className="text-lg">{isLogin ? "LOGIN" : "REGISTER"}</DialogTitle>
+          <DialogTitle className="text-lg">
+            {requiresVerification ? `🔐 ${adminType} VERIFICATION` : (isLogin ? "LOGIN" : "REGISTER")}
+          </DialogTitle>
           <DialogDescription className="text-[#888]">
-            {isLogin ? "Access your Plutus Predict account" : "Create a new account"}
+            {requiresVerification 
+              ? `Enter the verification code sent to ${pendingEmail}` 
+              : (isLogin ? "Access your Plutus Predict account" : "Create a new account")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-4">
-          {!isLogin && (
+          {requiresVerification ? (
+            // Verification code input
+            <>
+              <div className="p-3 bg-[#9D4EDD]/10 border border-[#9D4EDD] rounded text-center">
+                <p className="text-sm text-[#9D4EDD]">Code expires in 15 minutes</p>
+              </div>
+              <Input
+                data-testid="verification-code"
+                type="text"
+                placeholder="Enter 6-digit code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                className="terminal-input text-center text-2xl tracking-widest font-mono"
+                maxLength={6}
+                onKeyDown={(e) => e.key === "Enter" && verificationCode.length === 6 && handleSubmit()}
+              />
+              <Button onClick={handleSubmit} disabled={loading || verificationCode.length !== 6} className="btn-primary w-full">
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Shield className="w-4 h-4 mr-2" />}
+                VERIFY & LOGIN
+              </Button>
+              <button onClick={resetForm} className="text-sm text-[#888] hover:text-[#00E5FF] w-full text-center">
+                ← Back to login
+              </button>
+            </>
+          ) : (
+            // Regular login/register form
+            <>
+              {!isLogin && (
+                <Input
+                  data-testid="auth-name"
+                  placeholder="Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="terminal-input"
+                />
+              )}
+              <Input
+                data-testid="auth-email"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="terminal-input"
+              />
+              <div className="relative">
+                <Input
+                  data-testid="auth-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="terminal-input pr-10"
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888] hover:text-[#00E5FF]"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {showPassword && password && (
+                <div className="text-xs text-[#00FF94] bg-[#00FF94]/10 p-2 rounded border border-[#00FF94]/30">
+                  Password: {password}
+                </div>
+              )}
+              <Button onClick={handleSubmit} disabled={loading} className="btn-primary w-full" data-testid="auth-submit-btn">
+                {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+                {isLogin ? "LOGIN" : "REGISTER"}
+              </Button>
+              <div className="text-center">
+                <button onClick={() => setIsLogin(!isLogin)} className="text-sm text-[#00E5FF] hover:underline">
+                  {isLogin ? "Need an account? Register" : "Already have an account? Login"}
+                </button>
+              </div>
+              <div className="text-center text-xs text-[#666] border-t border-[#1F1F1F] pt-3 mt-3">
+                <p className="text-[#888] mb-1">Owner Admin requires email verification</p>
+                <p>Owner: parimal@plutuspredict.com</p>
+              </div>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Change Password Modal Component
+const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API}/auth/change-password`, {
+        current_password: currentPassword,
+        new_password: newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        toast.success("Password changed successfully");
+        onClose();
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to change password");
+    }
+    setLoading(false);
+  };
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-lg">🔐 Change Password</DialogTitle>
+          <DialogDescription className="text-[#888]">
+            Enter your current password and choose a new one
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 mt-4">
+          <div className="relative">
             <Input
-              data-testid="auth-name"
-              placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              type={showPasswords ? "text" : "password"}
+              placeholder="Current Password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
               className="terminal-input"
             />
+          </div>
+          <div className="relative">
+            <Input
+              type={showPasswords ? "text" : "password"}
+              placeholder="New Password (min 8 characters)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="terminal-input"
+            />
+          </div>
+          <div className="relative">
+            <Input
+              type={showPasswords ? "text" : "password"}
+              placeholder="Confirm New Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="terminal-input"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input 
+              type="checkbox" 
+              id="show-pwd" 
+              checked={showPasswords}
+              onChange={(e) => setShowPasswords(e.target.checked)}
+              className="rounded border-[#333]"
+            />
+            <label htmlFor="show-pwd" className="text-sm text-[#888]">Show passwords</label>
+          </div>
+          {showPasswords && (newPassword || currentPassword) && (
+            <div className="text-xs bg-[#1F1F1F] p-2 rounded font-mono">
+              {currentPassword && <p>Current: {currentPassword}</p>}
+              {newPassword && <p>New: {newPassword}</p>}
+            </div>
           )}
-          <Input
-            data-testid="auth-email"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="terminal-input"
-          />
-          <Input
-            data-testid="auth-password"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="terminal-input"
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          />
-          <Button onClick={handleSubmit} disabled={loading} className="btn-primary w-full" data-testid="auth-submit-btn">
-            {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-            {isLogin ? "LOGIN" : "REGISTER"}
+          <Button onClick={handleChangePassword} disabled={loading || !currentPassword || !newPassword} className="btn-primary w-full">
+            {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Key className="w-4 h-4 mr-2" />}
+            CHANGE PASSWORD
           </Button>
-          <div className="text-center">
-            <button onClick={() => setIsLogin(!isLogin)} className="text-sm text-[#00E5FF] hover:underline">
-              {isLogin ? "Need an account? Register" : "Already have an account? Login"}
-            </button>
-          </div>
-          <div className="text-center text-xs text-[#888]">
-            Demo: admin@plutuspredict.com / admin123
-          </div>
         </div>
       </DialogContent>
     </Dialog>
