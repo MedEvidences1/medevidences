@@ -1605,20 +1605,6 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     
     setLoading(false);
   }, []);
-      // Phase 1 data
-      setComprehensiveData(compRes.data);
-      setInfrastructureStatus(infraRes.data);
-      setSupplyChainStatus(scRes.data);
-      setCyberStatus(cyberRes.data);
-      // Phase 2 data
-      setHumanSignals(humanRes.data);
-      setSatelliteIotData(satRes.data);
-      setPlaybooks(playRes.data);
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
-  }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
   
