@@ -11827,6 +11827,8 @@ const MainApp = () => {
         return <InvestmentBankerSuite />;
       case "disasters":
         return <Disasters getHeaders={getHeaders} pendingRemediation={pendingRemediation} clearPendingRemediation={() => setPendingRemediation(null)} />;
+      case "tdis":
+        return <TDISPortal getHeaders={getHeaders} />;
       case "space":
         return <SpaceHazards getHeaders={getHeaders} />;
       case "astrology":
