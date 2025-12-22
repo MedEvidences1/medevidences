@@ -12398,7 +12398,6 @@ async def get_judgmental_categories():
         "llm_ensemble": ["GPT-4o", "Claude Sonnet", "Gemini 2.0"],
         "calibration": "Brier scoring with superforecaster benchmarks"
     }
-    }
 
 @api_router.get("/judgmental-forecasts", tags=["Judgmental Forecasting"])
 async def list_judgmental_forecasts(limit: int = 50, user_id: Optional[str] = None):
