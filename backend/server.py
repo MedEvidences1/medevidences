@@ -10375,8 +10375,8 @@ class CronJobManager:
         logger.info("Refreshing live events from OSINT...")
         
         try:
-            # Get live events from event forecaster
-            live_data = await event_forecaster.get_live_events()
+            # Get live events from event engine
+            live_data = await event_engine.get_live_events()
             
             # Store in cache
             await db.live_events_cache.update_one(
