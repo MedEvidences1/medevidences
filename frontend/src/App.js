@@ -1663,7 +1663,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     { id: "playbooks", label: "PLAYBOOKS", icon: FileText },
     { id: "intelligence", label: "INTELLIGENCE", icon: Sparkles },
     { id: "predictions", label: "2026-2030", icon: TrendingUp },
-    { id: "longrange", label: "2026-2040", icon: Clock },
+    { id: "longrange", label: "2030-3000", icon: Clock },
     { id: "judgmental", label: "JUDGMENTAL", icon: Target },
     { id: "remediation", label: "REMEDIATION", icon: Wrench },
     { id: "agencies", label: "AGENCIES", icon: Globe },
@@ -1775,7 +1775,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     try {
       const res = await axios.get(`${API}/forecast/long-range`);
       setLongRangeForecasts(res.data);
-      toast.success("2026-2040 forecasts loaded!");
+      toast.success("2030-3000 forecasts loaded!");
     } catch (e) {
       toast.error("Failed to load long-range forecasts");
     }
@@ -2182,7 +2182,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </div>
       )}
 
-      {/* LONG-RANGE FORECASTS 2026-2040 VIEW */}
+      {/* LONG-RANGE FORECASTS 2030-3000 VIEW */}
       {activeView === "longrange" && (
         <div className="space-y-4">
           {/* Header Card */}
@@ -2191,7 +2191,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Clock className="w-4 h-4 text-[#00E5FF]" />
-                  LONG-RANGE FORECASTING: 2026-2040
+                  LONG-RANGE FORECASTING: 2030-3000
                   <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">AUTO-UPDATE</Badge>
                 </CardTitle>
                 <Button onClick={loadLongRangeForecasts} disabled={loadingLongRange} className="bg-[#00E5FF] text-black hover:bg-[#00E5FF]/80">
