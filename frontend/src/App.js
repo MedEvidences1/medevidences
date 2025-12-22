@@ -3439,7 +3439,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
             </CardContent>
           </Card>
           
-          {playbooks && (
+          {playbooks ? (
             <div className="space-y-4">
               {/* Automation Status */}
               <Card className="terminal-card">
