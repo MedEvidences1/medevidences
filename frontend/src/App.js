@@ -1725,7 +1725,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const loadFuturePredictions = async () => {
     setLoadingPredictions(true);
     try {
-      const res = await axios.get(`${API}/disasters/predictions?timeframe=2025-2026`);
+      const res = await axios.get(`${API}/disasters/predictions?timeframe=2026-3000`);
       setFuturePredictions(res.data);
       toast.success("AI predictions generated!");
     } catch (e) {
