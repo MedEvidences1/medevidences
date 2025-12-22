@@ -8076,67 +8076,113 @@ Respond ONLY with valid JSON."""
         # Comprehensive global IPO database
         global_ipos = {
             "united_states": [
+                # 2025 IPOs
                 {"company": "Stripe", "sector": "fintech", "expected_valuation": "$65-70B", "expected_date": "Q1 2025", "investor_interest": "high", "country": "USA"},
                 {"company": "Databricks", "sector": "technology", "expected_valuation": "$45-50B", "expected_date": "Q2 2025", "investor_interest": "high", "country": "USA"},
                 {"company": "Discord", "sector": "technology", "expected_valuation": "$15-18B", "expected_date": "Q2 2025", "investor_interest": "medium", "country": "USA"},
                 {"company": "Klarna", "sector": "fintech", "expected_valuation": "$12-15B", "expected_date": "Q1 2025", "investor_interest": "high", "country": "USA/Sweden"},
                 {"company": "Shein", "sector": "retail", "expected_valuation": "$60-65B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "China/USA"},
                 {"company": "Reddit", "sector": "technology", "expected_valuation": "$8-10B", "expected_date": "Q1 2025", "investor_interest": "high", "country": "USA"},
-                {"company": "SpaceX", "sector": "aerospace", "expected_valuation": "$180-200B", "expected_date": "2026+", "investor_interest": "high", "country": "USA"},
                 {"company": "Anthropic", "sector": "ai", "expected_valuation": "$30-35B", "expected_date": "H2 2025", "investor_interest": "high", "country": "USA"},
                 {"company": "Plaid", "sector": "fintech", "expected_valuation": "$10-12B", "expected_date": "Q2 2025", "investor_interest": "medium", "country": "USA"},
                 {"company": "Canva", "sector": "technology", "expected_valuation": "$25-30B", "expected_date": "H1 2025", "investor_interest": "high", "country": "Australia/USA"},
                 {"company": "Chime", "sector": "fintech", "expected_valuation": "$20-25B", "expected_date": "Q2 2025", "investor_interest": "medium", "country": "USA"},
-                {"company": "Instacart", "sector": "technology", "expected_valuation": "$10-12B", "expected_date": "Q1 2025", "investor_interest": "medium", "country": "USA"},
                 {"company": "Scale AI", "sector": "ai", "expected_valuation": "$12-15B", "expected_date": "H2 2025", "investor_interest": "high", "country": "USA"},
                 {"company": "Figma", "sector": "technology", "expected_valuation": "$18-22B", "expected_date": "2025", "investor_interest": "high", "country": "USA"},
                 {"company": "CoreWeave", "sector": "ai_infrastructure", "expected_valuation": "$15-20B", "expected_date": "Q2 2025", "investor_interest": "high", "country": "USA"},
+                # 2026 IPOs
+                {"company": "SpaceX", "sector": "aerospace", "expected_valuation": "$180-200B", "expected_date": "2026", "investor_interest": "high", "country": "USA"},
+                {"company": "OpenAI", "sector": "ai", "expected_valuation": "$80-100B", "expected_date": "2026", "investor_interest": "high", "country": "USA"},
+                {"company": "xAI (Musk)", "sector": "ai", "expected_valuation": "$40-60B", "expected_date": "2026", "investor_interest": "high", "country": "USA"},
+                {"company": "Neuralink", "sector": "biotech", "expected_valuation": "$10-20B", "expected_date": "2026", "investor_interest": "high", "country": "USA"},
+                {"company": "The Boring Company", "sector": "infrastructure", "expected_valuation": "$8-15B", "expected_date": "2026", "investor_interest": "medium", "country": "USA"},
+                {"company": "Anduril", "sector": "defense", "expected_valuation": "$15-20B", "expected_date": "2026", "investor_interest": "high", "country": "USA"},
+                {"company": "Impossible Foods", "sector": "food_tech", "expected_valuation": "$8-12B", "expected_date": "2026", "investor_interest": "medium", "country": "USA"},
+                # 2027-2030 IPOs
+                {"company": "Starlink (SpaceX spinoff)", "sector": "telecom", "expected_valuation": "$100-150B", "expected_date": "2027", "investor_interest": "high", "country": "USA"},
+                {"company": "Waymo (Alphabet spinoff)", "sector": "autonomous_vehicles", "expected_valuation": "$50-80B", "expected_date": "2027-2028", "investor_interest": "high", "country": "USA"},
+                {"company": "Cruise (GM spinoff)", "sector": "autonomous_vehicles", "expected_valuation": "$30-50B", "expected_date": "2027", "investor_interest": "medium", "country": "USA"},
+                {"company": "Cerebras Systems", "sector": "ai_chips", "expected_valuation": "$20-30B", "expected_date": "2027", "investor_interest": "high", "country": "USA"},
+                {"company": "Groq", "sector": "ai_chips", "expected_valuation": "$10-15B", "expected_date": "2027", "investor_interest": "high", "country": "USA"},
+                {"company": "Figure AI", "sector": "robotics", "expected_valuation": "$15-25B", "expected_date": "2028", "investor_interest": "high", "country": "USA"},
+                {"company": "Boston Dynamics", "sector": "robotics", "expected_valuation": "$10-20B", "expected_date": "2028-2030", "investor_interest": "medium", "country": "USA"},
+                # 2030-2040 IPOs
+                {"company": "Quantum Computing Inc", "sector": "quantum", "expected_valuation": "$30-50B", "expected_date": "2030-2035", "investor_interest": "high", "country": "USA"},
+                {"company": "Nuclear Fusion Startup", "sector": "energy", "expected_valuation": "$50-100B", "expected_date": "2032-2035", "investor_interest": "high", "country": "USA"},
+                {"company": "Mars Colony Corp", "sector": "space", "expected_valuation": "$100-200B", "expected_date": "2035-2040", "investor_interest": "medium", "country": "USA"},
             ],
             "europe": [
+                # 2025 IPOs
                 {"company": "Revolut", "sector": "fintech", "expected_valuation": "$30-35B", "expected_date": "H1 2025", "investor_interest": "high", "country": "UK"},
                 {"company": "N26", "sector": "fintech", "expected_valuation": "$8-10B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "Germany"},
                 {"company": "Checkout.com", "sector": "fintech", "expected_valuation": "$35-40B", "expected_date": "Q2 2025", "investor_interest": "high", "country": "UK"},
                 {"company": "Celonis", "sector": "technology", "expected_valuation": "$12-15B", "expected_date": "H1 2025", "investor_interest": "high", "country": "Germany"},
                 {"company": "BlaBlaCar", "sector": "mobility", "expected_valuation": "$3-5B", "expected_date": "Q2 2025", "investor_interest": "medium", "country": "France"},
-                {"company": "Deliveroo", "sector": "delivery", "expected_valuation": "$5-7B", "expected_date": "Already Listed", "investor_interest": "low", "country": "UK"},
-                {"company": "Wise", "sector": "fintech", "expected_valuation": "$10-12B", "expected_date": "Listed", "investor_interest": "medium", "country": "UK"},
                 {"company": "Personio", "sector": "hr_tech", "expected_valuation": "$8-10B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "Germany"},
                 {"company": "SumUp", "sector": "fintech", "expected_valuation": "$6-8B", "expected_date": "Q3 2025", "investor_interest": "medium", "country": "UK/Germany"},
                 {"company": "Northvolt", "sector": "energy", "expected_valuation": "$12-15B", "expected_date": "H1 2025", "investor_interest": "high", "country": "Sweden"},
+                # 2026 IPOs
+                {"company": "Mistral AI", "sector": "ai", "expected_valuation": "$15-25B", "expected_date": "2026", "investor_interest": "high", "country": "France"},
+                {"company": "Glovo", "sector": "delivery", "expected_valuation": "$5-8B", "expected_date": "2026", "investor_interest": "medium", "country": "Spain"},
+                {"company": "Gorillas (if survives)", "sector": "delivery", "expected_valuation": "$2-4B", "expected_date": "2026", "investor_interest": "low", "country": "Germany"},
+                {"company": "Pleo", "sector": "fintech", "expected_valuation": "$4-6B", "expected_date": "2026", "investor_interest": "medium", "country": "Denmark"},
+                # 2027-2030 IPOs
+                {"company": "DeepMind (Alphabet spinoff)", "sector": "ai", "expected_valuation": "$80-120B", "expected_date": "2028", "investor_interest": "high", "country": "UK"},
+                {"company": "Arm Holdings (re-IPO)", "sector": "semiconductors", "expected_valuation": "$100-150B", "expected_date": "2027", "investor_interest": "high", "country": "UK"},
+                {"company": "Spotify (privatization then re-IPO)", "sector": "streaming", "expected_valuation": "$80-100B", "expected_date": "2028-2030", "investor_interest": "medium", "country": "Sweden"},
+                {"company": "European Quantum Computing", "sector": "quantum", "expected_valuation": "$20-40B", "expected_date": "2030", "investor_interest": "high", "country": "EU"},
             ],
             "asia_pacific": [
-                {"company": "ByteDance/TikTok", "sector": "technology", "expected_valuation": "$250-300B", "expected_date": "2026+", "investor_interest": "high", "country": "China"},
+                # 2025 IPOs
+                {"company": "ByteDance/TikTok", "sector": "technology", "expected_valuation": "$250-300B", "expected_date": "2025-2026", "investor_interest": "high", "country": "China"},
                 {"company": "Ant Group", "sector": "fintech", "expected_valuation": "$150-180B", "expected_date": "2025-2026", "investor_interest": "high", "country": "China"},
-                {"company": "CATL", "sector": "energy", "expected_valuation": "$180-200B", "expected_date": "Listed Shanghai", "investor_interest": "high", "country": "China"},
                 {"company": "Flipkart", "sector": "ecommerce", "expected_valuation": "$35-40B", "expected_date": "H2 2025", "investor_interest": "high", "country": "India"},
                 {"company": "PhonePe", "sector": "fintech", "expected_valuation": "$12-15B", "expected_date": "Q2 2025", "investor_interest": "high", "country": "India"},
                 {"company": "Swiggy", "sector": "delivery", "expected_valuation": "$10-12B", "expected_date": "Q1 2025", "investor_interest": "medium", "country": "India"},
                 {"company": "Zepto", "sector": "delivery", "expected_valuation": "$3-5B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "India"},
                 {"company": "Ola Electric", "sector": "automotive", "expected_valuation": "$8-10B", "expected_date": "Q1 2025", "investor_interest": "high", "country": "India"},
                 {"company": "Lenskart", "sector": "retail", "expected_valuation": "$4-6B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "India"},
-                {"company": "Grab", "sector": "technology", "expected_valuation": "$15-20B", "expected_date": "Listed NASDAQ", "investor_interest": "medium", "country": "Singapore"},
-                {"company": "Sea Limited", "sector": "technology", "expected_valuation": "$25-30B", "expected_date": "Listed NYSE", "investor_interest": "medium", "country": "Singapore"},
-                {"company": "GoTo", "sector": "technology", "expected_valuation": "$10-15B", "expected_date": "Listed IDX", "investor_interest": "low", "country": "Indonesia"},
                 {"company": "Toss", "sector": "fintech", "expected_valuation": "$8-10B", "expected_date": "H1 2025", "investor_interest": "high", "country": "South Korea"},
-                {"company": "Coupang", "sector": "ecommerce", "expected_valuation": "$30-35B", "expected_date": "Listed NYSE", "investor_interest": "medium", "country": "South Korea"},
+                # 2026-2030 IPOs
+                {"company": "DJI", "sector": "drones", "expected_valuation": "$50-80B", "expected_date": "2026", "investor_interest": "high", "country": "China"},
+                {"company": "SenseTime", "sector": "ai", "expected_valuation": "$15-25B", "expected_date": "2026", "investor_interest": "medium", "country": "China"},
+                {"company": "MeitUan Spinoffs", "sector": "technology", "expected_valuation": "$30-50B", "expected_date": "2026-2027", "investor_interest": "medium", "country": "China"},
+                {"company": "Reliance Jio", "sector": "telecom", "expected_valuation": "$100-150B", "expected_date": "2026-2027", "investor_interest": "high", "country": "India"},
+                {"company": "Byju's", "sector": "edtech", "expected_valuation": "$10-15B", "expected_date": "2026", "investor_interest": "low", "country": "India"},
+                {"company": "Razorpay", "sector": "fintech", "expected_valuation": "$8-12B", "expected_date": "2026", "investor_interest": "high", "country": "India"},
+                {"company": "Cred", "sector": "fintech", "expected_valuation": "$5-8B", "expected_date": "2026-2027", "investor_interest": "medium", "country": "India"},
+                # 2030-2040 IPOs
+                {"company": "Asian Quantum Computing", "sector": "quantum", "expected_valuation": "$30-60B", "expected_date": "2030-2035", "investor_interest": "high", "country": "China/Japan"},
+                {"company": "Asian Space Ventures", "sector": "space", "expected_valuation": "$50-100B", "expected_date": "2030-2035", "investor_interest": "medium", "country": "China/Japan"},
             ],
             "middle_east_africa": [
+                # 2025 IPOs
                 {"company": "Aramco Digital", "sector": "technology", "expected_valuation": "$15-20B", "expected_date": "H2 2025", "investor_interest": "high", "country": "Saudi Arabia"},
                 {"company": "stc Pay", "sector": "fintech", "expected_valuation": "$3-5B", "expected_date": "Q2 2025", "investor_interest": "medium", "country": "Saudi Arabia"},
-                {"company": "Careem", "sector": "mobility", "expected_valuation": "$3-4B", "expected_date": "Acquired", "investor_interest": "medium", "country": "UAE"},
                 {"company": "Interswitch", "sector": "fintech", "expected_valuation": "$2-3B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "Nigeria"},
                 {"company": "Flutterwave", "sector": "fintech", "expected_valuation": "$3-4B", "expected_date": "2025", "investor_interest": "high", "country": "Nigeria"},
                 {"company": "Yoco", "sector": "fintech", "expected_valuation": "$1-2B", "expected_date": "2025", "investor_interest": "medium", "country": "South Africa"},
-                {"company": "Jumia", "sector": "ecommerce", "expected_valuation": "$1-2B", "expected_date": "Listed NYSE", "investor_interest": "low", "country": "Nigeria"},
+                # 2026-2030 IPOs
+                {"company": "NEOM Tech Ventures", "sector": "technology", "expected_valuation": "$20-40B", "expected_date": "2027-2028", "investor_interest": "high", "country": "Saudi Arabia"},
+                {"company": "Africa Fintech Alliance", "sector": "fintech", "expected_valuation": "$10-20B", "expected_date": "2026-2028", "investor_interest": "high", "country": "Africa"},
+                {"company": "UAE Space Industry", "sector": "space", "expected_valuation": "$15-30B", "expected_date": "2028-2030", "investor_interest": "medium", "country": "UAE"},
+                # 2030-2040 IPOs
+                {"company": "African Tech Giants", "sector": "technology", "expected_valuation": "$50-100B", "expected_date": "2030-2035", "investor_interest": "high", "country": "Africa"},
+                {"company": "Middle East Green Energy", "sector": "energy", "expected_valuation": "$80-150B", "expected_date": "2030-2040", "investor_interest": "high", "country": "Middle East"},
             ],
             "latin_america": [
-                {"company": "Nubank", "sector": "fintech", "expected_valuation": "$40-45B", "expected_date": "Listed NYSE", "investor_interest": "high", "country": "Brazil"},
+                # 2025 IPOs
                 {"company": "Kavak", "sector": "automotive", "expected_valuation": "$8-10B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "Mexico"},
                 {"company": "Clip", "sector": "fintech", "expected_valuation": "$2-3B", "expected_date": "2025", "investor_interest": "medium", "country": "Mexico"},
                 {"company": "Rappi", "sector": "delivery", "expected_valuation": "$5-8B", "expected_date": "H1 2025", "investor_interest": "medium", "country": "Colombia"},
                 {"company": "Creditas", "sector": "fintech", "expected_valuation": "$3-5B", "expected_date": "H2 2025", "investor_interest": "medium", "country": "Brazil"},
-                {"company": "VTEX", "sector": "technology", "expected_valuation": "$3-4B", "expected_date": "Listed NYSE", "investor_interest": "medium", "country": "Brazil"},
-                {"company": "dLocal", "sector": "fintech", "expected_valuation": "$8-10B", "expected_date": "Listed NASDAQ", "investor_interest": "high", "country": "Uruguay"},
+                # 2026-2030 IPOs
+                {"company": "MercadoLibre subsidiaries", "sector": "ecommerce", "expected_valuation": "$30-50B", "expected_date": "2026-2027", "investor_interest": "high", "country": "Argentina"},
+                {"company": "Nubank subsidiaries", "sector": "fintech", "expected_valuation": "$15-25B", "expected_date": "2026-2028", "investor_interest": "high", "country": "Brazil"},
+                {"company": "LatAm EV Ventures", "sector": "automotive", "expected_valuation": "$10-20B", "expected_date": "2027-2028", "investor_interest": "medium", "country": "Brazil/Mexico"},
+                # 2030-2040 IPOs
+                {"company": "LatAm Lithium Corp", "sector": "mining", "expected_valuation": "$50-80B", "expected_date": "2030-2035", "investor_interest": "high", "country": "Chile/Argentina"},
+                {"company": "Amazon Rainforest Tech", "sector": "environmental", "expected_valuation": "$20-40B", "expected_date": "2030-2035", "investor_interest": "medium", "country": "Brazil"},
             ]
         }
         
