@@ -8776,6 +8776,108 @@ class CronJobManager:
                 "error": str(e)
             })
     
+    async def update_forecast_categories_osint(self):
+        """Auto-update AI Forecast categories with live OSINT data (every 30 min)"""
+        logger.info("Updating AI Forecast categories with OSINT data...")
+        
+        try:
+            # Collect OSINT data for all forecast categories
+            categories = ["economics", "geopolitical", "technology", "finance", "climate", "health", "energy", "politics"]
+            
+            for category in categories:
+                osint_data = await live_osint_pipeline.aggregate_all_sources()
+                
+                # Store category-specific OSINT insights
+                category_insights = {
+                    "category": category,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "news_count": len(osint_data.get("news", [])),
+                    "events_count": len(osint_data.get("events", [])),
+                    "signals": [],
+                    "trending_topics": [],
+                    "risk_indicators": []
+                }
+                
+                # Filter relevant news for this category
+                category_keywords = {
+                    "economics": ["economy", "gdp", "inflation", "interest rate", "recession", "employment", "trade"],
+                    "geopolitical": ["war", "conflict", "sanctions", "treaty", "nato", "un", "diplomatic"],
+                    "technology": ["ai", "tech", "startup", "innovation", "software", "hardware", "cyber"],
+                    "finance": ["stock", "market", "bitcoin", "crypto", "bank", "investment", "ipo"],
+                    "climate": ["climate", "weather", "hurricane", "flood", "drought", "temperature", "carbon"],
+                    "health": ["health", "vaccine", "pandemic", "disease", "medical", "hospital", "pharma"],
+                    "energy": ["oil", "gas", "renewable", "solar", "nuclear", "energy", "opec"],
+                    "politics": ["election", "vote", "president", "congress", "parliament", "policy", "law"]
+                }
+                
+                keywords = category_keywords.get(category, [category])
+                relevant_articles = []
+                for article in osint_data.get("news", []):
+                    title = article.get("title", "").lower()
+                    if any(kw in title for kw in keywords):
+                        relevant_articles.append(article)
+                        category_insights["signals"].append({
+                            "title": article.get("title"),
+                            "source": article.get("source", "OSINT"),
+                            "sentiment": "neutral",  # Could add sentiment analysis
+                            "timestamp": article.get("published")
+                        })
+                
+                category_insights["relevant_articles"] = len(relevant_articles)
+                
+                # Store in database
+                await db.forecast_category_osint.update_one(
+                    {"category": category},
+                    {"$set": category_insights},
+                    upsert=True
+                )
+            
+            self.job_history.append({
+                "job": "forecast_categories_osint",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "completed",
+                "categories_updated": len(categories)
+            })
+            logger.info(f"AI Forecast OSINT update completed for {len(categories)} categories")
+            
+        except Exception as e:
+            logger.error(f"Forecast categories OSINT update failed: {e}")
+            self.job_history.append({
+                "job": "forecast_categories_osint",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "failed",
+                "error": str(e)
+            })
+    
+    async def refresh_live_events(self):
+        """Auto-refresh live events from OSINT sources (every 10 min)"""
+        logger.info("Refreshing live events from OSINT...")
+        
+        try:
+            # Get live events from event forecaster
+            live_data = await event_forecaster.get_live_events()
+            
+            # Store in cache
+            await db.live_events_cache.update_one(
+                {"type": "live_events"},
+                {"$set": {
+                    "data": live_data,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }},
+                upsert=True
+            )
+            
+            self.job_history.append({
+                "job": "live_events_refresh",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "status": "completed",
+                "events_count": live_data.get("total_live", 0)
+            })
+            logger.info(f"Live events refreshed: {live_data.get('total_live', 0)} events")
+            
+        except Exception as e:
+            logger.error(f"Live events refresh failed: {e}")
+    
     def get_status(self) -> Dict:
         """Get scheduler status"""
         if not self.scheduler:
