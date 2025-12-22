@@ -600,6 +600,154 @@ class PlutusAPITester:
             self.log_result("Space Hazards Remediation", False, f"Exception: {str(e)}")
             return False
 
+    def test_future_predictions_2026_3000(self):
+        """Test PHASE 2: Future predictions endpoint (2026-3000) for Dashboard"""
+        try:
+            response = requests.get(f"{self.api_url}/events/predictions?timeframe=2026-3000", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Future Predictions 2026-3000", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                predictions = data.get("predictions", [])
+                print(f"   Future predictions found: {len(predictions)}")
+                if predictions:
+                    # Check for all 10 categories
+                    categories = set(pred.get("category", "") for pred in predictions)
+                    expected_categories = {"economics", "geopolitical", "technology", "social", 
+                                         "climate", "health", "crypto", "space", "sports", "entertainment"}
+                    found_categories = categories.intersection(expected_categories)
+                    print(f"   Categories found: {len(found_categories)}/10")
+                    print(f"   Categories: {', '.join(sorted(found_categories))}")
+                    
+                    # Check first prediction structure
+                    first_pred = predictions[0]
+                    print(f"   Sample: {first_pred.get('title', 'N/A')[:50]}...")
+                    print(f"   Probability: {first_pred.get('probability', 0)}%")
+                    print(f"   Estimated date: {first_pred.get('estimated_date', 'N/A')}")
+                    
+                    if len(found_categories) >= 8:  # At least 8 out of 10 categories
+                        print(f"   ✅ Good category coverage (8+/10)")
+                    else:
+                        print(f"   ⚠️  Limited category coverage ({len(found_categories)}/10)")
+            return success
+        except Exception as e:
+            self.log_result("Future Predictions 2026-3000", False, f"Exception: {str(e)}")
+            return False
+
+    def test_disasters_human_signals(self):
+        """Test PHASE 2: Disasters Human Signals tab data"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/comprehensive/human-signals", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Disasters Human Signals", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Population density data: {'✅' if 'population_density' in data else '❌'}")
+                print(f"   Mobility patterns: {'✅' if 'mobility_patterns' in data else '❌'}")
+                print(f"   Emergency calls: {'✅' if 'emergency_calls' in data else '❌'}")
+                print(f"   Social signals: {'✅' if 'social_signals' in data else '❌'}")
+                
+                # Check data structure
+                if 'population_density' in data:
+                    pop_data = data['population_density']
+                    print(f"   Population regions: {len(pop_data.get('regions', []))}")
+                
+                if 'emergency_calls' in data:
+                    calls_data = data['emergency_calls']
+                    print(f"   Emergency call volume: {calls_data.get('total_calls_24h', 0)}")
+                
+                required_fields = ['population_density', 'mobility_patterns', 'emergency_calls', 'social_signals']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ Good data coverage ({found_fields}/4 sections)")
+                else:
+                    print(f"   ⚠️  Limited data coverage ({found_fields}/4 sections)")
+            return success
+        except Exception as e:
+            self.log_result("Disasters Human Signals", False, f"Exception: {str(e)}")
+            return False
+
+    def test_disasters_satellite_iot(self):
+        """Test PHASE 2: Disasters Satellites/IoT tab data"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/comprehensive/satellite-iot", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Disasters Satellite IoT", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Weather satellites: {'✅' if 'weather_satellites' in data else '❌'}")
+                print(f"   Seismic network: {'✅' if 'seismic_network' in data else '❌'}")
+                print(f"   Flood gauges: {'✅' if 'flood_gauges' in data else '❌'}")
+                print(f"   Air quality sensors: {'✅' if 'air_quality' in data else '❌'}")
+                
+                # Check data structure
+                if 'weather_satellites' in data:
+                    sat_data = data['weather_satellites']
+                    print(f"   Active satellites: {len(sat_data.get('active_satellites', []))}")
+                
+                if 'seismic_network' in data:
+                    seismic_data = data['seismic_network']
+                    print(f"   Seismic stations: {len(seismic_data.get('stations', []))}")
+                
+                if 'flood_gauges' in data:
+                    flood_data = data['flood_gauges']
+                    print(f"   Flood monitoring points: {len(flood_data.get('monitoring_points', []))}")
+                
+                required_fields = ['weather_satellites', 'seismic_network', 'flood_gauges', 'air_quality']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ Good sensor coverage ({found_fields}/4 types)")
+                else:
+                    print(f"   ⚠️  Limited sensor coverage ({found_fields}/4 types)")
+            return success
+        except Exception as e:
+            self.log_result("Disasters Satellite IoT", False, f"Exception: {str(e)}")
+            return False
+
+    def test_disasters_playbooks(self):
+        """Test PHASE 2: Disasters Playbooks tab data"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/comprehensive/playbooks", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Disasters Playbooks", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Automation status: {'✅' if 'automation_status' in data else '❌'}")
+                print(f"   Available playbooks: {'✅' if 'available_playbooks' in data else '❌'}")
+                print(f"   Pre-approved actions: {'✅' if 'pre_approved_actions' in data else '❌'}")
+                
+                # Check data structure
+                if 'automation_status' in data:
+                    auto_data = data['automation_status']
+                    print(f"   Automation level: {auto_data.get('level', 'N/A')}")
+                    print(f"   Active automations: {auto_data.get('active_count', 0)}")
+                
+                if 'available_playbooks' in data:
+                    playbooks = data['available_playbooks']
+                    print(f"   Total playbooks: {len(playbooks)}")
+                    if playbooks:
+                        disaster_types = set(pb.get('disaster_type', '') for pb in playbooks)
+                        print(f"   Disaster types covered: {len(disaster_types)}")
+                
+                if 'pre_approved_actions' in data:
+                    actions = data['pre_approved_actions']
+                    print(f"   Pre-approved actions: {len(actions)}")
+                
+                required_fields = ['automation_status', 'available_playbooks', 'pre_approved_actions']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 2:
+                    print(f"   ✅ Good playbook coverage ({found_fields}/3 sections)")
+                else:
+                    print(f"   ⚠️  Limited playbook coverage ({found_fields}/3 sections)")
+            return success
+        except Exception as e:
+            self.log_result("Disasters Playbooks", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting Plutus Predict API Tests")
