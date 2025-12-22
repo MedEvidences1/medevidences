@@ -6905,6 +6905,40 @@ const InvestmentBankerSuite = () => {
             </Card>
           </div>
 
+          {/* Market Outlook Summary - NEW */}
+          <Card className="terminal-card bg-gradient-to-r from-[#0A0A0A] to-[#0A1628]">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#00E5FF]" />
+                EXECUTIVE MARKET OUTLOOK
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="p-3 bg-[#050505]/50 rounded border border-[#1F1F1F]">
+                  <div className="text-xs text-[#888] mb-2">MARKET SENTIMENT</div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-full h-2 bg-[#1F1F1F] rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#FF4444] via-[#FFD700] to-[#00FF94]" style={{width: `${dashboardData.dashboard?.sentiment_score || 65}%`}} />
+                    </div>
+                    <span className="text-sm font-bold text-[#00FF94]">{dashboardData.dashboard?.sentiment_score || 65}%</span>
+                  </div>
+                  <div className="text-xs text-[#FFD700] mt-2">BULLISH BIAS</div>
+                </div>
+                <div className="p-3 bg-[#050505]/50 rounded border border-[#1F1F1F]">
+                  <div className="text-xs text-[#888] mb-2">VOLATILITY INDEX</div>
+                  <div className="text-2xl font-bold text-[#FFAA00]">{dashboardData.dashboard?.vix || 18.5}</div>
+                  <div className="text-xs text-[#888] mt-1">VIX Level</div>
+                </div>
+                <div className="p-3 bg-[#050505]/50 rounded border border-[#1F1F1F]">
+                  <div className="text-xs text-[#888] mb-2">DEAL ACTIVITY</div>
+                  <div className="text-2xl font-bold text-[#9D4EDD]">{dashboardData.dashboard?.deal_count || 47}</div>
+                  <div className="text-xs text-[#888] mt-1">Active M&A Deals</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Top Picks */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="terminal-card">
@@ -6971,6 +7005,32 @@ const InvestmentBankerSuite = () => {
                       <Badge key={i} className="mr-2 bg-[#FF4444]/20 text-[#FF4444]">{s}</Badge>
                     ))}
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Key Actions & Alerts - NEW */}
+          <Card className="terminal-card border-l-4 border-l-[#FFD700]">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#FFD700]" />
+                KEY ACTIONS & ALERTS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 p-2 bg-[#0A0A0A] rounded">
+                  <div className="w-2 h-2 rounded-full bg-[#00FF94]" />
+                  <span className="text-sm">Review tech sector exposure - AI rally continues</span>
+                </div>
+                <div className="flex items-center gap-3 p-2 bg-[#0A0A0A] rounded">
+                  <div className="w-2 h-2 rounded-full bg-[#FFAA00]" />
+                  <span className="text-sm">Monitor Fed decision impact on rate-sensitive positions</span>
+                </div>
+                <div className="flex items-center gap-3 p-2 bg-[#0A0A0A] rounded">
+                  <div className="w-2 h-2 rounded-full bg-[#FF4444]" />
+                  <span className="text-sm">Geopolitical tensions - hedge emerging market exposure</span>
                 </div>
               </div>
             </CardContent>
