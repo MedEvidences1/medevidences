@@ -2187,6 +2187,8 @@ class JudgmentalForecastEngine:
             "disaster_type": disaster_type,
             "location": location,
             "timeframe": timeframe,
+            "target_year": target_year,
+            "forecast_period": f"{target_year}",
             "severity_filter": severity,
             "probability": round(final_probability * 100, 1),
             "confidence": {
@@ -2198,7 +2200,8 @@ class JudgmentalForecastEngine:
                 "base_rate": round(base_rate * 100, 1),
                 "regional_multiplier": regional_adjustment,
                 "seasonal_factor": seasonal_adjustment,
-                "adjusted_probability": round(final_probability * 100, 1)
+                "adjusted_probability": round(final_probability * 100, 1),
+                "years_ahead": years_ahead
             },
             "recommendations": self._generate_disaster_recommendations(disaster_type, final_probability, location),
             "engine": "Plutus Judgmental Disaster Forecasting Engine v1.0",
