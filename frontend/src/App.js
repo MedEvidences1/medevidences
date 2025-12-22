@@ -930,18 +930,235 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#00E5FF]" />
-            PLUTUS_JUDGMENTAL_FORECASTING
+            PLUTUS_EVENT_FORECASTING
           </h2>
-          <p className="text-xs text-[#888] mt-1">Proprietary Multi-Factor Bayesian Engine • 3 LLMs • Backtesting • Brier Score Calibration</p>
+          <p className="text-xs text-[#888] mt-1">Proprietary Multi-Factor Engine • Live Events • 2025-2040 Predictions • Video Feeds</p>
         </div>
         <div className="flex gap-2">
+          <Badge variant="outline" className="text-xs border-[#00E5FF]/30 text-[#00E5FF]">
+            <span className="w-2 h-2 bg-[#00E5FF] rounded-full mr-1 animate-pulse" />LIVE
+          </Badge>
           <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">PROPRIETARY AI</Badge>
-          <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{predictionCategories.length} CATEGORIES</Badge>
         </div>
       </div>
-
-      {/* Category Selection Grid */}
-      <Card className="terminal-card">
+      
+      {/* View Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {views.map((v) => (
+          <Button
+            key={v.id}
+            size="sm"
+            variant={activeView === v.id ? "default" : "outline"}
+            onClick={() => setActiveView(v.id)}
+            className={activeView === v.id ? "bg-[#00E5FF] text-black" : "border-[#1F1F1F] text-[#888]"}
+          >
+            <v.icon className="w-3 h-3 mr-1" />
+            {v.label}
+          </Button>
+        ))}
+      </div>
+      
+      {/* LIVE EVENTS VIEW */}
+      {activeView === "live" && (
+        <div className="space-y-4">
+          {/* Daily Briefing */}
+          {eventBriefing && (
+            <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Brain className="w-4 h-4 text-[#00FF94]" />
+                    AI DAILY EVENT BRIEFING - {eventBriefing.date || new Date().toLocaleDateString()}
+                  </CardTitle>
+                  <Badge className={eventBriefing.market_mood === "risk-on" ? "bg-[#00FF94]" : eventBriefing.market_mood === "risk-off" ? "bg-[#FF3333]" : "bg-[#FFAA00]"}>
+                    {eventBriefing.market_mood?.toUpperCase() || "MIXED"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-[#EDEDED] mb-3">{eventBriefing.executive_summary}</p>
+                {eventBriefing["24_hour_forecast"] && (
+                  <div className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888]">24-HOUR FORECAST:</div>
+                    <div className="text-xs text-[#EDEDED]">{eventBriefing["24_hour_forecast"]}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Live Events List */}
+          {liveEvents && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-[#00E5FF] animate-pulse" />
+                    LIVE EVENTS NOW
+                    <Badge className="bg-[#00E5FF]">{liveEvents.total_live} ACTIVE</Badge>
+                  </CardTitle>
+                  <Button onClick={loadLiveEvents} size="sm" variant="outline" className="text-xs">
+                    <RefreshCw className={`w-3 h-3 mr-1 ${loadingEvents ? "animate-spin" : ""}`} />REFRESH
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4">
+                  {Object.entries(liveEvents.by_category || {}).map(([cat, count]) => (
+                    <div key={cat} className="p-2 bg-[#0A0A0A] rounded text-center">
+                      <div className="text-lg font-bold text-[#00E5FF]">{count}</div>
+                      <div className="text-xs text-[#888]">{cat.toUpperCase()}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {(liveEvents.events || []).slice(0, 20).map((event, i) => (
+                    <div key={i} className={`p-3 bg-[#0A0A0A] rounded border ${event.impact === "high" ? "border-[#FF3333]" : "border-[#1F1F1F]"}`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{event.title}</div>
+                          <div className="text-xs text-[#888] mt-1">
+                            {event.category?.toUpperCase()} • {event.source}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge className={event.status === "LIVE" ? "bg-[#FF3333]" : "bg-[#FFAA00]"}>
+                            {event.status}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">{event.impact?.toUpperCase()}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Live Video Feeds for Events */}
+          {liveEvents?.events?.[0] && (
+            <LiveVideoFeed 
+              disasterType={liveEvents.events[0].category} 
+              location="" 
+            />
+          )}
+          
+          {/* Sidebar Ad */}
+          <BannerAd placement="in_feed" />
+        </div>
+      )}
+      
+      {/* PREDICTIONS VIEW (2025-2040) */}
+      {activeView === "predictions" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#9D4EDD]" />
+                  AI EVENT PREDICTIONS 2025-2040
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">MULTI-LLM</Badge>
+                </CardTitle>
+                <Button onClick={loadEventPredictions} disabled={loadingEvents} className="bg-[#9D4EDD] text-white hover:bg-[#9D4EDD]/80">
+                  {loadingEvents ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <Brain className="w-4 h-4 mr-1" />}
+                  GENERATE PREDICTIONS
+                </Button>
+              </div>
+              <CardDescription className="text-xs text-[#888]">
+                AI-powered predictions across economic, geopolitical, technology, social, and health categories
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          {eventPredictions && eventPredictions.predictions && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {eventPredictions.predictions.map((pred, i) => (
+                  <Card key={i} className={`terminal-card border-l-2 ${pred.probability > 70 ? "border-l-[#FF3333]" : pred.probability > 50 ? "border-l-[#FFAA00]" : "border-l-[#00E5FF]"}`}>
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="text-sm font-bold">{pred.title}</div>
+                          <div className="text-xs text-[#888]">{pred.estimated_date} • {pred.category?.toUpperCase()}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-[#FF3333]">{pred.probability}%</div>
+                          <Badge className={pred.impact === "critical" ? "bg-[#FF3333]" : pred.impact === "high" ? "bg-[#FFAA00]" : "bg-[#00E5FF]"}>
+                            {pred.impact?.toUpperCase()}
+                          </Badge>
+                        </div>
+                      </div>
+                      {pred.rationale && (
+                        <div className="text-xs text-[#888] mt-2 p-2 bg-[#0A0A0A] rounded">{pred.rationale}</div>
+                      )}
+                      {pred.affected_sectors && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {pred.affected_sectors.slice(0, 3).map((sector, j) => (
+                            <Badge key={j} variant="outline" className="text-xs">{sector}</Badge>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              
+              {/* Category Outlook */}
+              {eventPredictions.category_outlook && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">CATEGORY OUTLOOK</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {Object.entries(eventPredictions.category_outlook).map(([cat, data]) => (
+                        <div key={cat} className="p-2 bg-[#0A0A0A] rounded">
+                          <div className="text-xs font-bold text-[#00E5FF]">{cat.toUpperCase()}</div>
+                          <div className="text-xs text-[#888]">Trend: {data.trend}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Wild Cards */}
+              {eventPredictions.wild_cards && (
+                <Card className="terminal-card border-l-2 border-l-[#FF3333]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FF3333]" />
+                      WILD CARDS (Low Probability, High Impact)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {eventPredictions.wild_cards.map((wc, i) => (
+                        <div key={i} className="p-2 bg-[#0A0A0A] rounded border border-[#FF3333]/30">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold">{wc.event}</span>
+                            <Badge className="bg-[#FF3333]/20 text-[#FF3333]">{wc.probability}%</Badge>
+                          </div>
+                          <div className="text-xs text-[#888] mt-1">{wc.impact_if_occurs}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+          
+          {/* In-feed Ad */}
+          <BannerAd placement="between_sections" />
+        </div>
+      )}
+      
+      {/* FORECAST VIEW (Original) */}
+      {activeView === "forecast" && (
+        <>
+          {/* Category Selection Grid */}
+          <Card className="terminal-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">SELECT A PREDICTION CATEGORY</CardTitle>
           <CardDescription className="text-[#888] text-xs">Choose a category to see example questions or type your own below</CardDescription>
