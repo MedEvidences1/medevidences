@@ -7938,6 +7938,15 @@ Respond ONLY with valid JSON."""
             if "timeline" not in deal:
                 deal["timeline"] = "2025 Q1-Q2" if prob > 35 else "2025 H2" if prob > 25 else "2026+"
         
+        # Calculate total predicted value
+        total_value = 0
+        for deal in potential_deals:
+            val_str = deal.get("deal_value", "$0B").replace("$", "").replace("B", "").replace("-", " ").split()[0]
+            try:
+                total_value += float(val_str)
+            except:
+                total_value += 10  # Default estimate
+        
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "analysis_type": "AI-Powered",
@@ -7947,6 +7956,7 @@ Respond ONLY with valid JSON."""
             "predictions": sorted(potential_deals, key=lambda x: x.get("probability", 0), reverse=True),
             "sector_hotspots": sector_hotspots,
             "osint_signals": len(osint_data),
+            "total_predicted_value": f"${total_value:.0f}B+",
             "methodology": "GPT-4 Analysis + OSINT Intelligence + Market Signals"
         }
     
