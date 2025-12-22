@@ -1748,10 +1748,22 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       return;
     }
     setLoadingJudgmental(true);
+    setAstrologyReconciliation(null);
     try {
       const res = await axios.post(`${API}/judgmental-forecast/disaster`, judgmentalForm, { headers: getHeaders() });
       setJudgmentalForecast(res.data);
       toast.success("Judgmental disaster forecast generated!");
+      
+      // If astrology reconciliation is enabled, fetch astrology insights
+      if (includeAstrology) {
+        try {
+          const astroRes = await axios.get(`${API}/astrology/reconcile?disaster_type=${judgmentalForm.disaster_type}&location=${encodeURIComponent(judgmentalForm.location)}&timeframe=${judgmentalForm.timeframe}`);
+          setAstrologyReconciliation(astroRes.data);
+          toast.success("Astrology reconciliation complete!");
+        } catch (e) {
+          console.error("Astrology reconciliation error:", e);
+        }
+      }
     } catch (e) {
       toast.error(e.response?.data?.detail || "Failed to generate forecast");
     }
