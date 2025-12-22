@@ -5539,7 +5539,6 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
               </div>
             </CardContent>
           </Card>
-          )}
         </div>
       )}
 
