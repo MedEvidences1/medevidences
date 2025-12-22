@@ -570,22 +570,23 @@ const StatsCard = ({ label, value, icon: Icon, trend, color = "cyan" }) => {
 const Dashboard = ({ getHeaders }) => {
   const [stats, setStats] = useState(null);
   const [earthquakes, setEarthquakes] = useState([]);
-  const [forecasts, setForecasts] = useState([]);
+  const [futurePredictions, setFuturePredictions] = useState([]);
   const [disasterSummary, setDisasterSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [statsRes, eqRes, forecastsRes, disasterRes] = await Promise.all([
+      const [statsRes, eqRes, predictionsRes, disasterRes] = await Promise.all([
         axios.get(`${API}/stats`),
         axios.get(`${API}/disasters/earthquakes?min_magnitude=4.5&limit=10`),
-        axios.get(`${API}/forecasts?limit=5`),
+        axios.get(`${API}/events/predictions?timeframe=2026-3000`),
         axios.get(`${API}/disasters/summary`),
       ]);
       setStats(statsRes.data);
       setEarthquakes(eqRes.data.earthquakes || []);
-      setForecasts(forecastsRes.data.forecasts || []);
+      // Get future predictions from all categories
+      setFuturePredictions(predictionsRes.data.predictions || []);
       setDisasterSummary(disasterRes.data);
     } catch (e) {
       console.error(e);
