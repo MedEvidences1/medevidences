@@ -1103,6 +1103,27 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
                           ))}
                         </div>
                       )}
+                      {/* Add PREPARE REMEDIATION for climate/disaster related predictions */}
+                      {(pred.category === "climate" || pred.category === "health" || pred.impact === "critical" || pred.impact === "high") && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => {
+                            // Navigate to Disasters tab and open remediation
+                            window.dispatchEvent(new CustomEvent('openRemediation', {
+                              detail: {
+                                disaster_type: pred.title || pred.category,
+                                severity: pred.impact || "high",
+                                location: (pred.affected_regions && pred.affected_regions[0]) || "Global",
+                                population_affected: 50000,
+                                model_preference: "ensemble"
+                              }
+                            }));
+                          }}
+                          className="mt-2 w-full bg-[#00FF94] text-black hover:bg-[#00FF94]/80 text-xs"
+                        >
+                          <Shield className="w-3 h-3 mr-1" />PREPARE REMEDIATION
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
