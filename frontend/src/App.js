@@ -4470,39 +4470,81 @@ const InvestmentBankerSuite = () => {
           {maPredictions.country_wise_deals && Object.keys(maPredictions.country_wise_deals).length > 0 && (
             <Card className="terminal-card">
               <CardHeader>
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-[#00E5FF]" />
-                  COUNTRY-WISE M&A ACTIVITY
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-[#00E5FF]" />
+                    COUNTRY-WISE M&A ACTIVITY
+                  </CardTitle>
+                  {selectedCountry && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setSelectedCountry(null)}
+                      className="text-xs border-[#FF4444] text-[#FF4444] hover:bg-[#FF4444]/20"
+                    >
+                      ✕ Clear Filter
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
                   {Object.entries(maPredictions.country_wise_deals || {}).map(([country, deals]) => (
-                    <div key={country} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#9D4EDD] transition-colors cursor-pointer">
+                    <div 
+                      key={country} 
+                      onClick={() => setSelectedCountry(selectedCountry === country ? null : country)}
+                      className={`p-3 bg-[#0A0A0A] rounded border transition-all cursor-pointer ${
+                        selectedCountry === country 
+                          ? 'border-[#00FF94] bg-[#00FF94]/10 ring-1 ring-[#00FF94]' 
+                          : 'border-[#1F1F1F] hover:border-[#9D4EDD]'
+                      }`}
+                    >
                       <div className="text-sm font-bold text-[#EDEDED]">{country}</div>
-                      <div className="text-xl font-bold text-[#9D4EDD]">{deals.length}</div>
+                      <div className={`text-xl font-bold ${selectedCountry === country ? 'text-[#00FF94]' : 'text-[#9D4EDD]'}`}>
+                        {deals.length}
+                      </div>
                       <div className="text-xs text-[#888]">deals</div>
+                      {selectedCountry === country && (
+                        <div className="text-xs text-[#00FF94] mt-1">✓ Selected</div>
+                      )}
                     </div>
                   ))}
                 </div>
+                {selectedCountry && (
+                  <div className="mt-4 p-3 bg-[#00FF94]/10 border border-[#00FF94] rounded">
+                    <p className="text-sm text-[#00FF94]">
+                      Showing {maPredictions.country_wise_deals[selectedCountry]?.length || 0} deals from <strong>{selectedCountry}</strong>
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
 
-          {/* Deal List */}
+          {/* Deal List - Now filtered by selected country */}
           <Card className="terminal-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#9D4EDD]" />
-                  M&A DEAL PREDICTIONS
+                  {selectedCountry ? `${selectedCountry} M&A DEALS` : 'M&A DEAL PREDICTIONS'}
                 </CardTitle>
-                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{maPredictions.total_predicted_value}</Badge>
+                <div className="flex items-center gap-2">
+                  {selectedCountry && (
+                    <Badge className="bg-[#00FF94]/20 text-[#00FF94]">
+                      {maPredictions.country_wise_deals[selectedCountry]?.length || 0} deals
+                    </Badge>
+                  )}
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{maPredictions.total_predicted_value}</Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                {(maPredictions.predictions || []).map((deal, i) => (
+                {(selectedCountry 
+                  ? (maPredictions.country_wise_deals[selectedCountry] || [])
+                  : (maPredictions.predictions || [])
+                ).map((deal, i) => (
                   <div key={i} className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#9D4EDD] transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 flex-wrap">
