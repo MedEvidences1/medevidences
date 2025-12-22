@@ -4523,35 +4523,65 @@ const InvestmentBankerSuite = () => {
             </CardContent>
           </Card>
 
+          {/* Country-wise IPO View */}
+          {ipoTiming.country_wise_ipos && Object.keys(ipoTiming.country_wise_ipos).length > 0 && (
+            <Card className="terminal-card">
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#00FF94]" />
+                  COUNTRY-WISE IPO PIPELINE
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {Object.entries(ipoTiming.country_wise_ipos || {}).map(([country, ipos]) => (
+                    <div key={country} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#00FF94] transition-colors cursor-pointer">
+                      <div className="text-sm font-bold text-[#EDEDED]">{country}</div>
+                      <div className="text-xl font-bold text-[#00FF94]">{ipos.length}</div>
+                      <div className="text-xs text-[#888]">IPOs</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Upcoming IPOs */}
           <Card className="terminal-card">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">UPCOMING IPO PIPELINE</CardTitle>
-                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{ipoTiming.total_pipeline_value}</Badge>
+                <CardTitle className="text-sm">UPCOMING IPO PIPELINE ({ipoTiming.all_ipos_count || ipoTiming.upcoming_ipos?.length || 0} Total)</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{ipoTiming.total_pipeline_value}</Badge>
+                  <Badge variant="outline" className="text-xs">{(ipoTiming.sources || []).slice(0, 2).join(", ")}</Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {(ipoTiming.upcoming_ipos || []).map((ipo, i) => (
                   <div key={i} className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#00FF94] transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <div>
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-lg font-bold text-[#EDEDED]">{ipo.company}</span>
-                        <Badge className="ml-2 bg-[#1F1F1F] text-[#888]">{ipo.sector}</Badge>
+                        <Badge className="bg-[#1F1F1F] text-[#888]">{ipo.sector}</Badge>
+                        {ipo.country && (
+                          <Badge variant="outline" className="text-xs border-[#00E5FF] text-[#00E5FF]">{ipo.country}</Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={ipo.recommendation === 'SUBSCRIBE' ? 'bg-[#00FF94] text-black' : ipo.recommendation === 'WATCH' ? 'bg-[#FFD700] text-black' : 'bg-[#888] text-black'}>
                           {ipo.recommendation}
                         </Badge>
-                        <span className="text-[#00E5FF] font-bold">{ipo.probability}%</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-[#888]">
-                      <span className="text-[#FFD700]">{ipo.valuation}</span>
-                      <span>{ipo.timing}</span>
-                      <span>{ipo.exchange}</span>
+                    <div className="flex items-center gap-4 text-xs text-[#888] flex-wrap">
+                      <span className="text-[#FFD700] font-bold">{ipo.expected_valuation}</span>
+                      <span>{ipo.expected_date}</span>
                       <span className="text-[#00FF94]">Est. Pop: {ipo.first_day_pop_estimate}</span>
+                      <Badge className={`text-xs ${ipo.investor_interest === 'high' ? 'bg-[#00FF94]/20 text-[#00FF94]' : ipo.investor_interest === 'medium' ? 'bg-[#FFD700]/20 text-[#FFD700]' : 'bg-[#888]/20 text-[#888]'}`}>
+                        {ipo.investor_interest?.toUpperCase()} INTEREST
+                      </Badge>
                     </div>
                   </div>
                 ))}
