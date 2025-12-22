@@ -97,6 +97,7 @@ import {
   Calculator,
   Heart,
   Briefcase,
+  Map,
 } from "lucide-react";
 
 // Recharts
