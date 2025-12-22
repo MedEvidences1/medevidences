@@ -5597,6 +5597,16 @@ const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
   const [newTicket, setNewTicket] = useState({ title: "", description: "", category: "other", priority: "medium" });
   const [ticketReply, setTicketReply] = useState("");
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
+  
+  // Advertisements State
+  const [ads, setAds] = useState([]);
+  const [adAnalytics, setAdAnalytics] = useState(null);
+  const [showNewAdModal, setShowNewAdModal] = useState(false);
+  const [newAd, setNewAd] = useState({
+    title: "", type: "banner", placement: "homepage_banner",
+    media_url: "", click_url: "", duration: 30, skip_after: 5,
+    budget: 0, cpm: 5.0, start_date: "", end_date: ""
+  });
 
   const isOwner = user?.role === "owner" || user?.role === "super_admin" || user?.role === "admin";
   const isEnterpriseAdmin = user?.role === "enterprise_admin" || user?.role === "enterprise";
