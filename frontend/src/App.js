@@ -1141,22 +1141,26 @@ const Disasters = ({ getHeaders }) => {
           )}
 
           {/* Live Disasters List */}
-          <Card className="terminal-card">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Radio className="w-4 h-4 text-[#FF3333] animate-pulse" />
-                  DISASTERS HAPPENING NOW
-                  <Badge className="bg-[#FF3333]">{liveDisasters?.total_active || 0} ACTIVE</Badge>
-                </CardTitle>
-              </div>
-              <CardDescription className="text-xs text-[#888]">
-                Real-time data from GDACS, USGS, NOAA • Click to generate remediation plan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                {(liveDisasters?.disasters || []).map((disaster, i) => (
+          {liveDisasters && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-[#FF3333] animate-pulse" />
+                    DISASTERS HAPPENING NOW
+                    <Badge className="bg-[#FF3333]">{liveDisasters?.total_active || 0} ACTIVE</Badge>
+                  </CardTitle>
+                  <Button onClick={loadLiveDisasters} size="sm" variant="outline" className="text-xs">
+                    <RefreshCw className="w-3 h-3 mr-1" />REFRESH
+                  </Button>
+                </div>
+                <CardDescription className="text-xs text-[#888]">
+                  Real-time data from GDACS, USGS, NOAA • Click to generate remediation plan
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                  {(liveDisasters?.disasters || []).map((disaster, i) => (
                   <div key={i} className={`p-3 bg-[#0A0A0A] rounded border ${disaster.severity === "critical" ? "border-[#FF3333]" : disaster.severity === "high" ? "border-[#FFAA00]" : "border-[#1F1F1F]"}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
