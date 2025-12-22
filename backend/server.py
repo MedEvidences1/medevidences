@@ -8559,9 +8559,25 @@ class CronJobManager:
             name="Long-Range Forecasts Update (2026-2040)"
         )
         
+        # AI Forecast Categories OSINT update (every 30 minutes)
+        self.scheduler.add_job(
+            self.update_forecast_categories_osint,
+            CronTrigger(minute="*/30"),
+            id="forecast_categories_osint",
+            name="AI Forecast Categories OSINT Update"
+        )
+        
+        # Live Events auto-refresh (every 10 minutes)
+        self.scheduler.add_job(
+            self.refresh_live_events,
+            CronTrigger(minute="*/10"),
+            id="live_events_refresh",
+            name="Live Events Auto-Refresh"
+        )
+        
         self.scheduler.start()
         self.is_running = True
-        logger.info("Cron job scheduler initialized with 7 scheduled jobs")
+        logger.info("Cron job scheduler initialized with 9 scheduled jobs")
     
     async def daily_osint_collection(self):
         """Collect data from 1M+ OSINT sources daily"""
