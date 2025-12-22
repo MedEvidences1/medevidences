@@ -1390,7 +1390,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
 };
 
 // Disasters Component (Independent)
-const Disasters = ({ getHeaders }) => {
+const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) => {
   const [earthquakes, setEarthquakes] = useState([]);
   const [weatherAlerts, setWeatherAlerts] = useState([]);
   const [globalDisasters, setGlobalDisasters] = useState([]);
@@ -1412,6 +1412,23 @@ const Disasters = ({ getHeaders }) => {
     population_affected: 10000,
     model_preference: "ensemble"
   });
+
+  // Handle pending remediation from AI Forecast
+  useEffect(() => {
+    if (pendingRemediation) {
+      setRemediationForm({
+        disaster_type: pendingRemediation.disaster_type || "earthquake",
+        severity: pendingRemediation.severity || "high",
+        location: pendingRemediation.location || "",
+        population_affected: pendingRemediation.population_affected || 50000,
+        model_preference: pendingRemediation.model_preference || "ensemble"
+      });
+      setActiveView("remediation");
+      if (clearPendingRemediation) {
+        clearPendingRemediation();
+      }
+    }
+  }, [pendingRemediation, clearPendingRemediation]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
