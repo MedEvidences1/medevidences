@@ -1022,15 +1022,21 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
         <div>
           <h2 className="text-lg font-bold flex items-center gap-2">
             <Brain className="w-5 h-5 text-[#00E5FF]" />
-            PLUTUS_EVENT_FORECASTING
+            PLUTUS_EVENTS_FORECASTING
           </h2>
-          <p className="text-xs text-[#888] mt-1">Proprietary Multi-Factor Engine • Live Events • 2026-3000 Predictions • Video Feeds</p>
+          <p className="text-xs text-[#888] mt-1">
+            1M+ OSINT Sources • Multi-LLM Ensemble (GPT-4, Claude, Gemini) • Auto-Updates: Daily + Every 5 Min
+          </p>
+          <p className="text-xs text-[#00FF94] mt-1">
+            📡 Real-time intelligence from news, social media, government data, financial feeds, satellite imagery & more
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Badge variant="outline" className="text-xs border-[#00E5FF]/30 text-[#00E5FF]">
             <span className="w-2 h-2 bg-[#00E5FF] rounded-full mr-1 animate-pulse" />LIVE
           </Badge>
-          <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">PROPRIETARY AI</Badge>
+          <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">1M+ OSINT</Badge>
+          <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30">AUTO-UPDATE</Badge>
         </div>
       </div>
       
