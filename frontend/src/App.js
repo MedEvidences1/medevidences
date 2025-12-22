@@ -94,6 +94,9 @@ import {
   Wind,
   Phone,
   MessageCircle,
+  Calculator,
+  Heart,
+  Briefcase,
 } from "lucide-react";
 
 // Recharts
