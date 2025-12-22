@@ -3574,19 +3574,13 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
               <p className="text-sm text-[#888]">Weather satellites, Seismic sensors, IoT flood gauges, Air quality monitors</p>
             </CardContent>
           </Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Satellite className="w-4 h-4 text-[#9D4EDD]" />
-                SATELLITE & IOT SENSOR NETWORK
-                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">GLOBAL COVERAGE</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-[#888]">Weather satellites, Seismic sensors, Flood gauges, Air quality, Wildfire detection</p>
-            </CardContent>
-          </Card>
           
-          {satelliteIotData ? (
+          {satelliteLoading ? (
+            <div className="text-center text-[#888] py-8">
+              <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
+              <p>Loading satellite & IoT data...</p>
+            </div>
+          ) : satelliteIotData ? (
             <div className="grid md:grid-cols-2 gap-4">
               {/* Weather Satellites */}
               <Card className="terminal-card">
