@@ -7832,6 +7832,258 @@ class CronJobManager:
 cron_manager = CronJobManager()
 
 # =============================================================================
+# ADVERTISEMENT SYSTEM - Banners & Video Ads
+# =============================================================================
+
+class AdvertisementManager:
+    """
+    Advertisement management system for banners and video ads
+    Placements: Homepage banner, sidebar, in-feed, between sections
+    Video ads: 30 sec max, skippable after 5 sec
+    """
+    
+    AD_PLACEMENTS = [
+        "homepage_banner",      # Top of homepage
+        "sidebar",              # Right sidebar
+        "in_feed",              # Between content items
+        "between_sections",     # Between major sections
+        "footer",               # Footer area
+        "modal_interstitial"    # Full-screen interstitial
+    ]
+    
+    AD_TYPES = ["banner", "video", "native"]
+    
+    def __init__(self):
+        self.active_campaigns = {}
+    
+    async def create_ad(self, ad_data: Dict) -> Dict:
+        """Create a new advertisement"""
+        ad_id = str(uuid.uuid4())[:12].upper()
+        
+        ad_doc = {
+            "id": ad_id,
+            "title": ad_data.get("title"),
+            "type": ad_data.get("type", "banner"),  # banner, video, native
+            "placement": ad_data.get("placement", "homepage_banner"),
+            "media_url": ad_data.get("media_url"),  # Image or video URL
+            "click_url": ad_data.get("click_url"),  # Destination URL
+            "duration": min(ad_data.get("duration", 30), 30),  # Max 30 sec for video
+            "skip_after": ad_data.get("skip_after", 5),  # Skippable after 5 sec
+            "targeting": ad_data.get("targeting", {}),  # geo, interests, etc.
+            "budget": ad_data.get("budget", 0),
+            "cpm": ad_data.get("cpm", 5.0),  # Cost per 1000 impressions
+            "status": "active",
+            "impressions": 0,
+            "clicks": 0,
+            "spend": 0.0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "start_date": ad_data.get("start_date"),
+            "end_date": ad_data.get("end_date"),
+            "created_by": ad_data.get("created_by")
+        }
+        
+        await db.advertisements.insert_one(ad_doc)
+        return ad_doc
+    
+    async def get_ads_for_placement(self, placement: str, user_geo: str = None) -> List[Dict]:
+        """Get active ads for a specific placement"""
+        now = datetime.now(timezone.utc).isoformat()
+        
+        query = {
+            "status": "active",
+            "placement": placement,
+            "$or": [
+                {"end_date": None},
+                {"end_date": {"$gte": now}}
+            ]
+        }
+        
+        ads = await db.advertisements.find(query, {"_id": 0}).to_list(10)
+        
+        # Increment impressions
+        for ad in ads:
+            await db.advertisements.update_one(
+                {"id": ad["id"]},
+                {"$inc": {"impressions": 1}}
+            )
+        
+        return ads
+    
+    async def record_click(self, ad_id: str) -> bool:
+        """Record ad click"""
+        result = await db.advertisements.update_one(
+            {"id": ad_id},
+            {"$inc": {"clicks": 1}}
+        )
+        return result.modified_count > 0
+    
+    async def get_all_ads(self, status: str = None) -> List[Dict]:
+        """Get all advertisements"""
+        query = {"status": status} if status else {}
+        ads = await db.advertisements.find(query, {"_id": 0}).to_list(100)
+        return ads
+    
+    async def update_ad_status(self, ad_id: str, status: str) -> bool:
+        """Update ad status (active/paused/ended)"""
+        result = await db.advertisements.update_one(
+            {"id": ad_id},
+            {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        return result.modified_count > 0
+    
+    async def get_ad_analytics(self) -> Dict:
+        """Get advertisement analytics summary"""
+        ads = await db.advertisements.find({}, {"_id": 0}).to_list(1000)
+        
+        total_impressions = sum(ad.get("impressions", 0) for ad in ads)
+        total_clicks = sum(ad.get("clicks", 0) for ad in ads)
+        total_spend = sum(ad.get("spend", 0) for ad in ads)
+        
+        return {
+            "total_ads": len(ads),
+            "active_ads": len([a for a in ads if a.get("status") == "active"]),
+            "total_impressions": total_impressions,
+            "total_clicks": total_clicks,
+            "overall_ctr": (total_clicks / total_impressions * 100) if total_impressions > 0 else 0,
+            "total_spend": total_spend,
+            "total_revenue": total_impressions * 0.005,  # Estimated revenue
+            "by_placement": {},
+            "by_type": {}
+        }
+
+ad_manager = AdvertisementManager()
+
+# =============================================================================
+# LIVE VIDEO & NEWS INTEGRATION
+# =============================================================================
+
+class LiveVideoManager:
+    """
+    Live video integration for disaster events
+    Sources: YouTube Live, Twitter/X, News APIs (Reuters, AP)
+    """
+    
+    NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "")  # User will add later
+    
+    async def search_youtube_live(self, query: str, max_results: int = 5) -> List[Dict]:
+        """Search for YouTube live streams related to disasters"""
+        # YouTube Data API would require API key
+        # For now, generate embed-ready search results
+        search_terms = query.replace(" ", "+")
+        
+        # These would come from YouTube API in production
+        live_streams = [
+            {
+                "id": f"yt-{uuid.uuid4().hex[:8]}",
+                "platform": "youtube",
+                "title": f"LIVE: {query} Coverage",
+                "embed_url": f"https://www.youtube.com/embed/live_stream?channel=UCGD0Kz7UiHG1-PLAO5Ac4A&autoplay=1",
+                "search_url": f"https://www.youtube.com/results?search_query={search_terms}+live&sp=EgJAAQ%3D%3D",
+                "is_live": True,
+                "viewers": random.randint(1000, 50000),
+                "source": "YouTube Live Search"
+            }
+        ]
+        
+        return live_streams
+    
+    async def search_twitter_videos(self, query: str) -> List[Dict]:
+        """Search for Twitter/X videos related to events"""
+        search_terms = query.replace(" ", "%20")
+        
+        return [
+            {
+                "id": f"tw-{uuid.uuid4().hex[:8]}",
+                "platform": "twitter",
+                "title": f"Latest: {query}",
+                "embed_url": f"https://twitter.com/search?q={search_terms}&f=video",
+                "search_url": f"https://twitter.com/search?q={search_terms}%20filter:videos&f=live",
+                "is_live": True,
+                "source": "Twitter/X"
+            }
+        ]
+    
+    async def get_news_videos(self, topic: str) -> List[Dict]:
+        """Get news videos from news APIs"""
+        # Would use NewsAPI, Reuters, AP in production
+        news_videos = []
+        
+        # Reuters Live
+        news_videos.append({
+            "id": f"reuters-{uuid.uuid4().hex[:8]}",
+            "platform": "reuters",
+            "title": f"Reuters: {topic} Updates",
+            "embed_url": "https://www.reuters.com/video/",
+            "thumbnail": "https://www.reuters.com/pf/resources/images/reuters/logo-vertical-default.png",
+            "source": "Reuters",
+            "is_live": False
+        })
+        
+        # AP News
+        news_videos.append({
+            "id": f"ap-{uuid.uuid4().hex[:8]}",
+            "platform": "ap",
+            "title": f"AP: {topic} Coverage",
+            "embed_url": "https://apnews.com/hub/videos",
+            "source": "Associated Press",
+            "is_live": False
+        })
+        
+        return news_videos
+    
+    async def get_live_feeds_for_disaster(self, disaster_type: str, location: str) -> Dict:
+        """Get all live video feeds for a specific disaster"""
+        query = f"{disaster_type} {location}"
+        
+        youtube = await self.search_youtube_live(query)
+        twitter = await self.search_twitter_videos(query)
+        news = await self.get_news_videos(query)
+        
+        # Weather cams for weather-related disasters
+        weather_cams = []
+        if disaster_type in ["hurricane", "tornado", "flood", "wildfire", "severe_weather"]:
+            weather_cams = [
+                {
+                    "id": "weathercam-1",
+                    "platform": "weather",
+                    "title": f"Weather Cam: {location}",
+                    "embed_url": "https://www.weather.gov/",
+                    "source": "NOAA Weather Cameras",
+                    "is_live": True
+                }
+            ]
+        
+        return {
+            "query": query,
+            "youtube_live": youtube,
+            "twitter_videos": twitter,
+            "news_coverage": news,
+            "weather_cams": weather_cams,
+            "total_sources": len(youtube) + len(twitter) + len(news) + len(weather_cams),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    
+    async def get_trending_disaster_videos(self) -> List[Dict]:
+        """Get trending disaster-related videos across platforms"""
+        # Get current live disasters
+        disasters = await live_disaster_monitor.fetch_live_disasters()
+        
+        trending = []
+        for disaster in disasters[:5]:  # Top 5 disasters
+            feeds = await self.get_live_feeds_for_disaster(
+                disaster.get("type", "disaster"),
+                disaster.get("location", "")
+            )
+            trending.append({
+                "disaster": disaster,
+                "video_feeds": feeds
+            })
+        
+        return trending
+
+live_video_manager = LiveVideoManager()
+
+# =============================================================================
 # STRIPE PAYMENT INTEGRATION
 # =============================================================================
 
