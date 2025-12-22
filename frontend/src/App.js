@@ -423,6 +423,7 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, setShowChangeP
     { id: "deep-forecast", label: "DEEP_FORECAST", icon: Sparkles },
     { id: "investment", label: "IB_SUITE", icon: TrendingUp },
     { id: "disasters", label: "DISASTERS", icon: AlertTriangle },
+    { id: "tdis", label: "TDIS_PORTAL", icon: Map },
     { id: "space", label: "SPACE_HAZARDS", icon: Star },
     { id: "astrology", label: "ASTROLOGY", icon: Moon },
     { id: "tabular", label: "TABULAR", icon: BarChart3 },
