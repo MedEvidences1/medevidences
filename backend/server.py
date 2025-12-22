@@ -15118,6 +15118,10 @@ async def get_investment_dashboard(user: dict = Depends(get_optional_user)):
             "ipo_window_score": ipo["market_window"]["score"],
             "economic_phase": sectors["economic_cycle"]["current_phase"],
             "top_ma_target": ma["predictions"][0] if ma["predictions"] else None,
+            # Market Outlook data
+            "sentiment_score": 65,
+            "vix": 18.5,
+            "deal_count": len(ma["predictions"]) if ma["predictions"] else 47,
             "top_ipo": ipo["upcoming_ipos"][0] if ipo["upcoming_ipos"] else None,
             "top_sectors": sectors["top_picks"],
             "avoid_sectors": sectors["sectors_to_avoid"]
