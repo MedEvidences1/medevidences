@@ -1024,7 +1024,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
             <Brain className="w-5 h-5 text-[#00E5FF]" />
             PLUTUS_EVENT_FORECASTING
           </h2>
-          <p className="text-xs text-[#888] mt-1">Proprietary Multi-Factor Engine • Live Events • 2025-2040 Predictions • Video Feeds</p>
+          <p className="text-xs text-[#888] mt-1">Proprietary Multi-Factor Engine • Live Events • 2026-3000 Predictions • Video Feeds</p>
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="text-xs border-[#00E5FF]/30 text-[#00E5FF]">
