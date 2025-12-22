@@ -1534,7 +1534,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes, compRes, infraRes, scRes, cyberRes] = await Promise.all([
+      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes, compRes, infraRes, scRes, cyberRes, humanRes, satRes, playRes] = await Promise.all([
         axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=20`),
         axios.get(`${API}/disasters/weather-alerts`),
         axios.get(`${API}/disasters/global`),
@@ -1543,11 +1543,15 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         axios.get(`${API}/disasters/sensors`),
         axios.get(`${API}/disasters/economic-impact`),
         axios.get(`${API}/disasters/remediation/disaster-types`),
-        // New comprehensive endpoints
+        // Phase 1 comprehensive endpoints
         axios.get(`${API}/disasters/comprehensive`),
         axios.get(`${API}/disasters/comprehensive/infrastructure`),
         axios.get(`${API}/disasters/comprehensive/supply-chain`),
         axios.get(`${API}/disasters/comprehensive/cyber`),
+        // Phase 2 endpoints
+        axios.get(`${API}/disasters/comprehensive/human-signals`),
+        axios.get(`${API}/disasters/comprehensive/satellite-iot`),
+        axios.get(`${API}/disasters/comprehensive/playbooks`),
       ]);
       setEarthquakes(eqRes.data.earthquakes || []);
       setWeatherAlerts(wxRes.data.alerts || []);
@@ -1557,11 +1561,15 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       setSensors(sensorRes.data);
       setEconomicImpact(econRes.data);
       setRemediationTypes(remTypesRes.data);
-      // New comprehensive data
+      // Phase 1 data
       setComprehensiveData(compRes.data);
       setInfrastructureStatus(infraRes.data);
       setSupplyChainStatus(scRes.data);
       setCyberStatus(cyberRes.data);
+      // Phase 2 data
+      setHumanSignals(humanRes.data);
+      setSatelliteIotData(satRes.data);
+      setPlaybooks(playRes.data);
     } catch (e) {
       console.error(e);
     }
