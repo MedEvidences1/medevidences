@@ -8490,6 +8490,117 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   );
 };
 
+// Trial Banner Component - Shows countdown for all users
+const TrialBanner = ({ trialStatus, onUpgrade }) => {
+  const [remainingSeconds, setRemainingSeconds] = useState(trialStatus?.remaining_seconds || 0);
+  
+  useEffect(() => {
+    if (trialStatus?.remaining_seconds) {
+      setRemainingSeconds(trialStatus.remaining_seconds);
+    }
+  }, [trialStatus]);
+  
+  useEffect(() => {
+    if (remainingSeconds <= 0) return;
+    
+    const timer = setInterval(() => {
+      setRemainingSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [remainingSeconds]);
+  
+  if (!trialStatus || trialStatus.has_unlimited_access || trialStatus.subscription_status === "active") {
+    return null;
+  }
+  
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  const isExpired = remainingSeconds <= 0;
+  const isLow = remainingSeconds <= 60;
+  
+  return (
+    <div className={`fixed top-16 left-0 right-0 z-40 py-2 px-4 text-center text-sm ${
+      isExpired ? 'bg-[#FF4444]' : isLow ? 'bg-[#FFD700]' : 'bg-[#9D4EDD]'
+    }`}>
+      <div className="max-w-7xl mx-auto flex items-center justify-center gap-4">
+        {isExpired ? (
+          <>
+            <span className="font-bold text-white">⚠️ TRIAL EXPIRED - Payment Required to Continue</span>
+            <Button size="sm" onClick={onUpgrade} className="bg-white text-[#FF4444] hover:bg-gray-100 font-bold">
+              <CreditCard className="w-4 h-4 mr-1" />
+              UPGRADE NOW
+            </Button>
+          </>
+        ) : (
+          <>
+            <Clock className="w-4 h-4" />
+            <span className={`font-mono font-bold ${isLow ? 'text-black' : 'text-white'}`}>
+              TRIAL: {minutes}:{seconds.toString().padStart(2, '0')} remaining
+            </span>
+            <Button size="sm" onClick={onUpgrade} className={`${isLow ? 'bg-black text-[#FFD700]' : 'bg-white text-[#9D4EDD]'} hover:opacity-90 font-bold`}>
+              <CreditCard className="w-4 h-4 mr-1" />
+              UPGRADE
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Payment Required Modal - Blocks access when trial expired
+const PaymentRequiredModal = ({ isOpen, onClose, onUpgrade }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="bg-[#0A0A0A] border-[#FF4444] border-2 max-w-md" hideCloseButton>
+        <DialogHeader>
+          <DialogTitle className="text-xl text-[#FF4444] flex items-center gap-2">
+            <AlertTriangle className="w-6 h-6" />
+            Trial Expired
+          </DialogTitle>
+          <DialogDescription className="text-[#888]">
+            Your 5-minute free trial has ended. Subscribe to continue using Plutus Predict.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 mt-4">
+          <div className="p-4 bg-[#1A1A1A] rounded border border-[#333]">
+            <h4 className="font-bold text-[#00E5FF] mb-2">What you get with a subscription:</h4>
+            <ul className="text-sm text-[#888] space-y-1">
+              <li>✓ Unlimited AI Forecasts</li>
+              <li>✓ Full OSINT Intelligence Access</li>
+              <li>✓ Investment Banker Suite</li>
+              <li>✓ Disaster Predictions & Alerts</li>
+              <li>✓ Deep Forecast Reports</li>
+              <li>✓ Priority Support</li>
+            </ul>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-2">
+            <Button onClick={onUpgrade} className="w-full bg-[#00FF94] text-black hover:bg-[#00FF94]/80 font-bold">
+              <CreditCard className="w-4 h-4 mr-2" />
+              VIEW PRICING & SUBSCRIBE
+            </Button>
+            <Button onClick={onClose} variant="outline" className="w-full border-[#333] text-[#888]">
+              Log Out
+            </Button>
+          </div>
+          
+          <p className="text-xs text-[#666] text-center">
+            Questions? Contact support@plutuspredict.com
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // Terms and Conditions Component
 const TermsConditions = ({ onBack }) => {
   return (
