@@ -1938,9 +1938,14 @@ class JudgmentalForecastEngine:
         # Compile forecast
         forecast_id = str(uuid.uuid4())
         
+        # Extract target year for display
+        target_year = horizon.get("target_year", datetime.now(timezone.utc).year + 1)
+        
         return {
             "forecast_id": forecast_id,
             "question": question,
+            "target_year": target_year,
+            "forecast_period": f"{target_year}" if horizon.get("explicit_year") else f"{datetime.now(timezone.utc).year}-{target_year}",
             "probability": round(probability * 100, 1),
             "confidence": confidence,
             "rationale": rationale,
@@ -1948,6 +1953,7 @@ class JudgmentalForecastEngine:
                 "engine": "Plutus Judgmental Forecasting Engine v1.0",
                 "event_type": event_type,
                 "time_horizon": horizon,
+                "target_year": target_year,
                 "base_rate": round(base_rate * 100, 1),
                 "factors_analyzed": len(factors),
                 "bayesian_updates": True
