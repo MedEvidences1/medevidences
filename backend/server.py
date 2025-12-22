@@ -11886,6 +11886,141 @@ async def get_global_disasters():
     disasters = await osint_aggregator.fetch_gdacs()
     return {"disasters": disasters, "source": "GDACS", "count": len(disasters)}
 
+# =============================================================================
+# COMPREHENSIVE DISASTER MANAGEMENT API ENDPOINTS
+# =============================================================================
+
+@api_router.get("/disasters/comprehensive", tags=["Comprehensive Disasters"])
+async def get_comprehensive_disaster_data(region: str = "global"):
+    """
+    Get comprehensive disaster data including:
+    - Global disasters (all countries)
+    - Infrastructure status
+    - Supply chain status
+    - Cyber threat status
+    """
+    return await comprehensive_disaster_engine.get_global_disaster_data(region)
+
+@api_router.get("/disasters/comprehensive/predict", tags=["Comprehensive Disasters"])
+async def predict_comprehensive_disaster(
+    disaster_type: str,
+    region: str = "global",
+    timeframe_hours: int = 72
+):
+    """
+    AI-powered disaster prediction with impact analysis
+    
+    disaster_type: earthquake, flood, hurricane, wildfire, cyber_attack, power_outage, etc.
+    region: north_america, europe, asia_pacific, south_america, middle_east, africa, global
+    timeframe_hours: Prediction window (default 72 hours)
+    """
+    prediction = await comprehensive_disaster_engine.predict_disaster(disaster_type, region, timeframe_hours)
+    return prediction
+
+@api_router.get("/disasters/comprehensive/impact", tags=["Comprehensive Disasters"])
+async def analyze_disaster_impact(
+    disaster_type: str,
+    region: str = "global",
+    probability: float = 50.0
+):
+    """
+    Detailed impact and exposure analysis
+    
+    Returns:
+    - Population impact (who affected, demographics)
+    - Economic impact (losses, recovery costs)
+    - Infrastructure cascade (what fails first)
+    - Service downtime estimates
+    - Regulatory and safety exposure
+    """
+    return await comprehensive_disaster_engine.analyze_impact(disaster_type, region, probability)
+
+@api_router.get("/disasters/comprehensive/remediation", tags=["Comprehensive Disasters"])
+async def get_disaster_remediation(
+    disaster_type: str,
+    region: str = "global",
+    probability: float = 50.0
+):
+    """
+    Get remediation recommendations, resource allocation, and playbooks
+    
+    Returns:
+    - Recommended actions with priorities
+    - Resource allocation (personnel, equipment, supplies)
+    - Automated playbook
+    - Pre-approved actions
+    - Decision timeline
+    - Escalation matrix
+    - Communication plan
+    """
+    impact = await comprehensive_disaster_engine.analyze_impact(disaster_type, region, probability)
+    return await comprehensive_disaster_engine.get_remediation_recommendations(disaster_type, region, probability, impact)
+
+@api_router.get("/disasters/comprehensive/infrastructure", tags=["Comprehensive Disasters"])
+async def get_infrastructure_status():
+    """Get current global infrastructure status (power, telecom, transport, utilities)"""
+    return await comprehensive_disaster_engine._get_infrastructure_status()
+
+@api_router.get("/disasters/comprehensive/supply-chain", tags=["Comprehensive Disasters"])
+async def get_supply_chain_status():
+    """Get current global supply chain status (shipping, ports, vendors, inventory)"""
+    return await comprehensive_disaster_engine._get_supply_chain_status()
+
+@api_router.get("/disasters/comprehensive/cyber", tags=["Comprehensive Disasters"])
+async def get_cyber_status():
+    """Get current cyber threat landscape"""
+    return await comprehensive_disaster_engine._get_cyber_status()
+
+@api_router.post("/disasters/comprehensive/full-analysis", tags=["Comprehensive Disasters"])
+async def full_disaster_analysis(
+    disaster_type: str = "flood",
+    region: str = "global",
+    timeframe_hours: int = 72,
+    user: dict = Depends(get_optional_user)
+):
+    """
+    Complete disaster analysis: Data → Prediction → Impact → Remediation → Action
+    
+    Full pipeline for decision-making
+    """
+    # 1. Get current disaster data
+    current_data = await comprehensive_disaster_engine.get_global_disaster_data(region)
+    
+    # 2. Predict disaster
+    prediction = await comprehensive_disaster_engine.predict_disaster(disaster_type, region, timeframe_hours)
+    
+    # 3. Analyze impact
+    probability = prediction["prediction"]["probability"]
+    impact = await comprehensive_disaster_engine.analyze_impact(disaster_type, region, probability)
+    
+    # 4. Get remediation
+    remediation = await comprehensive_disaster_engine.get_remediation_recommendations(disaster_type, region, probability, impact)
+    
+    return {
+        "analysis_id": str(uuid.uuid4()),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "disaster_type": disaster_type,
+        "region": region,
+        "timeframe_hours": timeframe_hours,
+        "current_situation": {
+            "active_disasters": current_data["total_active_disasters"],
+            "infrastructure_status": current_data["infrastructure_status"],
+            "supply_chain_status": current_data["supply_chain_status"],
+            "cyber_status": current_data["cyber_status"]
+        },
+        "prediction": prediction["prediction"],
+        "impact_analysis": impact,
+        "remediation_plan": remediation,
+        "executive_summary": {
+            "risk_level": "critical" if probability >= 70 else "high" if probability >= 50 else "moderate",
+            "probability": f"{probability:.1f}%",
+            "affected_population": impact["population_impact"]["potentially_affected"],
+            "economic_loss_estimate": impact["economic_impact"]["estimated_loss_usd"],
+            "immediate_actions_required": len([a for a in remediation["recommended_actions"] if a["priority"] == "critical"]),
+            "decision_deadline": remediation["decision_timeline"]["decision_window"]
+        }
+    }
+
 @api_router.get("/disasters/predict/earthquake", tags=["Disasters"])
 async def predict_earthquake_risk(region: str = "global"):
     return await disaster_engine.predict_earthquake_risk(region)
