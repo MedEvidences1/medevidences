@@ -125,7 +125,7 @@ class PaymentRequest(BaseModel):
 class DeepForecastRequest(BaseModel):
     topic: str = Field(..., min_length=5, max_length=200)
     num_questions: int = Field(default=5, ge=1, le=10)
-    timeframe: str = "2025"
+    timeframe: str = "2026"
 
 # Custom Dashboard Request
 class DashboardRequest(BaseModel):
