@@ -4140,6 +4140,7 @@ const InvestmentBankerSuite = () => {
   const [maPredictions, setMaPredictions] = useState(null);
   const [ipoTiming, setIpoTiming] = useState(null);
   const [sectorRotation, setSectorRotation] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);  // For M&A drill-down
   
   const getHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
 
