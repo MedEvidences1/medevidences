@@ -1623,11 +1623,33 @@ class JudgmentalForecastEngine:
             "cyber_attack": 0.20,
             "ai_advancement": 0.40,
             
-            # Disaster events
+            # Disaster events (comprehensive)
             "earthquake_major": 0.05,
+            "earthquake_minor": 0.25,
             "hurricane_major": 0.15,
+            "hurricane_minor": 0.35,
             "pandemic": 0.02,
             "climate_event": 0.35,
+            "flood": 0.30,
+            "wildfire": 0.25,
+            "tornado": 0.20,
+            "tsunami": 0.02,
+            "volcanic_eruption": 0.03,
+            "drought": 0.20,
+            "landslide": 0.15,
+            "heatwave": 0.35,
+            "winter_storm": 0.30,
+            "space_weather": 0.10,
+        }
+        
+        # Disaster-specific factors for judgmental forecasting
+        self.disaster_factors = {
+            "seismic_activity": 0.25,
+            "climate_patterns": 0.20,
+            "seasonal_indicators": 0.15,
+            "historical_frequency": 0.20,
+            "geographical_risk": 0.10,
+            "early_warning_signals": 0.10
         }
         
         self.factor_weights = {
