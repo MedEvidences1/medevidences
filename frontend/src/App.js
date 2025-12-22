@@ -8322,7 +8322,7 @@ const TermsConditions = ({ onBack }) => {
             <section>
               <h3 className="text-lg font-bold text-[#00E5FF]">10. CONTACT INFORMATION</h3>
               <p className="text-[#888]">
-                <strong>Plutus Predict LLC</strong><br />
+                <strong>MedEvidences Corporation</strong><br />
                 30 N Gould St, Ste R<br />
                 Sheridan, WY 82801<br />
                 United States<br />
@@ -8332,7 +8332,7 @@ const TermsConditions = ({ onBack }) => {
 
             <section className="border-t border-[#1F1F1F] pt-4 mt-6">
               <p className="text-xs text-[#666]">
-                By using Plutus Predict, you acknowledge that you have read, understood, and agree to be bound 
+                Plutus Predict is a product of MedEvidences Corporation. By using Plutus Predict, you acknowledge that you have read, understood, and agree to be bound 
                 by these Terms and Conditions.
               </p>
             </section>
