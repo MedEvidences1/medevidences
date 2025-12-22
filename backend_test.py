@@ -939,6 +939,14 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
+        # CURRENT REVIEW REQUEST - TDIS Portal Features (TOP PRIORITY)
+        print("\n🎯 Testing CURRENT REVIEW REQUEST - TDIS Portal Features:")
+        self.test_tdis_dashboard()  # TDIS Portal Dashboard with OPERATIONAL status
+        self.test_tdis_alerts()  # TDIS Portal Alerts with summary counts
+        self.test_tdis_regions()  # TDIS Portal Regions with 10 global regions
+        self.test_tdis_layers()  # TDIS Portal Data Layers with interactive toggles
+        self.test_ib_suite_executive_summary()  # IB Suite Executive Summary Market Outlook
+        
         # PHASE 2 FEATURES - Priority tests from current review request
         print("\n🎯 Testing PHASE 2 Features (Current Priority):")
         self.test_future_predictions_2026_3000()  # PHASE 2: Dashboard future forecasts 2026-3000
