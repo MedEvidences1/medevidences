@@ -1191,6 +1191,7 @@ const Disasters = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -2060,6 +2061,7 @@ const Disasters = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -2137,6 +2139,7 @@ const Disasters = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -2203,6 +2206,7 @@ const Disasters = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -2829,6 +2833,7 @@ const SpaceHazards = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -2883,6 +2888,7 @@ const SpaceHazards = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -2921,6 +2927,7 @@ const SpaceHazards = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -3497,6 +3504,7 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -3567,6 +3575,7 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -3613,6 +3622,7 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -3681,6 +3691,7 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
@@ -3764,6 +3775,7 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
       )}
 
