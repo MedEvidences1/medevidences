@@ -707,6 +707,50 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [activeView, setActiveView] = useState("forecast");
+  
+  // Live Events State
+  const [liveEvents, setLiveEvents] = useState(null);
+  const [eventPredictions, setEventPredictions] = useState(null);
+  const [eventBriefing, setEventBriefing] = useState(null);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  
+  const views = [
+    { id: "forecast", label: "FORECAST", icon: Brain },
+    { id: "live", label: "LIVE EVENTS", icon: Radio },
+    { id: "predictions", label: "2025-2040", icon: TrendingUp },
+  ];
+  
+  const loadLiveEvents = useCallback(async () => {
+    setLoadingEvents(true);
+    try {
+      const [eventsRes, briefingRes] = await Promise.all([
+        axios.get(`${API}/events/live`),
+        axios.get(`${API}/events/daily-briefing`).catch(() => ({ data: null }))
+      ]);
+      setLiveEvents(eventsRes.data);
+      if (briefingRes.data) setEventBriefing(briefingRes.data);
+    } catch (e) {
+      console.error(e);
+    }
+    setLoadingEvents(false);
+  }, []);
+  
+  const loadEventPredictions = async () => {
+    setLoadingEvents(true);
+    try {
+      const res = await axios.get(`${API}/events/predictions?timeframe=2025-2040`);
+      setEventPredictions(res.data);
+      toast.success("Event predictions generated!");
+    } catch (e) {
+      toast.error("Failed to load predictions");
+    }
+    setLoadingEvents(false);
+  };
+  
+  useEffect(() => {
+    if (activeView === "live") loadLiveEvents();
+  }, [activeView, loadLiveEvents]);
 
   // Prediction categories with comprehensive coverage
   const predictionCategories = [
