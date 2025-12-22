@@ -1727,21 +1727,8 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       console.error("Phase 1 data load error:", e);
     }
     
-    // Load Phase 2 data independently to ensure partial success
-    try {
-      const humanRes = await axios.get(`${API}/disasters/comprehensive/human-signals`);
-      setHumanSignals(humanRes.data);
-    } catch (e) { console.error("Human signals error:", e); }
-    
-    try {
-      const satRes = await axios.get(`${API}/disasters/comprehensive/satellite-iot`);
-      setSatelliteIotData(satRes.data);
-    } catch (e) { console.error("Satellite IoT error:", e); }
-    
-    try {
-      const playRes = await axios.get(`${API}/disasters/comprehensive/playbooks`);
-      setPlaybooks(playRes.data);
-    } catch (e) { console.error("Playbooks error:", e); }
+    // Phase 2 data is now loaded on-demand when tabs are selected
+    // This prevents race conditions and improves initial load time
     
     setLoading(false);
   }, []);
