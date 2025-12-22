@@ -98,6 +98,225 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // =============================================================================
+// ADVERTISEMENT COMPONENTS
+// =============================================================================
+
+// Banner Ad Component
+const BannerAd = ({ placement = "homepage_banner", className = "" }) => {
+  const [ad, setAd] = useState(null);
+  
+  useEffect(() => {
+    const loadAd = async () => {
+      try {
+        const res = await axios.get(`${API}/ads/placement/${placement}`);
+        if (res.data.ads && res.data.ads.length > 0) {
+          setAd(res.data.ads[0]);
+        }
+      } catch (e) {
+        console.log("No ads available");
+      }
+    };
+    loadAd();
+  }, [placement]);
+  
+  const handleClick = async () => {
+    if (ad) {
+      await axios.post(`${API}/ads/${ad.id}/click`);
+      if (ad.click_url) window.open(ad.click_url, '_blank');
+    }
+  };
+  
+  if (!ad) return null;
+  
+  return (
+    <div className={`ad-banner ${className}`} onClick={handleClick} style={{cursor: 'pointer'}}>
+      <div className="text-xs text-[#444] text-right mb-1">Advertisement</div>
+      <img 
+        src={ad.media_url} 
+        alt={ad.title} 
+        className="w-full h-auto rounded border border-[#1F1F1F]"
+        onError={(e) => e.target.style.display = 'none'}
+      />
+    </div>
+  );
+};
+
+// Video Ad Component (30 sec max, skippable after 5 sec)
+const VideoAd = ({ placement = "modal_interstitial", onComplete, onSkip }) => {
+  const [ad, setAd] = useState(null);
+  const [canSkip, setCanSkip] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [playing, setPlaying] = useState(true);
+  
+  useEffect(() => {
+    const loadAd = async () => {
+      try {
+        const res = await axios.get(`${API}/ads/placement/${placement}`);
+        const videoAd = res.data.ads?.find(a => a.type === 'video');
+        if (videoAd) setAd(videoAd);
+      } catch (e) {
+        onComplete?.();
+      }
+    };
+    loadAd();
+  }, [placement, onComplete]);
+  
+  useEffect(() => {
+    if (ad && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (countdown === 0) {
+      setCanSkip(true);
+    }
+  }, [ad, countdown]);
+  
+  const handleSkip = async () => {
+    if (canSkip) {
+      await axios.post(`${API}/ads/${ad.id}/click`);
+      onSkip?.();
+    }
+  };
+  
+  if (!ad) return null;
+  
+  return (
+    <div className="video-ad fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+      <div className="relative max-w-3xl w-full">
+        <video 
+          src={ad.media_url} 
+          autoPlay 
+          muted={!playing}
+          onEnded={() => onComplete?.()}
+          className="w-full rounded"
+        />
+        <div className="absolute top-4 right-4">
+          {canSkip ? (
+            <Button onClick={handleSkip} size="sm" className="bg-white text-black">
+              Skip Ad →
+            </Button>
+          ) : (
+            <Badge className="bg-black/50 text-white">Skip in {countdown}s</Badge>
+          )}
+        </div>
+        <div className="absolute bottom-4 left-4 text-xs text-white/70">
+          Ad • {ad.title}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Live Video Feed Component
+const LiveVideoFeed = ({ disasterType, location }) => {
+  const [feeds, setFeeds] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [selectedFeed, setSelectedFeed] = useState(null);
+  
+  const loadFeeds = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/video/live/${disasterType}?location=${encodeURIComponent(location || '')}`);
+      setFeeds(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  };
+  
+  useEffect(() => {
+    if (disasterType) loadFeeds();
+  }, [disasterType, location]);
+  
+  if (!feeds) return null;
+  
+  return (
+    <Card className="terminal-card">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Play className="w-4 h-4 text-[#FF3333]" />
+          LIVE VIDEO FEEDS
+          <Badge className="bg-[#FF3333]">{feeds.total_sources} SOURCES</Badge>
+        </CardTitle>
+        <CardDescription className="text-xs text-[#888]">
+          Real-time video coverage from YouTube, Twitter, and news agencies
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {/* YouTube Live */}
+          {feeds.youtube_live?.map((feed, i) => (
+            <a 
+              key={i}
+              href={feed.search_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#FF0000] transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-[#FF0000] rounded-full animate-pulse" />
+                <span className="text-xs font-bold text-[#FF0000]">YouTube</span>
+              </div>
+              <div className="text-xs text-[#EDEDED] truncate">{feed.title}</div>
+              <div className="text-xs text-[#888]">{feed.viewers?.toLocaleString()} watching</div>
+            </a>
+          ))}
+          
+          {/* Twitter */}
+          {feeds.twitter_videos?.map((feed, i) => (
+            <a 
+              key={i}
+              href={feed.search_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#1DA1F2] transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-[#1DA1F2] rounded-full animate-pulse" />
+                <span className="text-xs font-bold text-[#1DA1F2]">Twitter/X</span>
+              </div>
+              <div className="text-xs text-[#EDEDED] truncate">{feed.title}</div>
+            </a>
+          ))}
+          
+          {/* News */}
+          {feeds.news_coverage?.map((feed, i) => (
+            <a 
+              key={i}
+              href={feed.embed_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#FFD700] transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold text-[#FFD700]">{feed.source}</span>
+              </div>
+              <div className="text-xs text-[#EDEDED] truncate">{feed.title}</div>
+            </a>
+          ))}
+          
+          {/* Weather Cams */}
+          {feeds.weather_cams?.map((feed, i) => (
+            <a 
+              key={i}
+              href={feed.embed_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#00E5FF] transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-2 h-2 bg-[#00E5FF] rounded-full animate-pulse" />
+                <span className="text-xs font-bold text-[#00E5FF]">Weather Cam</span>
+              </div>
+              <div className="text-xs text-[#EDEDED] truncate">{feed.title}</div>
+            </a>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// =============================================================================
 // MULTI-LANGUAGE SUPPORT
 // =============================================================================
 const SUPPORTED_LANGUAGES = {
