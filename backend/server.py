@@ -12487,6 +12487,63 @@ async def full_disaster_analysis(
         }
     }
 
+# =============================================================================
+# PHASE 2 API ENDPOINTS - Human Signals, IoT, Playbooks
+# =============================================================================
+
+@api_router.get("/disasters/comprehensive/human-signals", tags=["Comprehensive Disasters"])
+async def get_human_signals(region: str = "global"):
+    """
+    Human Signals Intelligence
+    - Population density & demographics
+    - Mobility patterns (traffic, transit)
+    - Emergency call volumes
+    - Social media sentiment
+    """
+    return await comprehensive_disaster_engine.get_human_signals(region)
+
+@api_router.get("/disasters/comprehensive/satellite-iot", tags=["Comprehensive Disasters"])
+async def get_satellite_iot_data(region: str = "global"):
+    """
+    Satellite & IoT Sensor Data
+    - Weather satellites (GOES, Himawari, Meteosat)
+    - Seismic sensor network
+    - Flood gauges
+    - Air quality monitors
+    - Wildfire detection cameras
+    """
+    return await comprehensive_disaster_engine.get_satellite_iot_data(region)
+
+@api_router.get("/disasters/comprehensive/playbooks", tags=["Comprehensive Disasters"])
+async def get_automated_playbooks():
+    """
+    Automated Response Playbooks
+    - Pre-defined action sequences
+    - Pre-approved actions
+    - Decision trees
+    """
+    return await comprehensive_disaster_engine.get_automated_playbooks()
+
+@api_router.post("/disasters/comprehensive/decision-support", tags=["Comprehensive Disasters"])
+async def get_decision_support(
+    disaster_type: str = "flood",
+    probability: float = 50.0,
+    affected_population: int = 100000
+):
+    """
+    Real-time Decision Support
+    - Urgency scoring
+    - Recommended actions
+    - Resource requirements
+    - What-if scenarios
+    """
+    conditions = {
+        "probability": probability,
+        "affected_population": affected_population,
+        "indicators": ["Rising water levels", "Evacuation recommended"]
+    }
+    return await comprehensive_disaster_engine.get_decision_support(disaster_type, conditions)
+
 @api_router.get("/disasters/predict/earthquake", tags=["Disasters"])
 async def predict_earthquake_risk(region: str = "global"):
     return await disaster_engine.predict_earthquake_risk(region)
