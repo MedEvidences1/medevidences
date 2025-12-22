@@ -3022,6 +3022,515 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </div>
       )}
 
+      {/* HUMAN SIGNALS VIEW */}
+      {activeView === "human_signals" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#00FF94]" />
+                HUMAN SIGNALS INTELLIGENCE
+                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">REAL-TIME</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Population density, Mobility patterns, Emergency calls, Social signals</p>
+            </CardContent>
+          </Card>
+          
+          {humanSignals && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Population */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#00FF94]" />
+                    POPULATION DENSITY
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-xl text-[#00E5FF]">{(humanSignals.population?.total / 1000000000).toFixed(1)}B</div>
+                        <div className="text-xs text-[#888]">Total Pop.</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-xl text-[#00FF94]">{humanSignals.population?.urban_percentage}%</div>
+                        <div className="text-xs text-[#888]">Urban</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-xl text-[#FFD700]">{humanSignals.population?.rural_percentage}%</div>
+                        <div className="text-xs text-[#888]">Rural</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Density Hotspots:</div>
+                      {humanSignals.population?.density_hotspots?.slice(0, 3).map((hs, i) => (
+                        <div key={i} className="flex justify-between items-center p-2 bg-[#0A0A0A] rounded mb-1">
+                          <span className="text-sm">{hs.location}</span>
+                          <div className="text-right">
+                            <div className="font-mono text-[#00E5FF]">{(hs.population / 1000000).toFixed(1)}M</div>
+                            <div className="text-xs text-[#888]">{hs.density_per_km2}/km²</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Mobility */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#FFD700]" />
+                    MOBILITY PATTERNS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Traffic Index</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-32 h-2 bg-[#1F1F1F] rounded-full overflow-hidden">
+                          <div className="h-full bg-[#FFD700]" style={{width: `${humanSignals.mobility?.current_traffic_index}%`}}></div>
+                        </div>
+                        <span className="font-mono text-[#FFD700]">{humanSignals.mobility?.current_traffic_index}%</span>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Transit Status:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(humanSignals.mobility?.transit_status || {}).map(([mode, status]) => (
+                          <div key={mode} className="flex justify-between items-center p-1 bg-[#0A0A0A] rounded">
+                            <span className="text-xs capitalize">{mode}</span>
+                            <Badge className={status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94] text-xs" : "bg-[#FFAA00]/20 text-[#FFAA00] text-xs"}>
+                              {status?.toUpperCase().replace("_", " ")}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Vehicle Flow (per hour):</div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs">Inbound</span>
+                        <span className="font-mono text-[#00E5FF]">{humanSignals.mobility?.real_time_movement?.inbound_city?.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs">Outbound</span>
+                        <span className="font-mono text-[#00FF94]">{humanSignals.mobility?.real_time_movement?.outbound_city?.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Emergency Calls */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-[#FF3333]" />
+                    EMERGENCY CALLS (911)
+                    <Badge className={humanSignals.emergency_calls?.volume_trend === "elevated" ? "bg-[#FFAA00]/20 text-[#FFAA00]" : "bg-[#00FF94]/20 text-[#00FF94]"}>
+                      {humanSignals.emergency_calls?.volume_trend?.toUpperCase()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-2xl text-[#FF3333]">{humanSignals.emergency_calls?.["911_volume_last_hour"]?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">Calls/Hour</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-2xl text-[#00E5FF]">{humanSignals.emergency_calls?.response_time_avg_minutes} min</div>
+                        <div className="text-xs text-[#888]">Avg Response</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Top Call Types:</div>
+                      {humanSignals.emergency_calls?.top_call_types?.slice(0, 3).map((ct, i) => (
+                        <div key={i} className="flex justify-between items-center mb-1">
+                          <span className="text-xs">{ct.type}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 h-1.5 bg-[#1F1F1F] rounded-full overflow-hidden">
+                              <div className="h-full bg-[#9D4EDD]" style={{width: `${ct.percentage}%`}}></div>
+                            </div>
+                            <span className="text-xs text-[#888]">{ct.percentage}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Social Signals */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#00E5FF]" />
+                    SOCIAL SIGNALS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Sentiment Score</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 h-2 bg-[#1F1F1F] rounded-full overflow-hidden">
+                          <div className="h-full bg-[#00E5FF]" style={{width: `${humanSignals.social_signals?.sentiment_score}%`}}></div>
+                        </div>
+                        <span className="font-mono text-[#00E5FF]">{humanSignals.social_signals?.sentiment_score}/100</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Panic Indicator</span>
+                      <Badge className={humanSignals.social_signals?.panic_indicator === "low" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                        {humanSignals.social_signals?.panic_indicator?.toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Trending Topics:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {humanSignals.social_signals?.trending_topics?.map((topic, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">{topic}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Alert Mentions/Hour</span>
+                      <span className="font-mono text-[#FFD700]">{humanSignals.social_signals?.alert_mentions_last_hour?.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Misinformation Detected</span>
+                      <Badge className="bg-[#FF3333]/20 text-[#FF3333]">{humanSignals.social_signals?.misinformation_detected}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SATELLITES/IOT SENSORS VIEW */}
+      {activeView === "sensors" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Satellite className="w-4 h-4 text-[#9D4EDD]" />
+                SATELLITE & IOT SENSOR NETWORK
+                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">GLOBAL COVERAGE</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Weather satellites, Seismic sensors, Flood gauges, Air quality, Wildfire detection</p>
+            </CardContent>
+          </Card>
+          
+          {satelliteIotData && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Weather Satellites */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Satellite className="w-4 h-4 text-[#00E5FF]" />
+                    WEATHER SATELLITES
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {satelliteIotData.satellites?.weather?.map((sat, i) => (
+                      <div key={i} className="flex justify-between items-center p-2 bg-[#0A0A0A] rounded">
+                        <div>
+                          <div className="text-sm font-mono">{sat.name}</div>
+                          <div className="text-xs text-[#888]">{sat.coverage}</div>
+                        </div>
+                        <div className="text-right">
+                          <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">{sat.status?.toUpperCase()}</Badge>
+                          <div className="text-xs text-[#888]">{sat.last_update}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Seismic Network */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-[#FF3333]" />
+                    SEISMIC NETWORK
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#00E5FF]">{satelliteIotData.iot_sensors?.seismic_network?.total_stations?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">Stations</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#00FF94]">{satelliteIotData.iot_sensors?.seismic_network?.stations_reporting?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">Reporting</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#FFD700]">{satelliteIotData.iot_sensors?.seismic_network?.coverage_countries}</div>
+                        <div className="text-xs text-[#888]">Countries</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Recent Detections:</div>
+                      {satelliteIotData.iot_sensors?.seismic_network?.recent_detections?.map((det, i) => (
+                        <div key={i} className="p-2 bg-[#0A0A0A] rounded mb-1 border-l-2 border-l-[#FF3333]">
+                          <div className="flex justify-between">
+                            <span className="text-sm">M{det.magnitude} - {det.location}</span>
+                            <span className="text-xs text-[#888]">{det.time}</span>
+                          </div>
+                          <div className="text-xs text-[#888]">Depth: {det.depth_km} km</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Flood Gauges */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Droplet className="w-4 h-4 text-[#00E5FF]" />
+                    FLOOD GAUGE NETWORK
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#00E5FF]">{satelliteIotData.iot_sensors?.flood_gauges?.total_gauges?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">Gauges</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#FFAA00]">{satelliteIotData.iot_sensors?.flood_gauges?.above_flood_stage}</div>
+                        <div className="text-xs text-[#888]">Above Flood</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#00FF94]">{satelliteIotData.iot_sensors?.flood_gauges?.gauges_reporting?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">Reporting</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Critical Alerts:</div>
+                      {satelliteIotData.iot_sensors?.flood_gauges?.critical_alerts?.map((alert, i) => (
+                        <div key={i} className={`p-2 bg-[#0A0A0A] rounded mb-1 border-l-2 ${alert.status?.includes("Moderate") ? "border-l-[#FFAA00]" : alert.status?.includes("Minor") ? "border-l-[#FFD700]" : "border-l-[#00E5FF]"}`}>
+                          <div className="text-sm">{alert.river}</div>
+                          <div className="text-xs text-[#888]">{alert.location}</div>
+                          <div className="flex justify-between mt-1">
+                            <span className="text-xs">Stage: {alert.stage_ft || alert.stage_m}</span>
+                            <Badge className="text-xs">{alert.status}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Air Quality */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Wind className="w-4 h-4 text-[#FFD700]" />
+                    AIR QUALITY MONITORS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#00E5FF]">{satelliteIotData.iot_sensors?.air_quality?.total_monitors?.toLocaleString()}</div>
+                        <div className="text-xs text-[#888]">Monitors</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#FFAA00]">{satelliteIotData.iot_sensors?.air_quality?.unhealthy_zones}</div>
+                        <div className="text-xs text-[#888]">Unhealthy</div>
+                      </div>
+                      <div className="p-2 bg-[#0A0A0A] rounded">
+                        <div className="font-mono text-lg text-[#FF3333]">{satelliteIotData.iot_sensors?.air_quality?.hazardous_zones}</div>
+                        <div className="text-xs text-[#888]">Hazardous</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Worst AQI Cities:</div>
+                      {satelliteIotData.iot_sensors?.air_quality?.worst_aqi?.map((city, i) => (
+                        <div key={i} className="flex justify-between items-center p-2 bg-[#0A0A0A] rounded mb-1">
+                          <span className="text-sm">{city.city}</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`font-mono ${city.aqi > 300 ? "text-[#9D4EDD]" : city.aqi > 200 ? "text-[#FF3333]" : "text-[#FFAA00]"}`}>{city.aqi}</span>
+                            <Badge className={city.category === "Hazardous" ? "bg-[#9D4EDD]/20 text-[#9D4EDD] text-xs" : city.category === "Very Unhealthy" ? "bg-[#FF3333]/20 text-[#FF3333] text-xs" : "bg-[#FFAA00]/20 text-[#FFAA00] text-xs"}>
+                              {city.category}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AUTOMATED PLAYBOOKS VIEW */}
+      {activeView === "playbooks" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#FFD700]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#FFD700]" />
+                AUTOMATED RESPONSE PLAYBOOKS
+                <Badge className="bg-[#FFD700]/20 text-[#FFD700]">DECISION AUTOMATION</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Pre-defined action sequences, Pre-approved actions, Decision trees</p>
+            </CardContent>
+          </Card>
+          
+          {playbooks && (
+            <div className="space-y-4">
+              {/* Automation Status */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-[#00FF94]" />
+                    AUTOMATION STATUS
+                    <Badge className={playbooks.automation_status?.enabled ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                      {playbooks.automation_status?.enabled ? "ENABLED" : "DISABLED"}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="p-3 bg-[#0A0A0A] rounded text-center">
+                      <div className="font-mono text-2xl text-[#00E5FF]">{playbooks.automation_status?.actions_taken_24h}</div>
+                      <div className="text-xs text-[#888]">Actions (24h)</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded text-center">
+                      <div className="font-mono text-2xl text-[#00FF94]">{playbooks.automation_status?.actions_prevented_disasters}</div>
+                      <div className="text-xs text-[#888]">Disasters Prevented</div>
+                    </div>
+                    <div className="p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-xs text-[#888] mb-1">Last Auto Action:</div>
+                      <div className="text-xs text-[#FFD700]">{playbooks.automation_status?.last_automated_action}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Available Playbooks */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">AVAILABLE PLAYBOOKS</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {playbooks.available_playbooks?.map((pb, i) => (
+                      <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#9D4EDD] transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className="text-sm font-mono text-[#00E5FF]">{pb.id}</div>
+                            <div className="text-sm font-medium">{pb.name}</div>
+                          </div>
+                          <Badge className={pb.status === "active" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#888]/20 text-[#888]"}>
+                            {pb.status?.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-[#888] mb-2">{pb.description}</div>
+                        <div className="text-xs text-[#888]">Last activated: {pb.last_activated}</div>
+                        <div className="mt-2 border-t border-[#1F1F1F] pt-2">
+                          <div className="text-xs text-[#888] mb-1">Phases:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {pb.phases?.map((phase, j) => (
+                              <Badge key={j} variant="outline" className="text-xs">{phase.phase}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Pre-Approved Actions */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Check className="w-4 h-4 text-[#00FF94]" />
+                    PRE-APPROVED ACTIONS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {playbooks.pre_approved_actions?.actions?.map((action, i) => (
+                      <div key={i} className="p-3 bg-[#0A0A0A] rounded border-l-2 border-l-[#00FF94]">
+                        <div className="flex justify-between items-start">
+                          <div className="text-sm">{action.action}</div>
+                          <Badge className={action.automated ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#888]/20 text-[#888]"}>
+                            {action.automated ? "AUTO" : "MANUAL"}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-[#888] mt-1">Authority: {action.authority}</div>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {action.conditions?.map((cond, j) => (
+                            <Badge key={j} variant="outline" className="text-xs bg-[#1F1F1F]">{cond}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Decision Trees */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Network className="w-4 h-4 text-[#9D4EDD]" />
+                    DECISION TREES
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {Object.entries(playbooks.decision_trees || {}).map(([type, tree]) => (
+                      <div key={type} className="p-3 bg-[#0A0A0A] rounded">
+                        <div className="text-sm font-medium capitalize mb-2 text-[#00E5FF]">{type}</div>
+                        <div className="space-y-1">
+                          {Object.entries(tree).map(([condition, action], i) => (
+                            <div key={i} className="text-xs">
+                              <span className="text-[#FFD700]">{condition}</span>
+                              <span className="text-[#888]"> → </span>
+                              <span className="text-[#EDEDED]">{action}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* JUDGMENTAL FORECASTING VIEW - Proprietary Multi-Factor Disaster Prediction */}
       {activeView === "judgmental" && (
         <div className="space-y-4">
