@@ -398,7 +398,7 @@ const useAuth = () => {
 };
 
 // Navigation Component
-const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, logout, language, setLanguage }) => {
+const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, setShowChangePassword, logout, language, setLanguage }) => {
   const tabs = [
     { id: "dashboard", label: "DASHBOARD", icon: Home },
     { id: "forecast", label: "AI_FORECAST", icon: Brain },
