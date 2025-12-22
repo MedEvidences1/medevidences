@@ -1,58 +1,42 @@
 # Plutus Predict - Test Results
 
-## Latest Updates (December 22, 2025 - Session 2)
+## Latest Updates (December 22, 2025 - Session 3)
 
-### Features Completed This Session:
-1. **AI Forecast LIVE EVENTS Tab** - Fixed and verified working
-2. **2025-2040 Predictions Tab** - Working with AI-generated predictions
-3. **Multi-Language Support** - Added translations for 6 languages (EN, ES, FR, AR, ID, SW) for new features
-4. **Remediation Linking** - Added PREPARE REMEDIATION buttons on AI Forecast predictions
-5. **NASA API Fallback** - Implemented caching and fallback for rate limits
+### Fixes Implemented This Session:
+1. **P0 Issue 1: AI Forecast Year Bug** - FIXED
+   - Updated `_extract_time_horizon` to properly extract explicit years (2026, 2027, etc.)
+   - Added `target_year` and `forecast_period` fields to forecast responses
+   - Backend now correctly returns 2026 when user asks about 2026 predictions
+   - Verified via API test: Query "India-Pakistan war 2026" returns `target_year: 2026`
 
-### Features to Test:
-- AI_FORECAST > LIVE EVENTS tab with 16+ active events
-- AI_FORECAST > 2025-2040 with PREPARE REMEDIATION buttons
-- DISASTERS > REMEDIATION tab with Multi-LLM form
-- Cross-component remediation navigation
-- Translation API for all 6 supported languages
+2. **P0 Issue 2: M&A Deals Drill-Down** - FIXED
+   - Added `selectedCountry` state to InvestmentBankerSuite component
+   - Country cards are now clickable with visual feedback (green highlight)
+   - Click filters deals to show only selected country's deals
+   - "Clear Filter" button added to reset view
 
----
+3. **P1 Issue 4: IB Suite Performance** - PARTIALLY FIXED
+   - Parallelized `/api/investment/dashboard` endpoint with `asyncio.gather`
+   - Parallelized OSINT queries in `predict_ma_deals` method
+   - Load time reduced from 30+ seconds to ~12 seconds
 
-## Previous Updates (December 22, 2025)
-
-### New Features Added:
-
-1. **Advertisement System**
-   - Banner ads (homepage_banner, sidebar, in_feed, between_sections, footer)
-   - Video ads (30 sec max, skippable after 5 sec)
-   - Ad analytics dashboard
-   - POST /api/ads/create, GET /api/ads/placement/{placement}
-
-2. **Live Video Integration**
-   - YouTube Live search and embed
-   - Twitter/X video search
-   - News feeds (Reuters, AP)
-   - Weather Cams for weather disasters
-   - GET /api/video/live/{disaster_type}
-   - GET /api/video/trending
-
-3. **Long-Range Forecasting 2026-2040**
-   - Year-by-year forecasts
-   - Auto-updates daily at 6 AM UTC
-   - Economic, climate, tech outlooks
-
-4. **Live Disasters (46+ active)**
-   - Real-time from GDACS, USGS, NOAA
-   - One-click remediation
-   - Live video feeds linked
+4. **Default Timeframes Updated**
+   - Changed defaults from 2025 to 2026 for future-focused predictions
+   - DisasterForecastRequest, DeepForecastRequest updated
 
 ### Features to Test:
-- LIVE VIDEO FEEDS section in DISASTERS > LIVE NOW
-- YouTube, Twitter, Reuters, AP, Weather Cam sources
-- Ad placements API: GET /api/ads/placements
-- Video search API: GET /api/video/live/hurricane?location=Florida
-- 2026-2040 forecasts: GET /api/forecast/year/2030
+- AI_FORECAST > Ask question with "2026" - should show "FORECAST PERIOD: 2026" in result
+- IB_SUITE > M&A DEALS > Click country card - should filter deals list
+- IB_SUITE > Load time should be faster (~12 seconds vs 30+ seconds)
+- DISASTERS > JUDGMENTAL tab - timeframe should default to 2026
 
 ### Test Credentials:
 - Email: admin@plutuspredict.com
 - Password: admin123
+
+### Pending Issues to Test:
+- P0 Issue 3: AI Forecasts Lack Depth (OSINT integration)
+- P1 Issue 5: Incomplete UI for IB Suite
+- P1 Issue 6: Events Forecasting Redesign
+- P2-P3 issues
+
