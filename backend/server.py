@@ -134,6 +134,45 @@ class DashboardRequest(BaseModel):
     notify_on_change: bool = True
 
 # =============================================================================
+# ADMIN SECURITY & EMAIL VERIFICATION MODELS
+# =============================================================================
+
+class AdminLoginRequest(BaseModel):
+    email: str
+    password: str
+
+class AdminVerifyRequest(BaseModel):
+    email: str
+    verification_code: str
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class EnterpriseRegisterRequest(BaseModel):
+    company_name: str
+    admin_email: str
+    admin_password: str
+    admin_name: str
+
+class EnterpriseEmployeeCreate(BaseModel):
+    email: str
+    name: str
+    password: str
+    role: str = "enterprise_employee"  # enterprise_employee, enterprise_manager
+
+class EnterpriseEmployeeUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
+
+# Admin roles that require email verification
+ADMIN_ROLES_REQUIRING_VERIFICATION = ["owner", "super_admin", "enterprise_admin"]
+
+# Trial duration for enterprise customers (5 minutes)
+ENTERPRISE_TRIAL_DURATION_SECONDS = 300  # 5 minutes
+
+# =============================================================================
 # MULTI-LANGUAGE SUPPORT
 # =============================================================================
 
