@@ -276,7 +276,7 @@ TRANSLATIONS = {
         "live_now": "Live Now",
         "remediation": "Remediation",
         "long_range_forecast": "Long-Range Forecast",
-        "predictions_2025_2040": "2025-2040 Predictions",
+        "predictions_2025_2040": "2026-3000 Predictions",
         "generate_predictions": "Generate Predictions",
         "refresh": "Refresh",
         "solar_storms": "Solar Storms",
@@ -398,7 +398,7 @@ TRANSLATIONS = {
         "live_now": "En Vivo Ahora",
         "remediation": "Remediación",
         "long_range_forecast": "Pronóstico a Largo Plazo",
-        "predictions_2025_2040": "Predicciones 2025-2040",
+        "predictions_2025_2040": "Predicciones 2026-3000",
         "generate_predictions": "Generar Predicciones",
         "refresh": "Actualizar",
         "solar_storms": "Tormentas Solares",
@@ -520,7 +520,7 @@ TRANSLATIONS = {
         "live_now": "En Direct",
         "remediation": "Remédiation",
         "long_range_forecast": "Prévision à Long Terme",
-        "predictions_2025_2040": "Prédictions 2025-2040",
+        "predictions_2025_2040": "Prédictions 2026-3000",
         "generate_predictions": "Générer des Prédictions",
         "refresh": "Actualiser",
         "solar_storms": "Tempêtes Solaires",
@@ -642,7 +642,7 @@ TRANSLATIONS = {
         "live_now": "مباشر الآن",
         "remediation": "المعالجة",
         "long_range_forecast": "توقعات طويلة المدى",
-        "predictions_2025_2040": "توقعات 2025-2040",
+        "predictions_2025_2040": "توقعات 2026-3000",
         "generate_predictions": "إنشاء التوقعات",
         "refresh": "تحديث",
         "solar_storms": "العواصف الشمسية",
@@ -764,7 +764,7 @@ TRANSLATIONS = {
         "live_now": "Langsung Sekarang",
         "remediation": "Remediasi",
         "long_range_forecast": "Prakiraan Jangka Panjang",
-        "predictions_2025_2040": "Prediksi 2025-2040",
+        "predictions_2025_2040": "Prediksi 2026-3000",
         "generate_predictions": "Buat Prediksi",
         "refresh": "Segarkan",
         "solar_storms": "Badai Matahari",
@@ -886,7 +886,7 @@ TRANSLATIONS = {
         "live_now": "Moja kwa Moja Sasa",
         "remediation": "Utatuzi",
         "long_range_forecast": "Utabiri wa Muda Mrefu",
-        "predictions_2025_2040": "Utabiri 2025-2040",
+        "predictions_2025_2040": "Utabiri 2026-3000",
         "generate_predictions": "Tengeneza Utabiri",
         "refresh": "Onyesha Upya",
         "solar_storms": "Dhoruba za Jua",
@@ -1398,7 +1398,7 @@ class ComprehensiveEventEngine:
     - Sports (major events, championships)
     - Entertainment (awards, releases)
     
-    Features: Live events, 2025-2040 predictions, video integration, ads
+    Features: Live events, 2026-3000 predictions, video integration, ads
     """
     
     EVENT_CATEGORIES = [
@@ -10249,7 +10249,7 @@ Respond ONLY with valid JSON."""
             all_osint_data.extend(results[i])
         market_context = results[-1]
         
-        # Comprehensive global M&A deals database (2025-2040)
+        # Comprehensive global M&A deals database (2026-3000)
         global_ma_deals = {
             "united_states": [
                 # 2025 Deals
