@@ -1332,92 +1332,149 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
         </div>
       )}
       
-      {/* FORECAST VIEW (Original) */}
+      {/* FORECAST VIEW - Redesigned Mantic.com Style */}
       {activeView === "forecast" && (
         <>
-          {/* Category Selection Grid */}
-          <Card className="terminal-card">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-sm">SELECT A PREDICTION CATEGORY</CardTitle>
-              <CardDescription className="text-[#888] text-xs">All 10 categories use Judgmental Forecasting with 1M+ OSINT sources</CardDescription>
-            </div>
-            <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30">
-              JUDGMENTAL AI
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {predictionCategories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
-                className={`p-3 rounded border transition-all text-center ${
-                  selectedCategory?.id === cat.id 
-                    ? `border-2 bg-[${cat.color}]/10` 
-                    : "border-[#1F1F1F] hover:border-[#333]"
-                }`}
-                style={{borderColor: selectedCategory?.id === cat.id ? cat.color : undefined}}
-              >
-                <div className="text-2xl mb-1">{cat.icon}</div>
-                <div className="text-xs font-bold" style={{color: cat.color}}>{cat.label}</div>
-              </button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Selected Category Examples */}
-      {selectedCategory && (
-        <Card className="terminal-card border-l-4" style={{borderLeftColor: selectedCategory.color}}>
-          <CardHeader className="pb-2">
+          {/* Category Selection Grid - Card Style with Images */}
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <span className="text-xl">{selectedCategory.icon}</span>
-                {selectedCategory.label} PREDICTIONS
-                <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">JUDGMENTAL</Badge>
-              </CardTitle>
+              <div>
+                <h2 className="text-lg font-bold text-white" style={{fontFamily: 'JetBrains Mono, monospace'}}>PREDICTION CATEGORIES</h2>
+                <p className="text-xs text-[#888]">Select a category • All powered by Judgmental Forecasting + 1M+ OSINT</p>
+              </div>
+              <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30 px-3">
+                JUDGMENTAL AI
+              </Badge>
             </div>
-            <CardDescription className="text-[#888] text-xs">
-              {selectedCategory.description} • Powered by multi-LLM ensemble + OSINT
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-[#888] mb-2">Click an example question or type your own:</div>
-            <div className="grid md:grid-cols-2 gap-2">
-              {selectedCategory.examples.map((ex, i) => (
+            
+            {/* Category Cards Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {predictionCategories.map((cat) => (
                 <button
-                  key={i}
-                  onClick={() => selectExample(ex)}
-                  className="p-3 text-left text-sm bg-[#0A0A0A] border border-[#1F1F1F] rounded hover:border-[#00E5FF] hover:bg-[#0A0A0A]/80 transition-colors"
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
+                  data-testid={`category-${cat.id}`}
+                  className={`group relative overflow-hidden rounded-lg border transition-all duration-300 ${
+                    selectedCategory?.id === cat.id 
+                      ? "border-2 ring-2 ring-offset-2 ring-offset-[#050505]" 
+                      : "border-[#1F1F1F] hover:border-[#333] hover:scale-[1.02]"
+                  }`}
+                  style={{
+                    borderColor: selectedCategory?.id === cat.id ? cat.color : undefined,
+                    ringColor: selectedCategory?.id === cat.id ? cat.color : undefined
+                  }}
                 >
-                  <span className="text-[#EDEDED]">{ex}</span>
+                  {/* Background Image */}
+                  <div className="absolute inset-0 opacity-30 group-hover:opacity-50 transition-opacity">
+                    <img 
+                      src={categoryImages[cat.id] || categoryImages.economics} 
+                      alt={cat.label}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent" />
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 p-4 text-center">
+                    <div className="text-3xl mb-2 transform group-hover:scale-110 transition-transform">{cat.icon}</div>
+                    <div className="text-sm font-bold tracking-wide" style={{color: cat.color, fontFamily: 'JetBrains Mono, monospace'}}>{cat.label}</div>
+                    <div className="text-[10px] text-[#888] mt-1 line-clamp-2">{cat.description}</div>
+                  </div>
+                  
+                  {/* Selected indicator */}
+                  {selectedCategory?.id === cat.id && (
+                    <div className="absolute top-2 right-2 w-3 h-3 rounded-full animate-pulse" style={{backgroundColor: cat.color}} />
+                  )}
                 </button>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
 
-      {/* Forecast Input */}
-      <Card className="terminal-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">ASK YOUR PREDICTION QUESTION</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2 mb-4">
-            <Input
-              data-testid="forecast-input"
-              placeholder="e.g., Will there be a magnitude 9+ earthquake in the Pacific by 2030?"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="terminal-input flex-1"
-              onKeyDown={(e) => e.key === "Enter" && generateForecast()}
-            />
-            <Button
-              data-testid="forecast-generate-btn"
+          {/* Selected Category Panel */}
+          {selectedCategory && (
+            <Card className="border-l-4 bg-[#050505] border-[#1F1F1F]" style={{borderLeftColor: selectedCategory.color}}>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl" style={{backgroundColor: `${selectedCategory.color}20`}}>
+                      {selectedCategory.icon}
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2" style={{fontFamily: 'JetBrains Mono, monospace'}}>
+                        {selectedCategory.label}
+                        <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">JUDGMENTAL</Badge>
+                      </CardTitle>
+                      <CardDescription className="text-[#888] text-xs">
+                        {selectedCategory.description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedCategory(null)}
+                    className="text-[#888] hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-[#888] mb-3 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 text-[#FFD700]" />
+                  Click an example to use it, or type your own question below
+                </div>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {selectedCategory.examples.map((ex, i) => (
+                    <button
+                      key={i}
+                      onClick={() => selectExample(ex)}
+                      className="p-4 text-left text-sm bg-[#0A0A0A] border border-[#1F1F1F] rounded-lg hover:border-[#00E5FF] hover:bg-[#0A0A0A]/80 transition-all group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded bg-[#1F1F1F] flex items-center justify-center text-xs text-[#888] group-hover:bg-[#00E5FF] group-hover:text-black transition-colors">
+                          {i + 1}
+                        </div>
+                        <span className="text-[#EDEDED] flex-1">{ex}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Forecast Input - Enhanced Terminal Style */}
+          <Card className="bg-[#050505] border-[#1F1F1F]">
+            <CardHeader className="pb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded bg-[#00E5FF]/10 flex items-center justify-center">
+                  <Brain className="w-4 h-4 text-[#00E5FF]" />
+                </div>
+                <div>
+                  <CardTitle className="text-sm" style={{fontFamily: 'JetBrains Mono, monospace'}}>ASK_PREDICTION_QUESTION</CardTitle>
+                  <CardDescription className="text-xs text-[#888]">
+                    {selectedCategory ? `Category: ${selectedCategory.label}` : 'Select a category above or ask any question'}
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3 mb-4">
+                <div className="flex-1 relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#888] text-sm font-mono">&gt;</div>
+                  <Input
+                    data-testid="forecast-input"
+                    placeholder="e.g., Will there be a magnitude 9+ earthquake in the Pacific by 2030?"
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    className="pl-8 bg-[#0A0A0A] border-[#1F1F1F] focus:border-[#00E5FF] font-mono text-sm h-12"
+                    style={{fontFamily: 'JetBrains Mono, monospace'}}
+                    onKeyDown={(e) => e.key === "Enter" && generateForecast()}
+                  />
+                </div>
+                <Button
+                  data-testid="forecast-generate-btn"
               onClick={generateForecast}
               disabled={loading}
               className="btn-primary"
