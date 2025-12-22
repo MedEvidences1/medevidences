@@ -1656,7 +1656,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     { id: "predict", label: "AI PREDICT", icon: Brain },
     { id: "playbooks", label: "PLAYBOOKS", icon: FileText },
     { id: "intelligence", label: "INTELLIGENCE", icon: Sparkles },
-    { id: "predictions", label: "2025-2026", icon: TrendingUp },
+    { id: "predictions", label: "2026-2030", icon: TrendingUp },
     { id: "longrange", label: "2026-2040", icon: Clock },
     { id: "judgmental", label: "JUDGMENTAL", icon: Target },
     { id: "remediation", label: "REMEDIATION", icon: Wrench },
