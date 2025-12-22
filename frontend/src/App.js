@@ -3676,6 +3676,862 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </div>
       )}
 
+      {/* REMEDIATION INTELLIGENCE VIEW - Enterprise Decision Support */}
+      {activeView === "intelligence" && (
+        <div className="space-y-4">
+          {/* Intelligence Header */}
+          <Card className="terminal-card bg-gradient-to-r from-[#0A0A0A] to-[#1A1A2E]">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-6 h-6 text-[#FFD700]" />
+                  <div>
+                    <CardTitle className="text-lg">REMEDIATION INTELLIGENCE</CardTitle>
+                    <CardDescription className="text-xs text-[#888]">
+                      Enterprise decision support with ROI analysis, simulations & coordination
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button onClick={loadIntelligenceData} disabled={loadingIntelligence} className="terminal-button">
+                  {loadingIntelligence ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                  ANALYZE
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+
+          {/* Intelligence Sub-tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { id: "options", label: "REMEDIATION OPTIONS", icon: Target },
+              { id: "roi", label: "ROI ANALYSIS", icon: TrendingUp },
+              { id: "simulation", label: "WHAT-IF", icon: Activity },
+              { id: "population", label: "POPULATION", icon: Users },
+              { id: "losses", label: "LOSS ESTIMATION", icon: DollarSign },
+              { id: "stakeholders", label: "STAKEHOLDERS", icon: Building2 },
+            ].map(tab => (
+              <Button
+                key={tab.id}
+                onClick={() => setIntelligenceTab(tab.id)}
+                className={`text-xs ${intelligenceTab === tab.id ? "bg-[#00E5FF] text-black" : "bg-[#1F1F1F] text-[#888]"}`}
+              >
+                <tab.icon className="w-3 h-3 mr-1" />
+                {tab.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Configuration Panel */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Settings className="w-4 h-4 text-[#00E5FF]" />
+                SCENARIO CONFIGURATION
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-xs text-[#888]">Disaster Type</label>
+                  <select
+                    value={intelligenceForm.disaster_type}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, disaster_type: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  >
+                    <option value="earthquake">Earthquake</option>
+                    <option value="flood">Flood</option>
+                    <option value="hurricane">Hurricane</option>
+                    <option value="wildfire">Wildfire</option>
+                    <option value="cyber_attack">Cyber Attack</option>
+                    <option value="power_outage">Power Outage</option>
+                    <option value="pandemic">Pandemic</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Severity</label>
+                  <select
+                    value={intelligenceForm.severity}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, severity: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Budget (USD)</label>
+                  <input
+                    type="number"
+                    value={intelligenceForm.budget_usd}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, budget_usd: parseInt(e.target.value)})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Affected Population</label>
+                  <input
+                    type="number"
+                    value={intelligenceForm.affected_population}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, affected_population: parseInt(e.target.value)})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  />
+                </div>
+              </div>
+              <div className="grid md:grid-cols-4 gap-4 mt-4">
+                <div>
+                  <label className="text-xs text-[#888]">Probability (%)</label>
+                  <input
+                    type="number"
+                    value={intelligenceForm.probability}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, probability: parseInt(e.target.value)})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Delay (Hours)</label>
+                  <input
+                    type="number"
+                    value={intelligenceForm.delay_hours}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, delay_hours: parseInt(e.target.value)})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Location</label>
+                  <input
+                    type="text"
+                    value={intelligenceForm.location}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, location: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                    placeholder="City or Region"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Duration (Days)</label>
+                  <input
+                    type="number"
+                    value={intelligenceForm.duration_days}
+                    onChange={(e) => setIntelligenceForm({...intelligenceForm, duration_days: parseInt(e.target.value)})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* REMEDIATION OPTIONS TAB */}
+          {intelligenceTab === "options" && (
+            <div className="space-y-4">
+              {remediationOptions ? (
+                <>
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <Card className="terminal-card bg-[#00FF94]/10 border-[#00FF94]/30">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-[#00FF94]">{remediationOptions.total_options}</div>
+                        <div className="text-xs text-[#888]">Total Options</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="terminal-card bg-[#00E5FF]/10 border-[#00E5FF]/30">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-[#00E5FF]">{remediationOptions.within_budget_count}</div>
+                        <div className="text-xs text-[#888]">Within Budget</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="terminal-card bg-[#FFD700]/10 border-[#FFD700]/30">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-lg font-bold text-[#FFD700]">{remediationOptions.recommended?.name || "N/A"}</div>
+                        <div className="text-xs text-[#888]">Recommended</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="terminal-card bg-[#9D4EDD]/10 border-[#9D4EDD]/30">
+                      <CardContent className="p-4 text-center">
+                        <div className="text-2xl font-bold text-[#9D4EDD]">{remediationOptions.recommended?.scores?.composite || 0}</div>
+                        <div className="text-xs text-[#888]">Best Score</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Target className="w-4 h-4 text-[#00E5FF]" />
+                        RANKED OPTIONS (Cost • Speed • Effectiveness)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {remediationOptions.options?.map((opt, i) => (
+                          <div key={opt.id} className={`p-4 bg-[#0A0A0A] rounded border-l-4 ${opt.within_budget ? "border-l-[#00FF94]" : "border-l-[#FF3333]"}`}>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-[#1F1F1F]">#{i + 1}</Badge>
+                                  <span className="font-medium text-[#EDEDED]">{opt.name}</span>
+                                  <Badge className={`text-xs ${opt.type === "evacuation" ? "bg-[#FF3333]/20 text-[#FF3333]" : opt.type === "prevention" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#00E5FF]/20 text-[#00E5FF]"}`}>
+                                    {opt.type.toUpperCase()}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-[#888] mt-1">{opt.description}</p>
+                              </div>
+                              <Button 
+                                size="sm" 
+                                onClick={() => runROIAnalysis(opt.id)}
+                                className="terminal-button text-xs"
+                              >
+                                ANALYZE ROI
+                              </Button>
+                            </div>
+                            <div className="grid grid-cols-5 gap-4 mt-3">
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-[#00FF94]">${(opt.cost_usd / 1000000).toFixed(1)}M</div>
+                                <div className="text-xs text-[#888]">Cost</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-[#00E5FF]">{opt.speed_hours}h</div>
+                                <div className="text-xs text-[#888]">Speed</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-[#FFD700]">{opt.effectiveness}%</div>
+                                <div className="text-xs text-[#888]">Effective</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-[#9D4EDD]">{opt.lives_saved_potential?.toLocaleString()}</div>
+                                <div className="text-xs text-[#888]">Lives Saved</div>
+                              </div>
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-white">{opt.scores?.composite}</div>
+                                <div className="text-xs text-[#888]">Score</div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                              <div className="flex-1 bg-[#1F1F1F] rounded-full h-2">
+                                <div className="bg-[#00FF94] h-2 rounded-full" style={{width: `${opt.scores?.cost}%`}} />
+                              </div>
+                              <div className="flex-1 bg-[#1F1F1F] rounded-full h-2">
+                                <div className="bg-[#00E5FF] h-2 rounded-full" style={{width: `${opt.scores?.speed}%`}} />
+                              </div>
+                              <div className="flex-1 bg-[#1F1F1F] rounded-full h-2">
+                                <div className="bg-[#FFD700] h-2 rounded-full" style={{width: `${opt.scores?.effectiveness}%`}} />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <div className="text-center text-[#888] py-8">
+                  <Target className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Click ANALYZE to load remediation options</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ROI ANALYSIS TAB */}
+          {intelligenceTab === "roi" && (
+            <div className="space-y-4">
+              {roiAnalysis ? (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-[#FF3333]" />
+                          COST OF ACTION
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-[#FF3333] mb-2">
+                          ${(roiAnalysis.cost_of_action?.direct_cost / 1000000).toFixed(1)}M
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-[#888]">Implementation Time</span>
+                            <span>{roiAnalysis.cost_of_action?.implementation_time}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#888]">Personnel Required</span>
+                            <span>{roiAnalysis.cost_of_action?.resources_required?.personnel}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#888]">Vehicles</span>
+                            <span>{roiAnalysis.cost_of_action?.resources_required?.vehicles}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-[#FFD700]" />
+                          COST OF INACTION
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-[#FFD700] mb-2">
+                          ${((roiAnalysis.cost_of_inaction?.total_inaction_cost || 0) / 1000000000).toFixed(1)}B
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-[#888]">Potential Deaths</span>
+                            <span className="text-[#FF3333]">{roiAnalysis.cost_of_inaction?.potential_deaths?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#888]">Asset Damage</span>
+                            <span>${((roiAnalysis.cost_of_inaction?.asset_damage_usd || 0) / 1000000).toFixed(1)}M</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#888]">Downtime Cost</span>
+                            <span>${((roiAnalysis.cost_of_inaction?.downtime_cost_usd || 0) / 1000000).toFixed(1)}M</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="terminal-card bg-gradient-to-r from-[#00FF94]/10 to-[#00E5FF]/10">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-[#00FF94]" />
+                        ROI ANALYSIS RESULT
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid md:grid-cols-4 gap-4">
+                        <div className="text-center p-4 bg-[#0A0A0A] rounded">
+                          <div className="text-4xl font-bold text-[#00FF94]">{roiAnalysis.roi_analysis?.roi_percentage}%</div>
+                          <div className="text-xs text-[#888]">Return on Investment</div>
+                        </div>
+                        <div className="text-center p-4 bg-[#0A0A0A] rounded">
+                          <div className="text-2xl font-bold text-[#00E5FF]">
+                            ${((roiAnalysis.roi_analysis?.net_benefit || 0) / 1000000000).toFixed(2)}B
+                          </div>
+                          <div className="text-xs text-[#888]">Net Benefit</div>
+                        </div>
+                        <div className="text-center p-4 bg-[#0A0A0A] rounded">
+                          <div className="text-2xl font-bold text-[#FFD700]">{roiAnalysis.roi_analysis?.payback_period}</div>
+                          <div className="text-xs text-[#888]">Payback Period</div>
+                        </div>
+                        <div className="text-center p-4 bg-[#0A0A0A] rounded">
+                          <Badge className={`text-lg px-4 py-2 ${roiAnalysis.roi_analysis?.recommendation?.includes("Strongly") ? "bg-[#00FF94] text-black" : roiAnalysis.roi_analysis?.recommendation?.includes("Recommended") ? "bg-[#00E5FF] text-black" : "bg-[#FFD700] text-black"}`}>
+                            {roiAnalysis.roi_analysis?.recommendation}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-3 gap-4 mt-4">
+                        <div className="p-4 bg-[#0A0A0A] rounded">
+                          <div className="text-xl font-bold text-[#00FF94]">{roiAnalysis.benefits?.lives_saved?.toLocaleString()}</div>
+                          <div className="text-xs text-[#888]">Lives Saved</div>
+                        </div>
+                        <div className="p-4 bg-[#0A0A0A] rounded">
+                          <div className="text-xl font-bold text-[#00E5FF]">
+                            ${((roiAnalysis.benefits?.assets_protected || 0) / 1000000).toFixed(1)}M
+                          </div>
+                          <div className="text-xs text-[#888]">Assets Protected</div>
+                        </div>
+                        <div className="p-4 bg-[#0A0A0A] rounded">
+                          <div className="text-xl font-bold text-[#9D4EDD]">
+                            ${((roiAnalysis.benefits?.downtime_avoided || 0) / 1000000).toFixed(1)}M
+                          </div>
+                          <div className="text-xs text-[#888]">Downtime Avoided</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <div className="text-center text-[#888] py-8">
+                  <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Select a remediation option and click "ANALYZE ROI"</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* WHAT-IF SIMULATION TAB */}
+          {intelligenceTab === "simulation" && (
+            <div className="space-y-4">
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#9D4EDD]" />
+                      WHAT-IF SIMULATION ENGINE
+                    </CardTitle>
+                    <Button onClick={runWhatIfSimulation} disabled={loadingIntelligence} className="terminal-button">
+                      {loadingIntelligence ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                      RUN SIMULATION
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              {whatIfSimulation ? (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <DollarSign className="w-4 h-4 text-[#00FF94]" />
+                          BUDGET ANALYSIS
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Total Budget</span>
+                            <span className="text-xl font-bold text-[#00FF94]">
+                              ${(whatIfSimulation.budget_analysis?.total_budget / 1000000).toFixed(1)}M
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Options Within Budget</span>
+                            <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">
+                              {whatIfSimulation.budget_analysis?.options_within_budget}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Best Option</span>
+                            <span className="text-sm">{whatIfSimulation.budget_analysis?.best_option_within_budget?.name || "N/A"}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Budget Gap for Optimal</span>
+                            <span className="text-[#FFD700]">
+                              ${(whatIfSimulation.budget_analysis?.budget_gap_for_optimal / 1000000).toFixed(1)}M
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-[#FF3333]" />
+                          DELAY ANALYSIS
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Current Delay</span>
+                            <span className="text-xl font-bold text-[#FF3333]">
+                              {whatIfSimulation.delay_analysis?.current_delay}h
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Estimated Loss</span>
+                            <span className="text-[#FFD700]">
+                              ${((whatIfSimulation.delay_analysis?.current_estimated_loss || 0) / 1000000000).toFixed(2)}B
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Critical Window</span>
+                            <Badge className="bg-[#FF3333]/20 text-[#FF3333]">
+                              {whatIfSimulation.delay_analysis?.critical_window}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Time Sensitivity</span>
+                            <Badge className={whatIfSimulation.recommendations?.time_sensitivity === "CRITICAL" ? "bg-[#FF3333]" : whatIfSimulation.recommendations?.time_sensitivity === "HIGH" ? "bg-[#FFD700] text-black" : "bg-[#00FF94] text-black"}>
+                              {whatIfSimulation.recommendations?.time_sensitivity}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Loss Curve Chart */}
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-[#FF3333]" />
+                        LOSS CURVE BY DELAY TIME
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={whatIfSimulation.delay_analysis?.loss_curve || []}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1F1F1F" />
+                            <XAxis dataKey="delay_hours" stroke="#888" label={{ value: 'Delay (hours)', position: 'bottom' }} />
+                            <YAxis stroke="#888" tickFormatter={(v) => `$${(v/1000000000).toFixed(1)}B`} />
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#0A0A0A', border: '1px solid #1F1F1F' }}
+                              formatter={(value) => [`$${(value/1000000000).toFixed(2)}B`, 'Estimated Loss']}
+                            />
+                            <Line type="monotone" dataKey="estimated_loss_usd" stroke="#FF3333" strokeWidth={2} dot={{ fill: '#FF3333' }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* AI Insights */}
+                  {whatIfSimulation.ai_insights && (
+                    <Card className="terminal-card bg-gradient-to-r from-[#9D4EDD]/10 to-[#00E5FF]/10">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Brain className="w-4 h-4 text-[#9D4EDD]" />
+                          AI STRATEGIC INSIGHTS
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-sm text-[#EDEDED] whitespace-pre-wrap">{whatIfSimulation.ai_insights}</div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </>
+              ) : (
+                <div className="text-center text-[#888] py-8">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Configure scenario parameters and click "RUN SIMULATION"</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* POPULATION MAPPING TAB */}
+          {intelligenceTab === "population" && (
+            <div className="space-y-4">
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#00E5FF]" />
+                      ASSET & POPULATION MAPPING
+                    </CardTitle>
+                    <Button onClick={loadPopulationMapping} disabled={loadingIntelligence} className="terminal-button">
+                      {loadingIntelligence ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+                      LOAD MAPPING
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              {populationMapping ? (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">POPULATION OVERVIEW</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold text-[#00E5FF] mb-4">
+                        {populationMapping.population?.total?.toLocaleString()}
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Density</span>
+                          <span>{populationMapping.population?.density_per_km2?.toLocaleString()} /km²</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Residential</span>
+                          <span>{populationMapping.population?.breakdown?.residential?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Commercial</span>
+                          <span>{populationMapping.population?.breakdown?.commercial?.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-[#FF3333]" />
+                        VULNERABLE GROUPS
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {Object.entries(populationMapping.vulnerable_groups || {}).map(([key, value]) => (
+                          <div key={key} className="flex justify-between items-center">
+                            <span className="text-[#888] capitalize">{key.replace(/_/g, ' ')}</span>
+                            <Badge className="bg-[#FF3333]/20 text-[#FF3333]">{value?.toLocaleString()}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-[#FFD700]" />
+                        EVACUATION FEASIBILITY
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Can Self-Evacuate</span>
+                          <span className="text-[#00FF94]">{populationMapping.evacuation_feasibility?.can_self_evacuate?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Needs Assistance</span>
+                          <span className="text-[#FFD700]">{populationMapping.evacuation_feasibility?.needs_assisted_evacuation?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Cannot Evacuate</span>
+                          <span className="text-[#FF3333]">{populationMapping.evacuation_feasibility?.cannot_evacuate?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#888]">Est. Time</span>
+                          <span>{populationMapping.evacuation_feasibility?.estimated_evacuation_time_hours?.toFixed(1)}h</span>
+                        </div>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-[#1F1F1F]">
+                        <div className="text-xs text-[#888] mb-2">Bottlenecks:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {populationMapping.evacuation_feasibility?.bottlenecks?.map((b, i) => (
+                            <Badge key={i} variant="outline" className="text-xs bg-[#1F1F1F]">{b}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="terminal-card">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-[#00FF94]" />
+                        CRITICAL FACILITIES
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(populationMapping.critical_facilities || {}).map(([key, value]) => (
+                          <div key={key} className="p-2 bg-[#0A0A0A] rounded text-center">
+                            <div className="text-lg font-bold text-[#00FF94]">{value}</div>
+                            <div className="text-xs text-[#888] capitalize">{key.replace(/_/g, ' ')}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <div className="text-center text-[#888] py-8">
+                  <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Enter a location and click "LOAD MAPPING"</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* LOSS ESTIMATION TAB */}
+          {intelligenceTab === "losses" && (
+            <div className="space-y-4">
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-[#FFD700]" />
+                      COMPREHENSIVE LOSS ESTIMATION
+                    </CardTitle>
+                    <Button onClick={runLossEstimation} disabled={loadingIntelligence} className="terminal-button">
+                      {loadingIntelligence ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
+                      ESTIMATE LOSSES
+                    </Button>
+                  </div>
+                </CardHeader>
+              </Card>
+
+              {lossEstimation ? (
+                <>
+                  <Card className="terminal-card bg-gradient-to-r from-[#FF3333]/10 to-[#FFD700]/10">
+                    <CardContent className="p-6 text-center">
+                      <div className="text-5xl font-bold text-[#FF3333] mb-2">
+                        ${(lossEstimation.total_estimated_loss_usd / 1000000000).toFixed(2)}B
+                      </div>
+                      <div className="text-sm text-[#888]">Total Estimated Loss</div>
+                    </CardContent>
+                  </Card>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Users className="w-4 h-4 text-[#FF3333]" />
+                          HUMAN IMPACT
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Estimated Deaths</span>
+                            <span className="text-xl font-bold text-[#FF3333]">{lossEstimation.human_impact?.estimated_deaths?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Estimated Injuries</span>
+                            <span className="text-[#FFD700]">{lossEstimation.human_impact?.estimated_injuries?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Displaced Persons</span>
+                            <span>{lossEstimation.human_impact?.displaced_persons?.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Human Cost</span>
+                            <span className="text-[#FF3333]">${(lossEstimation.human_impact?.total_human_cost_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-[#FFD700]" />
+                          PROPERTY LOSSES
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Total Property Loss</span>
+                            <span className="text-xl font-bold text-[#FFD700]">${(lossEstimation.property_losses?.total_property_loss_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Insured</span>
+                            <span className="text-[#00FF94]">${(lossEstimation.property_losses?.insured_loss_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Uninsured</span>
+                            <span className="text-[#FF3333]">${(lossEstimation.property_losses?.uninsured_loss_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Coverage Rate</span>
+                            <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{lossEstimation.property_losses?.insurance_coverage_rate}</Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-[#9D4EDD]" />
+                          ECONOMIC IMPACT
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Short-term GDP Impact</span>
+                            <span>${(lossEstimation.economic_impact?.short_term_gdp_impact_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Long-term GDP Impact</span>
+                            <span className="text-[#9D4EDD]">${(lossEstimation.economic_impact?.long_term_gdp_impact_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-[#888]">Supply Chain Disruption</span>
+                            <span>${(lossEstimation.economic_impact?.supply_chain_disruption_usd / 1000000000).toFixed(2)}B</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-[#00E5FF]" />
+                          RECOVERY TIMELINE
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {Object.entries(lossEstimation.recovery_timeline || {}).map(([key, value]) => (
+                            <div key={key} className="flex justify-between items-center">
+                              <span className="text-[#888] capitalize">{key.replace(/_/g, ' ')}</span>
+                              <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{value}</Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-[#888] py-8">
+                  <DollarSign className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Configure scenario and click "ESTIMATE LOSSES"</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STAKEHOLDERS TAB */}
+          {intelligenceTab === "stakeholders" && (
+            <div className="space-y-4">
+              {stakeholderTypes ? (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {Object.entries(stakeholderTypes.stakeholders || {}).map(([category, subcategories]) => (
+                    <Card key={category} className="terminal-card">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm flex items-center gap-2 capitalize">
+                          {category === "government" && <Building2 className="w-4 h-4 text-[#00E5FF]" />}
+                          {category === "utilities" && <Zap className="w-4 h-4 text-[#FFD700]" />}
+                          {category === "corporations" && <Briefcase className="w-4 h-4 text-[#00FF94]" />}
+                          {category === "first_responders" && <Shield className="w-4 h-4 text-[#FF3333]" />}
+                          {category === "ngo" && <Heart className="w-4 h-4 text-[#9D4EDD]" />}
+                          {category.toUpperCase()}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {Object.entries(subcategories).map(([subcat, entities]) => (
+                            <div key={subcat}>
+                              <div className="text-xs text-[#888] mb-1 capitalize">{subcat.replace(/_/g, ' ')}</div>
+                              <div className="flex flex-wrap gap-1">
+                                {entities.map((entity, i) => (
+                                  <Badge key={i} variant="outline" className="text-xs bg-[#1F1F1F]">{entity}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-[#888] py-8">
+                  <Building2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>Click ANALYZE to load stakeholder data</p>
+                </div>
+              )}
+
+              {/* Communication Channels */}
+              {stakeholderTypes?.communication_channels && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Radio className="w-4 h-4 text-[#00FF94]" />
+                      COMMUNICATION CHANNELS
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      {stakeholderTypes.communication_channels.map((channel, i) => (
+                        <Badge key={i} className="bg-[#00FF94]/20 text-[#00FF94]">{channel}</Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* JUDGMENTAL FORECASTING VIEW - Proprietary Multi-Factor Disaster Prediction */}
       {activeView === "judgmental" && (
         <div className="space-y-4">
