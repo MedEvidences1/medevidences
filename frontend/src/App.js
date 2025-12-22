@@ -8530,6 +8530,10 @@ const MainApp = () => {
         return <OSINTSearch />;
       case "chat":
         return <Chat getHeaders={getHeaders} user={user} setShowAuth={setShowAuth} />;
+      case "terms":
+        return <TermsConditions onBack={() => setActiveTab("dashboard")} />;
+      case "privacy":
+        return <PrivacyPolicy onBack={() => setActiveTab("dashboard")} />;
       default:
         return <Dashboard getHeaders={getHeaders} />;
     }
