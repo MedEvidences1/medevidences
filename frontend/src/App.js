@@ -1469,6 +1469,22 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState("overview");
   
+  // Comprehensive disaster data (Phase 1)
+  const [comprehensiveData, setComprehensiveData] = useState(null);
+  const [infrastructureStatus, setInfrastructureStatus] = useState(null);
+  const [supplyChainStatus, setSupplyChainStatus] = useState(null);
+  const [cyberStatus, setCyberStatus] = useState(null);
+  const [disasterPrediction, setDisasterPrediction] = useState(null);
+  const [fullAnalysis, setFullAnalysis] = useState(null);
+  const [predictionLoading, setPredictionLoading] = useState(false);
+  
+  // Prediction form state
+  const [predictionForm, setPredictionForm] = useState({
+    disaster_type: "flood",
+    region: "global",
+    timeframe_hours: 72
+  });
+  
   // Remediation state
   const [remediationTypes, setRemediationTypes] = useState(null);
   const [remediationPlan, setRemediationPlan] = useState(null);
@@ -1501,7 +1517,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes] = await Promise.all([
+      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes, compRes, infraRes, scRes, cyberRes] = await Promise.all([
         axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=20`),
         axios.get(`${API}/disasters/weather-alerts`),
         axios.get(`${API}/disasters/global`),
@@ -1510,6 +1526,11 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         axios.get(`${API}/disasters/sensors`),
         axios.get(`${API}/disasters/economic-impact`),
         axios.get(`${API}/disasters/remediation/disaster-types`),
+        // New comprehensive endpoints
+        axios.get(`${API}/disasters/comprehensive`),
+        axios.get(`${API}/disasters/comprehensive/infrastructure`),
+        axios.get(`${API}/disasters/comprehensive/supply-chain`),
+        axios.get(`${API}/disasters/comprehensive/cyber`),
       ]);
       setEarthquakes(eqRes.data.earthquakes || []);
       setWeatherAlerts(wxRes.data.alerts || []);
@@ -1519,6 +1540,11 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       setSensors(sensorRes.data);
       setEconomicImpact(econRes.data);
       setRemediationTypes(remTypesRes.data);
+      // New comprehensive data
+      setComprehensiveData(compRes.data);
+      setInfrastructureStatus(infraRes.data);
+      setSupplyChainStatus(scRes.data);
+      setCyberStatus(cyberRes.data);
     } catch (e) {
       console.error(e);
     }
@@ -1526,6 +1552,23 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+  
+  // Run disaster prediction
+  const runPrediction = async () => {
+    setPredictionLoading(true);
+    try {
+      const res = await axios.post(
+        `${API}/disasters/comprehensive/full-analysis?disaster_type=${predictionForm.disaster_type}&region=${predictionForm.region}&timeframe_hours=${predictionForm.timeframe_hours}`
+      );
+      setFullAnalysis(res.data);
+      setDisasterPrediction(res.data.prediction);
+      toast.success("Full disaster analysis complete!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Prediction failed");
+    }
+    setPredictionLoading(false);
+  };
   
   const generateRemediationPlan = async () => {
     if (!remediationForm.location) {
