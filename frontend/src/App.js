@@ -9056,6 +9056,19 @@ const MainApp = () => {
         isOpen={showChangePassword}
         onClose={() => setShowChangePassword(false)}
       />
+      
+      {/* Payment Required Modal - Shows when trial expires */}
+      <PaymentRequiredModal
+        isOpen={showPaymentRequired}
+        onClose={() => {
+          setShowPaymentRequired(false);
+          logout();
+        }}
+        onUpgrade={() => {
+          setShowPaymentRequired(false);
+          setActiveTab("pricing");
+        }}
+      />
 
       {/* Footer */}
       <footer className="border-t border-[#1F1F1F] mt-12 py-8">
