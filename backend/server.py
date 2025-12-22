@@ -9346,21 +9346,34 @@ async def register(user: UserCreate):
         raise HTTPException(400, "Email already exists")
     
     user_id = str(uuid.uuid4())
+    trial_started = datetime.now(timezone.utc)
+    trial_expires = trial_started + timedelta(seconds=ENTERPRISE_TRIAL_DURATION_SECONDS)  # 5 minutes for ALL users
+    
     user_doc = {
         "id": user_id,
         "email": user.email,
         "password_hash": hash_password(user.password),
         "name": user.name,
         "role": "user",
-        "plan": "free",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "plan": "trial",  # All users start with trial, no free tier
+        "subscription_status": "trial",
+        "trial_started_at": trial_started.isoformat(),
+        "trial_expires_at": trial_expires.isoformat(),
+        "created_at": trial_started.isoformat()
     }
     await db.users.insert_one(user_doc)
     
     token = create_session(user_id)
     await db.sessions.insert_one({"token": token, "user_id": user_id, "created_at": datetime.now(timezone.utc).isoformat()})
     
-    return {"user_id": user_id, "token": token, "name": user.name}
+    return {
+        "user_id": user_id, 
+        "token": token, 
+        "name": user.name,
+        "plan": "trial",
+        "trial_expires_at": trial_expires.isoformat(),
+        "trial_duration_seconds": ENTERPRISE_TRIAL_DURATION_SECONDS
+    }
 
 @api_router.post("/auth/login", tags=["Authentication"])
 async def login(user: UserLogin):
@@ -9371,7 +9384,28 @@ async def login(user: UserLogin):
     token = create_session(db_user["id"])
     await db.sessions.insert_one({"token": token, "user_id": db_user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
     
-    return {"user_id": db_user["id"], "token": token, "name": db_user["name"], "role": db_user["role"], "plan": db_user.get("plan", "free")}
+    # Check trial status for non-paid users
+    trial_info = {}
+    if db_user.get("subscription_status") == "trial" and db_user.get("trial_expires_at"):
+        trial_expires = datetime.fromisoformat(db_user["trial_expires_at"].replace('Z', '+00:00'))
+        now = datetime.now(timezone.utc)
+        is_expired = now > trial_expires
+        remaining = max(0, (trial_expires - now).total_seconds())
+        trial_info = {
+            "trial_expires_at": db_user["trial_expires_at"],
+            "trial_expired": is_expired,
+            "trial_remaining_seconds": int(remaining)
+        }
+    
+    return {
+        "user_id": db_user["id"], 
+        "token": token, 
+        "name": db_user["name"], 
+        "role": db_user["role"], 
+        "plan": db_user.get("plan", "trial"),
+        "subscription_status": db_user.get("subscription_status", "trial"),
+        **trial_info
+    }
 
 @api_router.post("/auth/logout", tags=["Authentication"])
 async def logout(authorization: str = Header(None)):
