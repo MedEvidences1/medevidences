@@ -8486,6 +8486,51 @@ async def get_forecast_categories():
         "last_update": long_range_forecaster.last_auto_update.isoformat() if long_range_forecaster.last_auto_update else None
     }
 
+# =============================================================================
+# API ENDPOINTS - COMPREHENSIVE EVENT FORECASTING
+# =============================================================================
+
+@api_router.get("/events/live", tags=["Event Forecasting"])
+async def get_live_events(category: str = None):
+    """
+    Get live events happening NOW across all categories
+    Categories: economic, geopolitical, technology, social, climate, health, crypto, space
+    """
+    events = await event_engine.get_live_events(category)
+    return events
+
+@api_router.get("/events/predictions", tags=["Event Forecasting"])
+async def get_event_predictions(category: str = None, timeframe: str = "2025-2026"):
+    """
+    Get AI-powered event predictions for any category and timeframe
+    """
+    predictions = await event_engine.generate_event_predictions(category, timeframe)
+    return predictions
+
+@api_router.get("/events/daily-briefing", tags=["Event Forecasting"])
+async def get_event_daily_briefing():
+    """
+    Get AI-generated daily event briefing across all categories
+    """
+    briefing = await event_engine.get_daily_event_briefing()
+    return briefing
+
+@api_router.get("/events/video/{event_type}", tags=["Event Forecasting"])
+async def get_event_video_feeds(event_type: str, keywords: str = ""):
+    """
+    Get live video feeds for a specific event type
+    """
+    feeds = await event_engine.get_video_feeds_for_event(event_type, keywords)
+    return feeds
+
+@api_router.get("/events/categories", tags=["Event Forecasting"])
+async def get_event_categories():
+    """Get all available event categories"""
+    return {
+        "categories": event_engine.EVENT_CATEGORIES,
+        "description": "Comprehensive event forecasting for all types of global events"
+    }
+
 class JudgmentalForecastRequest(BaseModel):
     question: str
     context: Optional[str] = ""
