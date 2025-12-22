@@ -1652,6 +1652,11 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const [playbooks, setPlaybooks] = useState(null);
   const [decisionSupport, setDecisionSupport] = useState(null);
   
+  // Phase 2 individual loading states
+  const [humanSignalsLoading, setHumanSignalsLoading] = useState(false);
+  const [satelliteLoading, setSatelliteLoading] = useState(false);
+  const [playbooksLoading, setPlaybooksLoading] = useState(false);
+  
   // Prediction form state
   const [predictionForm, setPredictionForm] = useState({
     disaster_type: "flood",
