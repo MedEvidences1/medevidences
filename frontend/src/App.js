@@ -8773,6 +8773,7 @@ const MainApp = () => {
   
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showAuth, setShowAuth] = useState(location.pathname === "/admin" && !localStorage.getItem("token"));
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const { user, token, login, register, logout, getHeaders, setUser } = useAuth();
   const { language, setLanguage, t, isRTL } = useLanguage();
 
