@@ -805,7 +805,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const views = [
     { id: "forecast", label: "FORECAST", icon: Brain },
     { id: "live", label: "LIVE EVENTS", icon: Radio },
-    { id: "predictions", label: "2025-2040", icon: TrendingUp },
+    { id: "predictions", label: "2026-3000", icon: TrendingUp },
   ];
   
   const loadLiveEvents = useCallback(async () => {
@@ -831,9 +831,9 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const loadEventPredictions = async () => {
     setLoadingEvents(true);
     try {
-      const res = await axios.get(`${API}/events/predictions?timeframe=2025-2040`);
+      const res = await axios.get(`${API}/events/predictions?timeframe=2026-3000`);
       setEventPredictions(res.data);
-      toast.success("Event predictions generated!");
+      toast.success("Future predictions generated for 2026-3000!");
     } catch (e) {
       toast.error("Failed to load predictions");
     }
