@@ -2129,6 +2129,7 @@ class JudgmentalForecastEngine:
         
         # Seasonal adjustments (projected for target year)
         # Use average seasonal factor since we're forecasting future years
+        current_month = datetime.now(timezone.utc).month
         seasonal_factors = {
             "hurricane": {6: 1.2, 7: 1.5, 8: 2.0, 9: 2.5, 10: 2.0, 11: 1.2},
             "wildfire": {6: 1.5, 7: 2.0, 8: 2.5, 9: 2.0, 10: 1.5},
