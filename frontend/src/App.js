@@ -1286,21 +1286,28 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
           {/* Category Selection Grid */}
           <Card className="terminal-card">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm">SELECT A PREDICTION CATEGORY</CardTitle>
-          <CardDescription className="text-[#888] text-xs">Choose a category to see example questions or type your own below</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-sm">SELECT A PREDICTION CATEGORY</CardTitle>
+              <CardDescription className="text-[#888] text-xs">All 10 categories use Judgmental Forecasting with 1M+ OSINT sources</CardDescription>
+            </div>
+            <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30">
+              JUDGMENTAL AI
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {predictionCategories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                onClick={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
                 className={`p-3 rounded border transition-all text-center ${
-                  selectedCategory === cat.id 
+                  selectedCategory?.id === cat.id 
                     ? `border-2 bg-[${cat.color}]/10` 
                     : "border-[#1F1F1F] hover:border-[#333]"
                 }`}
-                style={{borderColor: selectedCategory === cat.id ? cat.color : undefined}}
+                style={{borderColor: selectedCategory?.id === cat.id ? cat.color : undefined}}
               >
                 <div className="text-2xl mb-1">{cat.icon}</div>
                 <div className="text-xs font-bold" style={{color: cat.color}}>{cat.label}</div>
@@ -1312,20 +1319,23 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
 
       {/* Selected Category Examples */}
       {selectedCategory && (
-        <Card className="terminal-card border-l-4" style={{borderLeftColor: predictionCategories.find(c => c.id === selectedCategory)?.color}}>
+        <Card className="terminal-card border-l-4" style={{borderLeftColor: selectedCategory.color}}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <span className="text-xl">{predictionCategories.find(c => c.id === selectedCategory)?.icon}</span>
-              {predictionCategories.find(c => c.id === selectedCategory)?.label} PREDICTIONS
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <span className="text-xl">{selectedCategory.icon}</span>
+                {selectedCategory.label} PREDICTIONS
+                <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">JUDGMENTAL</Badge>
+              </CardTitle>
+            </div>
             <CardDescription className="text-[#888] text-xs">
-              {predictionCategories.find(c => c.id === selectedCategory)?.description}
+              {selectedCategory.description} • Powered by multi-LLM ensemble + OSINT
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-xs text-[#888] mb-2">Click an example question or type your own:</div>
             <div className="grid md:grid-cols-2 gap-2">
-              {predictionCategories.find(c => c.id === selectedCategory)?.examples.map((ex, i) => (
+              {selectedCategory.examples.map((ex, i) => (
                 <button
                   key={i}
                   onClick={() => selectExample(ex)}
