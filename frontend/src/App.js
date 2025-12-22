@@ -3263,7 +3263,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
             </CardContent>
           </Card>
           
-          {satelliteIotData && (
+          {satelliteIotData ? (
             <div className="grid md:grid-cols-2 gap-4">
               {/* Weather Satellites */}
               <Card className="terminal-card">
