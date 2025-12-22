@@ -724,14 +724,19 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const loadLiveEvents = useCallback(async () => {
     setLoadingEvents(true);
     try {
-      const [eventsRes, briefingRes] = await Promise.all([
-        axios.get(`${API}/events/live`),
-        axios.get(`${API}/events/daily-briefing`).catch(() => ({ data: null }))
-      ]);
+      const eventsRes = await axios.get(`${API}/events/live`);
+      console.log("Live events loaded:", eventsRes.data);
       setLiveEvents(eventsRes.data);
-      if (briefingRes.data) setEventBriefing(briefingRes.data);
+      
+      // Load briefing separately
+      try {
+        const briefingRes = await axios.get(`${API}/events/daily-briefing`);
+        setEventBriefing(briefingRes.data);
+      } catch (e) {
+        console.log("Briefing not available");
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Error loading live events:", e);
     }
     setLoadingEvents(false);
   }, []);
