@@ -990,19 +990,26 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
     }
     setLoading(true);
     try {
-      // Use Judgmental Forecasting Engine for enhanced predictions
-      const res = await axios.post(`${API}/judgmental-forecast`, { 
+      // Use Category-based Judgmental Forecasting for all 10 categories
+      const categoryId = selectedCategory?.id || "economics";
+      const res = await axios.post(`${API}/judgmental-forecast/category`, { 
+        category: categoryId,
         question,
-        include_factors: true
+        timeframe: "2026-3000",
+        include_osint: true,
+        include_astrology: false
       }, { headers: getHeaders() });
       setForecast(res.data);
-      toast.success("Judgmental forecast generated!");
+      toast.success(`Judgmental forecast generated for ${selectedCategory?.label || 'ECONOMICS'}!`);
     } catch (e) {
-      // Fallback to standard forecast
+      // Fallback to standard judgmental forecast
       try {
-        const res = await axios.post(`${API}/forecast`, { question }, { headers: getHeaders() });
+        const res = await axios.post(`${API}/judgmental-forecast`, { 
+          question,
+          include_factors: true
+        }, { headers: getHeaders() });
         setForecast(res.data);
-        toast.success("Forecast generated!");
+        toast.success("Judgmental forecast generated!");
       } catch (e2) {
         toast.error(e2.response?.data?.detail || "Failed to generate forecast");
       }
