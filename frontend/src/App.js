@@ -7836,6 +7836,20 @@ const MainApp = () => {
     }
   }, [activeTab]);
 
+  // Handle cross-component remediation navigation
+  const [pendingRemediation, setPendingRemediation] = useState(null);
+  
+  useEffect(() => {
+    const handleOpenRemediation = (event) => {
+      const { detail } = event;
+      setPendingRemediation(detail);
+      setActiveTab("disasters");
+    };
+    
+    window.addEventListener('openRemediation', handleOpenRemediation);
+    return () => window.removeEventListener('openRemediation', handleOpenRemediation);
+  }, []);
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
