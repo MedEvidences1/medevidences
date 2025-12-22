@@ -1704,6 +1704,8 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   // Judgmental Disaster Forecasting state
   const [judgmentalForecast, setJudgmentalForecast] = useState(null);
   const [loadingJudgmental, setLoadingJudgmental] = useState(false);
+  const [includeAstrology, setIncludeAstrology] = useState(false);
+  const [astrologyReconciliation, setAstrologyReconciliation] = useState(null);
   const [judgmentalForm, setJudgmentalForm] = useState({
     disaster_type: "earthquake",
     location: "",
