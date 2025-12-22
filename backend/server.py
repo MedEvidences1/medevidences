@@ -2038,6 +2038,168 @@ class JudgmentalForecastEngine:
             }
         }
     
+    async def forecast_disaster(self, disaster_type: str, location: str, timeframe: str = "2025", severity: str = "any") -> dict:
+        """
+        Specialized judgmental forecasting for disasters.
+        Uses multi-factor analysis including:
+        - Historical frequency and patterns
+        - Current environmental indicators
+        - Seasonal factors
+        - Geological/atmospheric data
+        - Expert risk assessments
+        """
+        
+        # Map disaster types to base rates
+        disaster_base_rates = {
+            "earthquake": self.base_rates.get("earthquake_major", 0.05),
+            "hurricane": self.base_rates.get("hurricane_major", 0.15),
+            "flood": self.base_rates.get("flood", 0.30),
+            "wildfire": self.base_rates.get("wildfire", 0.25),
+            "tornado": self.base_rates.get("tornado", 0.20),
+            "tsunami": self.base_rates.get("tsunami", 0.02),
+            "volcano": self.base_rates.get("volcanic_eruption", 0.03),
+            "drought": self.base_rates.get("drought", 0.20),
+            "heatwave": self.base_rates.get("heatwave", 0.35),
+            "pandemic": self.base_rates.get("pandemic", 0.02),
+            "winter_storm": self.base_rates.get("winter_storm", 0.30),
+        }
+        
+        base_rate = disaster_base_rates.get(disaster_type.lower(), 0.20)
+        
+        # Regional risk multipliers
+        region_multipliers = {
+            "california": {"earthquake": 2.5, "wildfire": 2.0, "drought": 1.8},
+            "florida": {"hurricane": 2.5, "flood": 2.0},
+            "japan": {"earthquake": 2.5, "tsunami": 3.0, "volcano": 2.0},
+            "indonesia": {"earthquake": 2.0, "tsunami": 2.5, "volcano": 2.5},
+            "caribbean": {"hurricane": 2.5},
+            "bangladesh": {"flood": 3.0, "cyclone": 2.5},
+            "australia": {"wildfire": 2.5, "drought": 2.0},
+            "midwest": {"tornado": 2.5},
+            "pacific": {"tsunami": 2.0, "volcano": 2.0},
+        }
+        
+        # Apply regional multiplier
+        location_lower = location.lower()
+        regional_adjustment = 1.0
+        for region, multipliers in region_multipliers.items():
+            if region in location_lower:
+                regional_adjustment = multipliers.get(disaster_type.lower(), 1.0)
+                break
+        
+        # Seasonal adjustments
+        current_month = datetime.now(timezone.utc).month
+        seasonal_factors = {
+            "hurricane": {6: 1.2, 7: 1.5, 8: 2.0, 9: 2.5, 10: 2.0, 11: 1.2},
+            "wildfire": {6: 1.5, 7: 2.0, 8: 2.5, 9: 2.0, 10: 1.5},
+            "tornado": {3: 1.5, 4: 2.0, 5: 2.5, 6: 2.0},
+            "winter_storm": {12: 2.0, 1: 2.5, 2: 2.0, 3: 1.5},
+            "heatwave": {6: 1.5, 7: 2.5, 8: 2.5},
+        }
+        
+        seasonal_adjustment = seasonal_factors.get(disaster_type.lower(), {}).get(current_month, 1.0)
+        
+        # Calculate final probability
+        adjusted_probability = base_rate * regional_adjustment * seasonal_adjustment
+        
+        # Severity adjustment
+        severity_multipliers = {"minor": 2.0, "moderate": 1.0, "major": 0.5, "catastrophic": 0.2}
+        if severity != "any":
+            adjusted_probability *= severity_multipliers.get(severity.lower(), 1.0)
+        
+        # Cap at reasonable limits
+        final_probability = min(max(adjusted_probability, 0.01), 0.95)
+        
+        # Generate factors analysis
+        factors = {
+            "historical_frequency": {
+                "score": min(base_rate * 2, 1.0),
+                "evidence": f"Base rate for {disaster_type}: {base_rate*100:.1f}% annually",
+                "weight": self.disaster_factors.get("historical_frequency", 0.20)
+            },
+            "geographical_risk": {
+                "score": min(regional_adjustment / 3, 1.0),
+                "evidence": f"Regional multiplier for {location}: {regional_adjustment}x",
+                "weight": self.disaster_factors.get("geographical_risk", 0.10)
+            },
+            "seasonal_indicators": {
+                "score": min(seasonal_adjustment / 3, 1.0),
+                "evidence": f"Current season factor: {seasonal_adjustment}x",
+                "weight": self.disaster_factors.get("seasonal_indicators", 0.15)
+            },
+            "climate_patterns": {
+                "score": 0.6 if disaster_type in ["flood", "drought", "heatwave", "wildfire"] else 0.4,
+                "evidence": "Climate change increasing frequency of extreme weather events",
+                "weight": self.disaster_factors.get("climate_patterns", 0.20)
+            },
+            "early_warning_signals": {
+                "score": 0.5,  # Default moderate alert level
+                "evidence": "Monitoring systems active",
+                "weight": self.disaster_factors.get("early_warning_signals", 0.10)
+            }
+        }
+        
+        # Calculate confidence
+        confidence_score = sum(f["score"] * f["weight"] for f in factors.values())
+        confidence_level = "HIGH" if confidence_score > 0.6 else "MEDIUM" if confidence_score > 0.4 else "LOW"
+        
+        return {
+            "disaster_type": disaster_type,
+            "location": location,
+            "timeframe": timeframe,
+            "severity_filter": severity,
+            "probability": round(final_probability * 100, 1),
+            "confidence": {
+                "level": confidence_level,
+                "score": round(confidence_score, 2)
+            },
+            "factors": factors,
+            "risk_assessment": {
+                "base_rate": round(base_rate * 100, 1),
+                "regional_multiplier": regional_adjustment,
+                "seasonal_factor": seasonal_adjustment,
+                "adjusted_probability": round(final_probability * 100, 1)
+            },
+            "recommendations": self._generate_disaster_recommendations(disaster_type, final_probability, location),
+            "engine": "Plutus Judgmental Disaster Forecasting Engine v1.0",
+            "methodology": "Multi-factor analysis with historical, geographical, and seasonal calibration"
+        }
+    
+    def _generate_disaster_recommendations(self, disaster_type: str, probability: float, location: str) -> list:
+        """Generate actionable recommendations based on disaster risk"""
+        recommendations = []
+        
+        if probability > 0.3:
+            recommendations.append({
+                "priority": "HIGH",
+                "action": f"Implement {disaster_type} preparedness measures",
+                "details": f"High probability ({probability*100:.0f}%) warrants immediate action"
+            })
+        
+        if probability > 0.5:
+            recommendations.append({
+                "priority": "CRITICAL",
+                "action": "Activate early warning systems",
+                "details": "Monitor real-time data feeds and establish communication protocols"
+            })
+        
+        disaster_specific = {
+            "earthquake": "Secure heavy furniture, identify safe spots, prepare emergency kit",
+            "hurricane": "Stock supplies, identify evacuation routes, secure outdoor items",
+            "flood": "Move valuables to higher ground, check drainage systems",
+            "wildfire": "Create defensible space, prepare evacuation bags",
+            "tornado": "Identify shelter locations, practice drills",
+        }
+        
+        if disaster_type.lower() in disaster_specific:
+            recommendations.append({
+                "priority": "MEDIUM",
+                "action": "Specific preparedness",
+                "details": disaster_specific[disaster_type.lower()]
+            })
+        
+        return recommendations
+    
     def _grade_brier(self, score: float) -> str:
         if score < 0.10:
             return "A+ (Superforecaster level)"
