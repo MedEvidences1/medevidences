@@ -12773,28 +12773,51 @@ async def startup():
     await db.astrology_predictions.create_index("reconciled")
     await db.deep_forecasts.create_index("id", unique=True)
     
-    # Create admin user if not exists
-    admin = await db.users.find_one({"email": "admin@plutuspredict.com"})
-    if not admin:
-        admin_id = str(uuid.uuid4())
-        await db.users.insert_one({
-            "id": admin_id,
-            "email": "admin@plutuspredict.com",
-            "password_hash": hash_password("admin123"),
-            "name": "Admin",
-            "role": "admin",
-            "plan": "enterprise",
-            "alert_preferences": {"reconciliation": True, "high_risk": True},
-            "created_at": datetime.now(timezone.utc).isoformat()
-        })
-        logger.info("Admin user created: admin@plutuspredict.com / admin123")
-    else:
-        # Update existing admin with alert preferences if not present
-        if "alert_preferences" not in admin:
+    # Create/Update owner admin user
+    owner_admin = await db.users.find_one({"role": "owner"})
+    if not owner_admin:
+        # Check if old admin exists
+        old_admin = await db.users.find_one({"email": "admin@plutuspredict.com"})
+        if old_admin:
+            # Update old admin to owner role with new credentials
             await db.users.update_one(
                 {"email": "admin@plutuspredict.com"},
-                {"$set": {"alert_preferences": {"reconciliation": True, "high_risk": True}}}
+                {"$set": {
+                    "email": "parimal@plutuspredict.com",
+                    "password_hash": hash_password("Brickell123$"),
+                    "role": "owner",
+                    "name": "Owner Admin",
+                    "plan": "enterprise",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
             )
+            logger.info("Owner admin updated: parimal@plutuspredict.com")
+        else:
+            # Create new owner admin
+            admin_id = str(uuid.uuid4())
+            await db.users.insert_one({
+                "id": admin_id,
+                "email": "parimal@plutuspredict.com",
+                "password_hash": hash_password("Brickell123$"),
+                "name": "Owner Admin",
+                "role": "owner",
+                "plan": "enterprise",
+                "alert_preferences": {"reconciliation": True, "high_risk": True},
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            logger.info("Owner admin created: parimal@plutuspredict.com")
+    else:
+        # Ensure owner admin has correct email and password
+        if owner_admin.get("email") != "parimal@plutuspredict.com":
+            await db.users.update_one(
+                {"role": "owner"},
+                {"$set": {
+                    "email": "parimal@plutuspredict.com",
+                    "password_hash": hash_password("Brickell123$"),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            logger.info("Owner admin credentials updated")
     
     # Create sample predictions
     count = await db.predictions.count_documents({})
