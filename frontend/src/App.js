@@ -1140,7 +1140,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
         </div>
       )}
       
-      {/* PREDICTIONS VIEW (2025-2040) */}
+      {/* PREDICTIONS VIEW (2026-3000) */}
       {activeView === "predictions" && (
         <div className="space-y-4">
           <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
