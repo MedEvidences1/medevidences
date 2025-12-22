@@ -758,7 +758,14 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
-        # NEW SPACE HAZARDS FEATURES - Priority tests from review request
+        # PHASE 2 FEATURES - Priority tests from current review request
+        print("\n🎯 Testing PHASE 2 Features (Current Priority):")
+        self.test_future_predictions_2026_3000()  # PHASE 2: Dashboard future forecasts 2026-3000
+        self.test_disasters_human_signals()  # PHASE 2: Human Signals tab
+        self.test_disasters_satellite_iot()  # PHASE 2: Satellites/IoT tab  
+        self.test_disasters_playbooks()  # PHASE 2: Playbooks tab
+        
+        # NEW SPACE HAZARDS FEATURES - Previous features
         print("\n🌌 Testing NEW SPACE HAZARDS Features:")
         self.test_space_hazards_current()  # NEW: Current space weather data
         self.test_space_hazards_forecast()  # NEW: 7-day space weather forecast
