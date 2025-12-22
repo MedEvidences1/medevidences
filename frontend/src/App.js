@@ -8867,6 +8867,7 @@ const MainApp = () => {
         setActiveTab={setActiveTab}
         user={user}
         setShowAuth={setShowAuth}
+        setShowChangePassword={setShowChangePassword}
         logout={logout}
         language={language}
         setLanguage={setLanguage}
