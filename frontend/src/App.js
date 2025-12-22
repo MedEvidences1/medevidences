@@ -844,7 +844,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
     if (activeView === "live") loadLiveEvents();
   }, [activeView, loadLiveEvents]);
 
-  // Prediction categories with comprehensive coverage
+  // Prediction categories with comprehensive coverage (2026-3000 timeframe)
   const predictionCategories = [
     {
       id: "economics",
@@ -852,10 +852,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "📈",
       color: "#00FF94",
       examples: [
-        "Will US Fed cut interest rates in Q1 2025?",
-        "Will inflation exceed 4% in the Eurozone by mid-2025?",
-        "Will China's GDP growth fall below 4% in 2025?",
-        "Will the US dollar strengthen against the Euro in 2025?"
+        "Will US Fed cut interest rates below 2% by 2027?",
+        "Will inflation exceed 5% in the Eurozone by 2028?",
+        "Will China's GDP surpass US GDP by 2035?",
+        "Will a global digital currency be adopted by 2030?"
       ],
       description: "Interest rates, inflation, GDP, currency, recession"
     },
@@ -865,10 +865,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🌍",
       color: "#00E5FF",
       examples: [
-        "Will Ukraine-Russia peace talks succeed in 2025?",
-        "Will China take military action against Taiwan by 2026?",
-        "Will Iran develop nuclear weapons by 2026?",
-        "Will NATO expand to include new members in 2025?"
+        "Will Ukraine-Russia conflict be fully resolved by 2028?",
+        "Will China reunify with Taiwan by 2035?",
+        "Will there be a major Middle East peace treaty by 2030?",
+        "Will NATO membership exceed 40 countries by 2030?"
       ],
       description: "Wars, conflicts, treaties, international relations"
     },
@@ -878,10 +878,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🤖",
       color: "#9D4EDD",
       examples: [
-        "Will AGI be achieved by any lab before 2027?",
-        "Will Apple release AR glasses in 2025?",
-        "Will quantum computers break RSA encryption by 2030?",
-        "Will self-driving cars be fully legal in the US by 2026?"
+        "Will AGI be achieved by any lab before 2030?",
+        "Will brain-computer interfaces be mainstream by 2035?",
+        "Will quantum computers break RSA encryption by 2035?",
+        "Will autonomous vehicles dominate transportation by 2040?"
       ],
       description: "AI, quantum computing, autonomous systems, biotech"
     },
@@ -891,10 +891,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "💰",
       color: "#FFD700",
       examples: [
-        "Will Bitcoin reach $150,000 by end of 2025?",
-        "Will S&P 500 have a 20%+ correction in 2025?",
-        "Will gold prices exceed $3,000/oz in 2025?",
-        "Will a major hedge fund collapse in 2025?"
+        "Will Bitcoin reach $500,000 by 2030?",
+        "Will S&P 500 reach 10,000 points by 2035?",
+        "Will gold prices exceed $5,000/oz by 2030?",
+        "Will central bank digital currencies replace cash by 2035?"
       ],
       description: "Stocks, crypto, commodities, M&A, IPOs"
     },
@@ -904,10 +904,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🌋",
       color: "#FF3333",
       examples: [
-        "Will a magnitude 8+ earthquake hit Japan by 2026?",
-        "Will a Category 5 hurricane make US landfall in 2025?",
-        "Will there be a major volcanic eruption affecting air travel in 2025?",
-        "Will global flooding events cause $100B+ damage in 2025?"
+        "Will a magnitude 9+ earthquake hit the Pacific Ring by 2030?",
+        "Will sea levels rise 50cm+ causing mass displacement by 2050?",
+        "Will a supervolcanic eruption occur by 2100?",
+        "Will climate disasters cause $1T+ annual damage by 2035?"
       ],
       description: "Earthquakes, hurricanes, tsunamis, volcanic activity"
     },
@@ -917,10 +917,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🗳️",
       color: "#FF6B6B",
       examples: [
-        "Will Republicans win the 2026 US midterms?",
-        "Will UK hold a general election before 2025 ends?",
-        "Will India's BJP retain power in 2024 elections?",
-        "Will France's National Rally gain significant seats in 2025?"
+        "Will a third major US political party emerge by 2032?",
+        "Will the EU expand to 35+ members by 2035?",
+        "Will India become a permanent UN Security Council member by 2030?",
+        "Will global democracy index improve by 2030?"
       ],
       description: "Elections, policy changes, government stability"
     },
@@ -930,10 +930,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🏢",
       color: "#FFAA00",
       examples: [
-        "Will Elon Musk step down as Tesla CEO by 2026?",
-        "Will Microsoft acquire a company for $50B+ in 2025?",
-        "Will OpenAI go public before 2026?",
-        "Will major tech layoffs continue through 2025?"
+        "Will any company reach $5 trillion market cap by 2030?",
+        "Will AI companies dominate Fortune 100 by 2035?",
+        "Will remote work exceed 50% of global workforce by 2030?",
+        "Will space tourism become a $100B industry by 2040?"
       ],
       description: "CEOs, acquisitions, IPOs, corporate strategy"
     },
@@ -943,10 +943,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🏥",
       color: "#00E5FF",
       examples: [
-        "Will a new pandemic be declared by WHO before 2027?",
-        "Will an mRNA cancer vaccine be approved in 2025?",
-        "Will global life expectancy increase in 2025?",
-        "Will bird flu cause significant human outbreaks in 2025?"
+        "Will cancer be largely curable by 2040?",
+        "Will human lifespan exceed 100 years average by 2100?",
+        "Will a pandemic worse than COVID-19 occur by 2050?",
+        "Will genetic engineering eliminate hereditary diseases by 2050?"
       ],
       description: "Diseases, vaccines, healthcare breakthroughs"
     },
@@ -956,10 +956,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "⚡",
       color: "#00FF94",
       examples: [
-        "Will oil prices exceed $100/barrel in 2025?",
-        "Will renewable energy exceed 50% of global power by 2030?",
-        "Will a major nuclear plant be commissioned in 2025?",
-        "Will global carbon emissions decrease in 2025?"
+        "Will fusion power be commercially viable by 2040?",
+        "Will renewable energy reach 80% of global power by 2040?",
+        "Will net-zero emissions be achieved globally by 2060?",
+        "Will carbon capture technology scale significantly by 2035?"
       ],
       description: "Oil, renewables, nuclear, climate agreements"
     },
