@@ -8893,6 +8893,11 @@ const MainApp = () => {
         login={login}
         register={register}
       />
+      
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
 
       {/* Footer */}
       <footer className="border-t border-[#1F1F1F] mt-12 py-8">
