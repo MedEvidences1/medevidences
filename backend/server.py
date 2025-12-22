@@ -9539,6 +9539,64 @@ async def change_password(request: ChangePasswordRequest, user: dict = Depends(g
         "token": token  # New token after password change
     }
 
+@api_router.get("/auth/trial-status", tags=["Authentication"])
+async def get_user_trial_status(user: dict = Depends(get_current_user)):
+    """
+    Check trial status for any user (not just enterprise)
+    All users get 5-minute trial, then must pay
+    """
+    # Owner and super_admin have unlimited access
+    if user.get("role") in ["owner", "super_admin"]:
+        return {
+            "user_id": user["id"],
+            "subscription_status": "active",
+            "has_unlimited_access": True,
+            "requires_payment": False,
+            "message": "Admin account - unlimited access"
+        }
+    
+    # Paid users have active access
+    if user.get("subscription_status") == "active" or user.get("plan") in ["basic", "professional", "enterprise"]:
+        if user.get("subscription_status") == "active":
+            return {
+                "user_id": user["id"],
+                "subscription_status": "active",
+                "plan": user.get("plan"),
+                "has_unlimited_access": True,
+                "requires_payment": False,
+                "message": "Paid subscription - full access"
+            }
+    
+    # Check trial status
+    trial_expires_str = user.get("trial_expires_at")
+    if not trial_expires_str:
+        # User doesn't have trial info - they should have it, but fallback
+        return {
+            "user_id": user["id"],
+            "subscription_status": "expired",
+            "requires_payment": True,
+            "remaining_seconds": 0,
+            "message": "Trial not found - payment required"
+        }
+    
+    trial_expires = datetime.fromisoformat(trial_expires_str.replace('Z', '+00:00'))
+    now = datetime.now(timezone.utc)
+    is_expired = now > trial_expires
+    remaining_seconds = max(0, (trial_expires - now).total_seconds())
+    
+    return {
+        "user_id": user["id"],
+        "subscription_status": "trial" if not is_expired else "expired",
+        "plan": user.get("plan", "trial"),
+        "trial_started_at": user.get("trial_started_at"),
+        "trial_expires_at": trial_expires_str,
+        "is_trial_expired": is_expired,
+        "remaining_seconds": int(remaining_seconds),
+        "remaining_minutes": round(remaining_seconds / 60, 2),
+        "requires_payment": is_expired,
+        "message": "Trial active" if not is_expired else "Trial expired - payment required"
+    }
+
 # =============================================================================
 # API ENDPOINTS - ENTERPRISE ADMIN & EMPLOYEE MANAGEMENT
 # =============================================================================
