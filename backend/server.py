@@ -7913,14 +7913,24 @@ Respond ONLY with valid JSON."""
         ]
         
         all_osint_data = []
-        for query in queries[:3]:  # Limit to 3 queries
-            try:
-                osint_data = await self.osint.fetch_gdelt(query, 15)
-                all_osint_data.extend(osint_data)
-            except:
-                pass
         
-        market_context = await self._get_market_context()
+        # Parallelize OSINT queries and market context fetch
+        async def fetch_osint_safe(query):
+            try:
+                return await self.osint.fetch_gdelt(query, 15)
+            except:
+                return []
+        
+        # Run OSINT fetches and market context in parallel
+        osint_tasks = [fetch_osint_safe(q) for q in queries[:3]]
+        market_task = self._get_market_context()
+        
+        results = await asyncio.gather(*osint_tasks, market_task)
+        
+        # Extract OSINT data and market context from results
+        for i in range(len(queries[:3])):
+            all_osint_data.extend(results[i])
+        market_context = results[-1]
         
         # Comprehensive global M&A deals database (2025-2040)
         global_ma_deals = {
