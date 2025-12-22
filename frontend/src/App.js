@@ -1701,7 +1701,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const [judgmentalForm, setJudgmentalForm] = useState({
     disaster_type: "earthquake",
     location: "",
-    timeframe: "2025",
+    timeframe: "2026",
     severity: "any"
   });
 
