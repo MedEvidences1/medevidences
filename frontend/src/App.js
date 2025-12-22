@@ -8448,7 +8448,9 @@ const MainApp = () => {
   const initialTab = location.pathname === "/admin" ? "admin" : 
                      location.pathname === "/pricing" ? "pricing" :
                      location.pathname === "/chat" ? "chat" :
-                     location.pathname === "/osint" ? "osint" : "dashboard";
+                     location.pathname === "/osint" ? "osint" :
+                     location.pathname === "/terms" ? "terms" :
+                     location.pathname === "/privacy" ? "privacy" : "dashboard";
   
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showAuth, setShowAuth] = useState(location.pathname === "/admin" && !localStorage.getItem("token"));
