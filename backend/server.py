@@ -7879,64 +7879,125 @@ Respond ONLY with valid JSON."""
         
         market_context = await self._get_market_context()
         
-        # Comprehensive global M&A deals database (simulating thousands of deals)
+        # Comprehensive global M&A deals database (2025-2040)
         global_ma_deals = {
             "united_states": [
+                # 2025 Deals
                 {"acquirer": "Microsoft", "target": "Discord", "sector": "technology", "probability": 35, "deal_value": "$15-20B", "rationale": "Social gaming & communication expansion", "timeline": "Q2 2025"},
                 {"acquirer": "Google", "target": "HubSpot", "sector": "technology", "probability": 45, "deal_value": "$30-35B", "rationale": "CRM and marketing automation", "timeline": "Q1 2025"},
                 {"acquirer": "Nvidia", "target": "Scale AI", "sector": "technology", "probability": 38, "deal_value": "$10-15B", "rationale": "AI data infrastructure", "timeline": "Q2 2025"},
                 {"acquirer": "Amazon", "target": "Figma", "sector": "technology", "probability": 25, "deal_value": "$18-22B", "rationale": "Design tools expansion", "timeline": "H2 2025"},
                 {"acquirer": "Apple", "target": "Sonos", "sector": "consumer_electronics", "probability": 30, "deal_value": "$4-6B", "rationale": "Audio ecosystem", "timeline": "Q3 2025"},
                 {"acquirer": "Exxon", "target": "Occidental Petroleum", "sector": "energy", "probability": 55, "deal_value": "$60-70B", "rationale": "Permian Basin consolidation", "timeline": "Q1 2025"},
-                {"acquirer": "Pfizer", "target": "BioNTech", "sector": "healthcare", "probability": 30, "deal_value": "$50-60B", "rationale": "mRNA technology consolidation", "timeline": "2026"},
                 {"acquirer": "JPMorgan", "target": "Affirm", "sector": "fintech", "probability": 28, "deal_value": "$8-12B", "rationale": "BNPL market entry", "timeline": "H2 2025"},
                 {"acquirer": "Salesforce", "target": "Databricks", "sector": "technology", "probability": 32, "deal_value": "$45-55B", "rationale": "AI/Data analytics", "timeline": "Q2 2025"},
-                {"acquirer": "Oracle", "target": "MongoDB", "sector": "technology", "probability": 25, "deal_value": "$25-30B", "rationale": "Database market", "timeline": "2025"},
                 {"acquirer": "Meta", "target": "Unity Software", "sector": "technology", "probability": 40, "deal_value": "$15-20B", "rationale": "Metaverse gaming", "timeline": "Q1 2025"},
-                {"acquirer": "Cisco", "target": "Palo Alto Networks", "sector": "technology", "probability": 22, "deal_value": "$80-90B", "rationale": "Cybersecurity", "timeline": "2026"},
                 {"acquirer": "Chevron", "target": "Pioneer Natural", "sector": "energy", "probability": 60, "deal_value": "$55-65B", "rationale": "Shale consolidation", "timeline": "Q1 2025"},
                 {"acquirer": "UnitedHealth", "target": "Teladoc", "sector": "healthcare", "probability": 35, "deal_value": "$6-8B", "rationale": "Telehealth expansion", "timeline": "Q2 2025"},
                 {"acquirer": "Blackstone", "target": "CoreWeave", "sector": "technology", "probability": 42, "deal_value": "$12-15B", "rationale": "AI infrastructure", "timeline": "Q2 2025"},
+                # 2026 Deals
+                {"acquirer": "Pfizer", "target": "BioNTech", "sector": "healthcare", "probability": 30, "deal_value": "$50-60B", "rationale": "mRNA technology consolidation", "timeline": "2026"},
+                {"acquirer": "Oracle", "target": "MongoDB", "sector": "technology", "probability": 25, "deal_value": "$25-30B", "rationale": "Database market dominance", "timeline": "2026"},
+                {"acquirer": "Cisco", "target": "Palo Alto Networks", "sector": "cybersecurity", "probability": 22, "deal_value": "$80-90B", "rationale": "Cybersecurity dominance", "timeline": "2026"},
+                {"acquirer": "Intel", "target": "AMD", "sector": "semiconductors", "probability": 15, "deal_value": "$180-200B", "rationale": "US chip consolidation", "timeline": "2026-2027"},
+                {"acquirer": "Alphabet", "target": "OpenAI", "sector": "ai", "probability": 20, "deal_value": "$100-150B", "rationale": "AI leadership race", "timeline": "2026"},
+                {"acquirer": "Apple", "target": "Tesla", "sector": "automotive", "probability": 10, "deal_value": "$600-800B", "rationale": "EV & autonomous driving", "timeline": "2026-2028"},
+                {"acquirer": "Amazon", "target": "Shopify", "sector": "ecommerce", "probability": 25, "deal_value": "$80-100B", "rationale": "E-commerce consolidation", "timeline": "2026"},
+                {"acquirer": "Microsoft", "target": "Palantir", "sector": "ai_defense", "probability": 28, "deal_value": "$50-70B", "rationale": "Government AI contracts", "timeline": "2026"},
+                # 2027-2030 Deals
+                {"acquirer": "Berkshire Hathaway", "target": "JPMorgan Chase", "sector": "banking", "probability": 8, "deal_value": "$500-600B", "rationale": "Banking consolidation", "timeline": "2027-2028"},
+                {"acquirer": "SpaceX", "target": "Blue Origin", "sector": "aerospace", "probability": 12, "deal_value": "$30-50B", "rationale": "Space industry consolidation", "timeline": "2028"},
+                {"acquirer": "Nvidia", "target": "AMD", "sector": "semiconductors", "probability": 18, "deal_value": "$200-250B", "rationale": "AI chip monopoly", "timeline": "2027"},
+                {"acquirer": "Meta", "target": "Snap Inc", "sector": "social_media", "probability": 35, "deal_value": "$15-25B", "rationale": "AR/VR consolidation", "timeline": "2027"},
+                {"acquirer": "Google", "target": "Uber", "sector": "mobility", "probability": 22, "deal_value": "$90-120B", "rationale": "Autonomous vehicle data", "timeline": "2028"},
+                {"acquirer": "Amazon", "target": "DoorDash", "sector": "delivery", "probability": 40, "deal_value": "$40-60B", "rationale": "Last-mile delivery dominance", "timeline": "2027"},
+                # 2030-2040 Deals
+                {"acquirer": "Apple", "target": "Disney", "sector": "entertainment", "probability": 15, "deal_value": "$300-400B", "rationale": "Content streaming dominance", "timeline": "2030-2032"},
+                {"acquirer": "Microsoft", "target": "Sony", "sector": "gaming", "probability": 12, "deal_value": "$150-200B", "rationale": "Gaming industry consolidation", "timeline": "2030"},
+                {"acquirer": "Alphabet", "target": "Netflix", "sector": "streaming", "probability": 20, "deal_value": "$200-250B", "rationale": "Streaming wars winner-take-all", "timeline": "2029-2030"},
+                {"acquirer": "Amazon", "target": "FedEx", "sector": "logistics", "probability": 25, "deal_value": "$80-100B", "rationale": "Supply chain control", "timeline": "2030"},
+                {"acquirer": "Tesla", "target": "Rivian + Lucid", "sector": "automotive", "probability": 30, "deal_value": "$30-50B", "rationale": "EV market consolidation", "timeline": "2028-2030"},
+                {"acquirer": "Quantum Computing Corp", "target": "IBM Quantum", "sector": "quantum", "probability": 15, "deal_value": "$50-80B", "rationale": "Quantum computing leadership", "timeline": "2035"},
             ],
             "europe": [
-                {"acquirer": "Shell (UK)", "target": "Equinor (Norway)", "sector": "energy", "probability": 25, "deal_value": "$70-80B", "rationale": "Energy transition", "timeline": "2026", "country": "UK/Norway"},
-                {"acquirer": "SAP (Germany)", "target": "ServiceNow (US)", "sector": "technology", "probability": 20, "deal_value": "$150-180B", "rationale": "Enterprise software", "timeline": "2026", "country": "Germany"},
+                # 2025 Deals
                 {"acquirer": "LVMH (France)", "target": "Prada (Italy)", "sector": "luxury", "probability": 35, "deal_value": "$15-20B", "rationale": "Luxury consolidation", "timeline": "Q3 2025", "country": "France/Italy"},
                 {"acquirer": "Volkswagen (Germany)", "target": "Rivian (US)", "sector": "automotive", "probability": 30, "deal_value": "$12-18B", "rationale": "EV technology", "timeline": "Q2 2025", "country": "Germany"},
                 {"acquirer": "Siemens (Germany)", "target": "Rockwell Automation (US)", "sector": "industrial", "probability": 28, "deal_value": "$35-40B", "rationale": "Industrial automation", "timeline": "H2 2025", "country": "Germany"},
                 {"acquirer": "Nestle (Switzerland)", "target": "Oatly (Sweden)", "sector": "consumer_goods", "probability": 40, "deal_value": "$3-5B", "rationale": "Plant-based foods", "timeline": "Q1 2025", "country": "Switzerland"},
-                {"acquirer": "HSBC (UK)", "target": "Revolut (UK)", "sector": "fintech", "probability": 25, "deal_value": "$30-35B", "rationale": "Digital banking", "timeline": "2026", "country": "UK"},
-                {"acquirer": "BP (UK)", "target": "Orsted (Denmark)", "sector": "energy", "probability": 22, "deal_value": "$45-55B", "rationale": "Renewable energy", "timeline": "2026", "country": "UK/Denmark"},
                 {"acquirer": "Spotify (Sweden)", "target": "SoundCloud (Germany)", "sector": "technology", "probability": 45, "deal_value": "$1-2B", "rationale": "Music streaming", "timeline": "Q2 2025", "country": "Sweden/Germany"},
                 {"acquirer": "Airbus (France)", "target": "Embraer Commercial (Brazil)", "sector": "aerospace", "probability": 32, "deal_value": "$8-12B", "rationale": "Regional jets", "timeline": "2025", "country": "France/Brazil"},
+                # 2026 Deals
+                {"acquirer": "Shell (UK)", "target": "Equinor (Norway)", "sector": "energy", "probability": 25, "deal_value": "$70-80B", "rationale": "Energy transition", "timeline": "2026", "country": "UK/Norway"},
+                {"acquirer": "SAP (Germany)", "target": "ServiceNow (US)", "sector": "technology", "probability": 20, "deal_value": "$150-180B", "rationale": "Enterprise software", "timeline": "2026", "country": "Germany"},
+                {"acquirer": "HSBC (UK)", "target": "Revolut (UK)", "sector": "fintech", "probability": 25, "deal_value": "$30-35B", "rationale": "Digital banking", "timeline": "2026", "country": "UK"},
+                {"acquirer": "BP (UK)", "target": "Orsted (Denmark)", "sector": "energy", "probability": 22, "deal_value": "$45-55B", "rationale": "Renewable energy", "timeline": "2026", "country": "UK/Denmark"},
+                {"acquirer": "Deutsche Telekom", "target": "Orange (France)", "sector": "telecom", "probability": 20, "deal_value": "$80-100B", "rationale": "EU telecom consolidation", "timeline": "2026-2027", "country": "Germany/France"},
+                {"acquirer": "Stellantis", "target": "Tesla EU Operations", "sector": "automotive", "probability": 15, "deal_value": "$40-60B", "rationale": "EU EV production", "timeline": "2026", "country": "Netherlands/France"},
+                # 2027-2030 Deals
+                {"acquirer": "ASML (Netherlands)", "target": "Applied Materials (US)", "sector": "semiconductors", "probability": 18, "deal_value": "$120-150B", "rationale": "Chip equipment monopoly", "timeline": "2027-2028", "country": "Netherlands"},
+                {"acquirer": "Unilever (UK)", "target": "L'Oreal (France)", "sector": "consumer_goods", "probability": 15, "deal_value": "$200-250B", "rationale": "Consumer goods mega-merger", "timeline": "2028-2030", "country": "UK/France"},
+                {"acquirer": "Novo Nordisk (Denmark)", "target": "Eli Lilly (US)", "sector": "healthcare", "probability": 12, "deal_value": "$400-500B", "rationale": "Obesity drug dominance", "timeline": "2028", "country": "Denmark"},
+                {"acquirer": "Mercedes-Benz", "target": "BMW", "sector": "automotive", "probability": 10, "deal_value": "$150-200B", "rationale": "German auto consolidation", "timeline": "2029-2030", "country": "Germany"},
+                # 2030-2040 Deals  
+                {"acquirer": "European Defense Consortium", "target": "BAE Systems + Thales", "sector": "defense", "probability": 25, "deal_value": "$100-150B", "rationale": "EU defense consolidation", "timeline": "2030-2032", "country": "EU"},
+                {"acquirer": "Airbus", "target": "Boeing Commercial", "sector": "aerospace", "probability": 8, "deal_value": "$200-300B", "rationale": "Aviation duopoly merger", "timeline": "2035", "country": "France/US"},
             ],
             "asia_pacific": [
+                # 2025 Deals
                 {"acquirer": "Samsung (Korea)", "target": "Western Digital (US)", "sector": "technology", "probability": 30, "deal_value": "$20-25B", "rationale": "Memory chips", "timeline": "Q3 2025", "country": "South Korea"},
                 {"acquirer": "SoftBank (Japan)", "target": "Arm Holdings (UK)", "sector": "technology", "probability": 55, "deal_value": "$40-50B", "rationale": "Chip design buyback", "timeline": "Q1 2025", "country": "Japan"},
                 {"acquirer": "Tencent (China)", "target": "Supercell (Finland)", "sector": "gaming", "probability": 40, "deal_value": "$12-15B", "rationale": "Gaming portfolio", "timeline": "Q2 2025", "country": "China"},
                 {"acquirer": "Alibaba (China)", "target": "Grab Holdings (Singapore)", "sector": "technology", "probability": 25, "deal_value": "$8-12B", "rationale": "SE Asia expansion", "timeline": "H2 2025", "country": "China/Singapore"},
                 {"acquirer": "Reliance (India)", "target": "Zee Entertainment (India)", "sector": "media", "probability": 60, "deal_value": "$5-8B", "rationale": "Media consolidation", "timeline": "Q1 2025", "country": "India"},
-                {"acquirer": "Toyota (Japan)", "target": "Lucid Motors (US)", "sector": "automotive", "probability": 28, "deal_value": "$6-10B", "rationale": "EV technology", "timeline": "2025", "country": "Japan"},
-                {"acquirer": "BYD (China)", "target": "NIO (China)", "sector": "automotive", "probability": 20, "deal_value": "$15-20B", "rationale": "EV consolidation", "timeline": "2026", "country": "China"},
-                {"acquirer": "HDFC Bank (India)", "target": "Paytm (India)", "sector": "fintech", "probability": 35, "deal_value": "$3-5B", "rationale": "Digital payments", "timeline": "Q2 2025", "country": "India"},
-                {"acquirer": "Sony (Japan)", "target": "Take-Two Interactive (US)", "sector": "gaming", "probability": 22, "deal_value": "$25-30B", "rationale": "Gaming IP", "timeline": "2026", "country": "Japan"},
                 {"acquirer": "Hyundai (Korea)", "target": "Canoo (US)", "sector": "automotive", "probability": 45, "deal_value": "$1-3B", "rationale": "EV platform", "timeline": "Q1 2025", "country": "South Korea"},
                 {"acquirer": "Infosys (India)", "target": "Thoughtworks (US)", "sector": "technology", "probability": 38, "deal_value": "$4-6B", "rationale": "Digital consulting", "timeline": "Q2 2025", "country": "India"},
+                # 2026 Deals
+                {"acquirer": "Toyota (Japan)", "target": "Lucid Motors (US)", "sector": "automotive", "probability": 28, "deal_value": "$6-10B", "rationale": "EV technology", "timeline": "2026", "country": "Japan"},
+                {"acquirer": "BYD (China)", "target": "NIO (China)", "sector": "automotive", "probability": 20, "deal_value": "$15-20B", "rationale": "EV consolidation", "timeline": "2026", "country": "China"},
+                {"acquirer": "HDFC Bank (India)", "target": "Paytm (India)", "sector": "fintech", "probability": 35, "deal_value": "$3-5B", "rationale": "Digital payments", "timeline": "2026", "country": "India"},
+                {"acquirer": "Sony (Japan)", "target": "Take-Two Interactive (US)", "sector": "gaming", "probability": 22, "deal_value": "$25-30B", "rationale": "Gaming IP", "timeline": "2026", "country": "Japan"},
+                {"acquirer": "TSMC (Taiwan)", "target": "GlobalFoundries", "sector": "semiconductors", "probability": 25, "deal_value": "$40-50B", "rationale": "Foundry consolidation", "timeline": "2026", "country": "Taiwan"},
+                {"acquirer": "Tata Group (India)", "target": "Jaguar Land Rover + Volvo", "sector": "automotive", "probability": 20, "deal_value": "$30-40B", "rationale": "Luxury auto expansion", "timeline": "2026-2027", "country": "India"},
+                # 2027-2030 Deals
+                {"acquirer": "ByteDance (China)", "target": "Spotify (Sweden)", "sector": "streaming", "probability": 18, "deal_value": "$60-80B", "rationale": "Global music streaming", "timeline": "2027", "country": "China"},
+                {"acquirer": "Samsung (Korea)", "target": "TSMC (Taiwan)", "sector": "semiconductors", "probability": 10, "deal_value": "$400-500B", "rationale": "Asian chip dominance", "timeline": "2028-2030", "country": "South Korea/Taiwan"},
+                {"acquirer": "Alibaba (China)", "target": "JD.com (China)", "sector": "ecommerce", "probability": 15, "deal_value": "$80-100B", "rationale": "China e-commerce monopoly", "timeline": "2028", "country": "China"},
+                {"acquirer": "Reliance (India)", "target": "Amazon India Operations", "sector": "ecommerce", "probability": 25, "deal_value": "$20-30B", "rationale": "India e-commerce control", "timeline": "2027-2028", "country": "India"},
+                {"acquirer": "Softbank Vision Fund", "target": "Multiple AI Startups", "sector": "ai", "probability": 60, "deal_value": "$50-100B", "rationale": "AI portfolio consolidation", "timeline": "2027-2030", "country": "Japan"},
+                # 2030-2040 Deals
+                {"acquirer": "China State Investment", "target": "Global Rare Earth Companies", "sector": "mining", "probability": 40, "deal_value": "$100-200B", "rationale": "Strategic resource control", "timeline": "2030-2035", "country": "China"},
+                {"acquirer": "Singapore Sovereign Fund", "target": "Multiple ASEAN Tech Giants", "sector": "technology", "probability": 35, "deal_value": "$50-100B", "rationale": "ASEAN tech consolidation", "timeline": "2030-2035", "country": "Singapore"},
             ],
             "middle_east_africa": [
+                # 2025 Deals
                 {"acquirer": "Saudi Aramco", "target": "Sabic (Complete)", "sector": "energy", "probability": 70, "deal_value": "$70B", "rationale": "Chemicals integration", "timeline": "Q1 2025", "country": "Saudi Arabia"},
                 {"acquirer": "Emirates NBD (UAE)", "target": "Mashreq Bank (UAE)", "sector": "banking", "probability": 35, "deal_value": "$8-12B", "rationale": "Banking consolidation", "timeline": "Q2 2025", "country": "UAE"},
                 {"acquirer": "MTN Group (S.Africa)", "target": "Airtel Africa", "sector": "telecom", "probability": 30, "deal_value": "$15-20B", "rationale": "Africa telecom", "timeline": "H2 2025", "country": "South Africa"},
                 {"acquirer": "PIF (Saudi Arabia)", "target": "Lucid Motors (US)", "sector": "automotive", "probability": 45, "deal_value": "$5-8B", "rationale": "EV investment", "timeline": "Q2 2025", "country": "Saudi Arabia"},
                 {"acquirer": "Naspers (S.Africa)", "target": "Jumia (Nigeria)", "sector": "ecommerce", "probability": 40, "deal_value": "$2-4B", "rationale": "Africa e-commerce", "timeline": "Q1 2025", "country": "South Africa/Nigeria"},
-                {"acquirer": "QIA (Qatar)", "target": "Glencore (Switzerland)", "sector": "mining", "probability": 25, "deal_value": "$40-50B", "rationale": "Commodities", "timeline": "2026", "country": "Qatar/Switzerland"},
+                # 2026-2030 Deals
+                {"acquirer": "QIA (Qatar)", "target": "Glencore (Switzerland)", "sector": "mining", "probability": 25, "deal_value": "$40-50B", "rationale": "Commodities control", "timeline": "2026", "country": "Qatar/Switzerland"},
+                {"acquirer": "NEOM (Saudi Arabia)", "target": "Global Smart City Tech", "sector": "technology", "probability": 50, "deal_value": "$30-50B", "rationale": "Smart city infrastructure", "timeline": "2026-2028", "country": "Saudi Arabia"},
+                {"acquirer": "Abu Dhabi Investment", "target": "Major African Banks", "sector": "banking", "probability": 35, "deal_value": "$20-40B", "rationale": "Africa financial infrastructure", "timeline": "2027-2030", "country": "UAE"},
+                {"acquirer": "PIF (Saudi Arabia)", "target": "Global Sports Franchises", "sector": "sports", "probability": 55, "deal_value": "$50-100B", "rationale": "Sports entertainment empire", "timeline": "2025-2030", "country": "Saudi Arabia"},
+                # 2030-2040 Deals
+                {"acquirer": "African Union Investment Fund", "target": "Pan-African Infrastructure", "sector": "infrastructure", "probability": 30, "deal_value": "$100-200B", "rationale": "Continental development", "timeline": "2030-2040", "country": "Africa"},
+                {"acquirer": "GCC Sovereign Funds", "target": "Global Renewable Energy Assets", "sector": "energy", "probability": 45, "deal_value": "$200-500B", "rationale": "Energy transition investment", "timeline": "2030-2040", "country": "Middle East"},
             ],
             "latin_america": [
+                # 2025 Deals
                 {"acquirer": "Nu Holdings (Brazil)", "target": "Mercado Credito (Argentina)", "sector": "fintech", "probability": 45, "deal_value": "$2-4B", "rationale": "LatAm fintech", "timeline": "Q2 2025", "country": "Brazil"},
-                {"acquirer": "Petrobras (Brazil)", "target": "YPF (Argentina)", "sector": "energy", "probability": 20, "deal_value": "$8-12B", "rationale": "Regional oil", "timeline": "2026", "country": "Brazil/Argentina"},
                 {"acquirer": "America Movil (Mexico)", "target": "Millicom (Luxembourg)", "sector": "telecom", "probability": 35, "deal_value": "$6-10B", "rationale": "LatAm telecom", "timeline": "H1 2025", "country": "Mexico"},
                 {"acquirer": "Grupo Bimbo (Mexico)", "target": "Grupo Nutresa (Colombia)", "sector": "consumer_goods", "probability": 40, "deal_value": "$5-8B", "rationale": "Food consolidation", "timeline": "Q2 2025", "country": "Mexico/Colombia"},
                 {"acquirer": "Vale (Brazil)", "target": "Anglo American Copper", "sector": "mining", "probability": 30, "deal_value": "$15-25B", "rationale": "Copper exposure", "timeline": "2025", "country": "Brazil"},
+                # 2026-2030 Deals
+                {"acquirer": "Petrobras (Brazil)", "target": "YPF (Argentina)", "sector": "energy", "probability": 20, "deal_value": "$8-12B", "rationale": "Regional oil consolidation", "timeline": "2026", "country": "Brazil/Argentina"},
+                {"acquirer": "MercadoLibre (Argentina)", "target": "Rappi (Colombia)", "sector": "delivery", "probability": 35, "deal_value": "$8-15B", "rationale": "LatAm super-app", "timeline": "2026-2027", "country": "Argentina/Colombia"},
+                {"acquirer": "Embraer (Brazil)", "target": "Eve Air Mobility", "sector": "aerospace", "probability": 50, "deal_value": "$5-10B", "rationale": "Urban air mobility", "timeline": "2027", "country": "Brazil"},
+                # 2030-2040 Deals
+                {"acquirer": "LatAm Investment Consortium", "target": "Regional Lithium Assets", "sector": "mining", "probability": 40, "deal_value": "$50-100B", "rationale": "Lithium triangle control", "timeline": "2030-2035", "country": "Chile/Argentina/Bolivia"},
+                {"acquirer": "Brazil Sovereign Fund", "target": "Amazon Rainforest Carbon Credits", "sector": "environmental", "probability": 30, "deal_value": "$20-50B", "rationale": "Carbon market dominance", "timeline": "2030-2040", "country": "Brazil"},
             ]
         }
         
