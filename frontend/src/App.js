@@ -632,11 +632,17 @@ const Dashboard = ({ getHeaders }) => {
                   AI forecasting for events, disasters, markets & geopolitics. 
                   Powered by GPT-4, Claude & Gemini ensemble with 1M+ OSINT sources.
                 </p>
-                <div className="flex gap-2 mt-4">
-                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">DISASTERS</Badge>
-                  <Badge className="bg-[#00FF94]/20 text-[#00FF94]">MARKETS</Badge>
-                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">GEOPOLITICS</Badge>
-                  <Badge className="bg-[#FFD700]/20 text-[#FFD700]">CLIMATE</Badge>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Badge className="bg-[#00FF94]/20 text-[#00FF94]">ECONOMICS</Badge>
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">GEOPOLITICAL</Badge>
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">TECHNOLOGY</Badge>
+                  <Badge className="bg-[#FF9800]/20 text-[#FF9800]">SOCIAL</Badge>
+                  <Badge className="bg-[#4CAF50]/20 text-[#4CAF50]">CLIMATE</Badge>
+                  <Badge className="bg-[#FF5252]/20 text-[#FF5252]">HEALTH</Badge>
+                  <Badge className="bg-[#FFD700]/20 text-[#FFD700]">CRYPTO</Badge>
+                  <Badge className="bg-[#7C3AED]/20 text-[#7C3AED]">SPACE</Badge>
+                  <Badge className="bg-[#E91E63]/20 text-[#E91E63]">SPORTS</Badge>
+                  <Badge className="bg-[#03A9F4]/20 text-[#03A9F4]">ENTERTAINMENT</Badge>
                 </div>
               </div>
             </div>
