@@ -1,54 +1,45 @@
 # Plutus Predict - Test Results
 
-## Latest Updates (December 21, 2025)
+## Latest Updates (December 22, 2025)
 
 ### New Features Added:
-1. **SPACE HAZARDS Tab** - Complete dedicated section for space-related events
-   - Real-time NASA NEO API for asteroid tracking
-   - NOAA Space Weather Prediction Center data
-   - Solar storm monitoring (Kp index)
-   - Space debris reentry tracking
-   - Sector impact analysis (Aviation, Power Grid, Satellites, GPS, Communications)
-   - 7-day space weather forecast
-   - AI-powered space analysis
 
-2. **LIVE NOW Tab** - Real-time disasters happening worldwide
-   - GDACS global disasters
-   - USGS earthquakes (M4.5+)
-   - NOAA severe weather alerts
-   - One-click remediation for any live disaster
-   - Currently showing 37 active disasters
+1. **LONG-RANGE FORECASTING 2026-2040** (New Tab)
+   - AI-powered 15-year forecasts
+   - Year-by-year detailed predictions (click any year 2026-2040)
+   - Economic outlook, climate outlook, predicted events
+   - Mega trends, solar cycle impacts, black swan scenarios
+   - Auto-updates daily at 6 AM UTC (7 cron jobs total)
 
-3. **2025-2026 Predictions Tab** - AI-powered future disaster forecasting
-   - Multi-LLM ensemble predictions
-   - 8-12 specific predictions per generation
-   - Seasonal risk calendar
-   - Space weather outlook
-   - Direct link to remediation planning
+2. **LIVE NOW Tab** - Real-time disasters worldwide
+   - 42+ active disasters from GDACS, USGS, NOAA
+   - One-click REMEDIATE button for each disaster
+   - AI Daily Briefing
 
-4. **AI-Powered Disaster Remediation** - Multi-LLM support (GPT-4o, Claude, Gemini)
-   - 18 disaster types including space hazards
-   - Linked to both live AND predicted disasters
-   - Ensemble and individual model selection
+3. **2025-2026 Predictions Tab** - Near-term forecasts
+   - South Asia flooding, Hurricane season, Wildfires
+   - PREPARE REMEDIATION links
 
-5. **Auto-fetching System**
-   - Space hazards refresh every 15 minutes
-   - 6 scheduled cron jobs total
+4. **SPACE HAZARDS Tab** - Complete
+   - NASA NEO, NOAA Space Weather
+   - All 6 sub-views working
+
+5. **Disaster Remediation** - 18 types including space hazards
 
 ### Features to Test:
-- LIVE NOW tab shows real-time disasters from GDACS, USGS, NOAA
-- 2025-2026 tab generates AI predictions with probabilities
-- PREPARE REMEDIATION buttons link to remediation planning
-- All disaster types in remediation dropdown (18 types)
-- SPACE_HAZARDS tab with 6 sub-views
+- DISASTERS > 2026-2040 tab
+- Year buttons (2026-2040) load year-specific forecasts
+- GENERATE 15-YEAR FORECAST button
+- Predicted events show probability and sectors
+- GET /api/forecast/long-range
+- GET /api/forecast/year/2030
 
 ### Test Credentials:
 - Email: admin@plutuspredict.com
 - Password: admin123
 
 ### API Endpoints:
-- GET /api/disasters/live - 37 active disasters worldwide
-- GET /api/disasters/predictions - AI future predictions
-- GET /api/disasters/daily-briefing - AI daily intelligence briefing
-- GET /api/space/current - Space hazards
-- POST /api/disasters/remediation/plan - Generate remediation
+- GET /api/forecast/long-range - 2026-2040 forecasts
+- GET /api/forecast/year/{year} - Year-specific forecast
+- GET /api/forecast/decade-summary - Decade overview
+- GET /api/forecast/long-range/categories - Categories and regions
