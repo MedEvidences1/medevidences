@@ -7283,7 +7283,6 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
-          )}
         </div>
       )}
 
