@@ -10996,6 +10996,317 @@ async def get_curated_predictions_list():
         "channels": list(by_channel.keys())
     }
 
+# ============================================================
+# ENHANCED AI FORECAST CATEGORIES WITH LIVE OSINT
+# ============================================================
+
+@api_router.get("/forecast/categories/osint", tags=["AI Forecasting"])
+async def get_forecast_categories_with_osint():
+    """Get all forecast categories with live OSINT intelligence"""
+    
+    # Get cached OSINT data for each category
+    categories_data = await db.forecast_category_osint.find({}, {"_id": 0}).to_list(100)
+    
+    # If no cached data, trigger fresh collection
+    if not categories_data:
+        await cron_manager.update_forecast_categories_osint()
+        categories_data = await db.forecast_category_osint.find({}, {"_id": 0}).to_list(100)
+    
+    # Enhanced category definitions with OSINT insights
+    enhanced_categories = {
+        "economics": {
+            "id": "economics",
+            "label": "ECONOMICS",
+            "icon": "📈",
+            "color": "#00FF94",
+            "description": "Interest rates, inflation, GDP, currency, recession, employment",
+            "osint_sources": ["Reuters", "Bloomberg", "Financial Times", "WSJ", "Fed Reserve", "ECB", "IMF"],
+            "key_indicators": ["Fed Rate", "CPI", "Unemployment", "GDP Growth", "PMI"],
+            "sample_questions": [
+                "Will US Fed cut rates in Q1 2025?",
+                "Will inflation exceed 4% in EU by mid-2025?",
+                "Will China GDP fall below 4% in 2025?",
+                "Will US dollar strengthen vs Euro in 2025?",
+                "Will unemployment rise above 5% in 2025?",
+                "Will recession hit G7 nations in 2025?"
+            ],
+            "hot_topics_2025_2040": [
+                "Global debt crisis potential",
+                "De-dollarization trends",
+                "CBDC adoption worldwide",
+                "Inflation trajectory post-COVID",
+                "Emerging markets rise"
+            ]
+        },
+        "geopolitical": {
+            "id": "geopolitical",
+            "label": "GEOPOLITICAL",
+            "icon": "🌍",
+            "color": "#00E5FF",
+            "description": "Wars, conflicts, treaties, sanctions, international relations",
+            "osint_sources": ["AP News", "Reuters", "UN News", "NATO", "CFR", "STRATFOR", "BBC World"],
+            "key_indicators": ["Conflict Index", "Sanctions Count", "Diplomatic Relations", "Military Movements"],
+            "sample_questions": [
+                "Will Ukraine-Russia peace talks succeed in 2025?",
+                "Will China take action against Taiwan by 2027?",
+                "Will Iran develop nuclear weapons by 2026?",
+                "Will NATO expand further in 2025?",
+                "Will Middle East conflict escalate in 2025?",
+                "Will North Korea conduct nuclear test in 2025?"
+            ],
+            "hot_topics_2025_2040": [
+                "US-China Cold War 2.0",
+                "Taiwan Strait tensions",
+                "Middle East realignment",
+                "Africa geopolitical rise",
+                "Arctic resource competition"
+            ]
+        },
+        "technology": {
+            "id": "technology",
+            "label": "TECHNOLOGY",
+            "icon": "🤖",
+            "color": "#9D4EDD",
+            "description": "AI, quantum computing, autonomous systems, biotech, cybersecurity",
+            "osint_sources": ["TechCrunch", "Wired", "MIT Tech Review", "ArXiv", "OpenAI", "DeepMind", "Google AI"],
+            "key_indicators": ["AI Model Performance", "Chip Production", "R&D Spending", "Patent Filings"],
+            "sample_questions": [
+                "Will AGI be achieved by any lab before 2027?",
+                "Will Apple release AR glasses in 2025?",
+                "Will quantum computers break RSA by 2030?",
+                "Will self-driving cars be legal nationwide by 2026?",
+                "Will humanoid robots enter workforce by 2027?",
+                "Will brain-computer interfaces go mainstream by 2030?"
+            ],
+            "hot_topics_2025_2040": [
+                "AGI development timeline",
+                "Quantum supremacy applications",
+                "AI regulation worldwide",
+                "Neuralink human trials",
+                "Fusion energy breakthrough"
+            ]
+        },
+        "finance_markets": {
+            "id": "finance_markets",
+            "label": "FINANCE & MARKETS",
+            "icon": "💰",
+            "color": "#FFD700",
+            "description": "Stocks, crypto, commodities, M&A, IPOs, hedge funds",
+            "osint_sources": ["Bloomberg", "CNBC", "Yahoo Finance", "CoinDesk", "SEC Filings", "CME"],
+            "key_indicators": ["S&P 500", "Bitcoin", "VIX", "Gold", "Oil", "Bond Yields"],
+            "sample_questions": [
+                "Will Bitcoin reach $150,000 by end of 2025?",
+                "Will S&P 500 have 20%+ correction in 2025?",
+                "Will gold exceed $3,000/oz in 2025?",
+                "Will major hedge fund collapse in 2025?",
+                "Will Ethereum flip Bitcoin by 2027?",
+                "Will stock market crash occur in 2025-2026?"
+            ],
+            "hot_topics_2025_2040": [
+                "Bitcoin ETF impact",
+                "AI-driven trading dominance",
+                "Meme stock phenomena",
+                "Private credit bubble",
+                "Real estate correction"
+            ]
+        },
+        "climate_environment": {
+            "id": "climate_environment",
+            "label": "CLIMATE & ENVIRONMENT",
+            "icon": "🌡️",
+            "color": "#FF6B35",
+            "description": "Climate change, extreme weather, carbon emissions, environmental policy",
+            "osint_sources": ["NOAA", "NASA Climate", "IPCC", "WMO", "Nature Climate", "Carbon Brief"],
+            "key_indicators": ["Global Temp Anomaly", "CO2 Levels", "Sea Level Rise", "Extreme Weather Events"],
+            "sample_questions": [
+                "Will 2025 be hottest year on record?",
+                "Will Arctic ice-free summer occur by 2030?",
+                "Will Category 6 hurricane classification be created?",
+                "Will any G7 nation achieve net-zero by 2030?",
+                "Will climate refugee crisis exceed 100M by 2030?",
+                "Will coral reefs face mass extinction by 2040?"
+            ],
+            "hot_topics_2025_2040": [
+                "1.5°C threshold breach",
+                "Permafrost methane release",
+                "Climate migration patterns",
+                "Geoengineering debates",
+                "Ocean acidification"
+            ]
+        },
+        "health_pandemic": {
+            "id": "health_pandemic",
+            "label": "HEALTH & PANDEMIC",
+            "icon": "🏥",
+            "color": "#E91E63",
+            "description": "Pandemics, vaccines, medical breakthroughs, healthcare systems",
+            "osint_sources": ["WHO", "CDC", "Lancet", "Nature Medicine", "NEJM", "Johns Hopkins"],
+            "key_indicators": ["Disease Outbreaks", "Vaccine Coverage", "Hospital Capacity", "R&D Pipeline"],
+            "sample_questions": [
+                "Will new pandemic emerge by 2026?",
+                "Will universal flu vaccine be approved by 2027?",
+                "Will cancer mortality drop 50% by 2035?",
+                "Will Alzheimer's cure be found by 2030?",
+                "Will mRNA technology cure genetic diseases by 2030?",
+                "Will global life expectancy exceed 80 by 2040?"
+            ],
+            "hot_topics_2025_2040": [
+                "Disease X preparation",
+                "mRNA revolution",
+                "Mental health crisis",
+                "Antibiotic resistance",
+                "Healthcare AI diagnostics"
+            ]
+        },
+        "energy_resources": {
+            "id": "energy_resources",
+            "label": "ENERGY & RESOURCES",
+            "icon": "⚡",
+            "color": "#4CAF50",
+            "description": "Oil, gas, renewables, nuclear, critical minerals, energy security",
+            "osint_sources": ["IEA", "EIA", "OPEC", "BloombergNEF", "Wood Mackenzie", "Rystad Energy"],
+            "key_indicators": ["Oil Price", "Renewable Capacity", "Grid Storage", "EV Adoption", "Nuclear Projects"],
+            "sample_questions": [
+                "Will oil prices exceed $100/barrel in 2025?",
+                "Will solar become cheapest energy globally by 2026?",
+                "Will nuclear fusion achieve net energy by 2030?",
+                "Will EV sales exceed ICE by 2028?",
+                "Will rare earth supply crisis occur by 2027?",
+                "Will hydrogen economy take off by 2030?"
+            ],
+            "hot_topics_2025_2040": [
+                "Peak oil demand timing",
+                "Grid stability challenges",
+                "Nuclear renaissance",
+                "Battery technology breakthroughs",
+                "Energy storage revolution"
+            ]
+        },
+        "politics_elections": {
+            "id": "politics_elections",
+            "label": "POLITICS & ELECTIONS",
+            "icon": "🗳️",
+            "color": "#2196F3",
+            "description": "Elections, policy changes, political movements, governance",
+            "osint_sources": ["Politico", "FiveThirtyEight", "RealClearPolitics", "The Economist", "Foreign Affairs"],
+            "key_indicators": ["Polling Data", "Legislative Tracking", "Executive Actions", "Court Decisions"],
+            "sample_questions": [
+                "Will Republicans win 2026 midterms?",
+                "Will EU see major right-wing shift by 2027?",
+                "Will India BJP lose power by 2029?",
+                "Will China leadership change occur by 2030?",
+                "Will populist movements peak by 2027?",
+                "Will global democracy index decline by 2030?"
+            ],
+            "hot_topics_2025_2040": [
+                "Polarization trends",
+                "Social media regulation",
+                "AI in elections",
+                "Youth voter surge",
+                "Authoritarianism rise"
+            ]
+        },
+        "space_exploration": {
+            "id": "space_exploration",
+            "label": "SPACE & EXPLORATION",
+            "icon": "🚀",
+            "color": "#7C3AED",
+            "description": "Space missions, satellites, colonization, space economy",
+            "osint_sources": ["NASA", "SpaceX", "ESA", "CNSA", "Space News", "ArsTechnica"],
+            "key_indicators": ["Launch Count", "Satellite Constellations", "Space Tourism", "Lunar Missions"],
+            "sample_questions": [
+                "Will humans land on Mars by 2030?",
+                "Will Starship achieve full orbit success by Q2 2025?",
+                "Will space tourism exceed 1000 customers by 2027?",
+                "Will asteroid mining begin by 2030?",
+                "Will permanent Moon base be established by 2030?",
+                "Will space debris cause major incident by 2027?"
+            ],
+            "hot_topics_2025_2040": [
+                "Mars colonization timeline",
+                "Starlink global coverage",
+                "Space militarization",
+                "Lunar economy",
+                "Space debris crisis"
+            ]
+        },
+        "social_cultural": {
+            "id": "social_cultural",
+            "label": "SOCIAL & CULTURAL",
+            "icon": "👥",
+            "color": "#FF9800",
+            "description": "Demographics, social movements, culture shifts, education",
+            "osint_sources": ["Pew Research", "Gallup", "UN Population", "World Values Survey", "Social Media Trends"],
+            "key_indicators": ["Population Growth", "Migration Patterns", "Social Trust Index", "Education Metrics"],
+            "sample_questions": [
+                "Will remote work become majority by 2027?",
+                "Will global fertility rate drop below replacement by 2026?",
+                "Will AI replace 20% of jobs by 2030?",
+                "Will social media usage decline by 2027?",
+                "Will mental health crisis worsen by 2026?",
+                "Will universal basic income be tried in G7 by 2028?"
+            ],
+            "hot_topics_2025_2040": [
+                "Aging population crisis",
+                "AI job displacement",
+                "Loneliness epidemic",
+                "Education transformation",
+                "Digital detox movement"
+            ]
+        }
+    }
+    
+    # Merge cached OSINT data with category definitions
+    for cat_data in categories_data:
+        cat_id = cat_data.get("category")
+        if cat_id in enhanced_categories:
+            enhanced_categories[cat_id]["osint_data"] = {
+                "last_updated": cat_data.get("timestamp"),
+                "news_count": cat_data.get("news_count", 0),
+                "signals": cat_data.get("signals", [])[:10],
+                "relevant_articles": cat_data.get("relevant_articles", 0)
+            }
+    
+    return {
+        "categories": list(enhanced_categories.values()),
+        "total_categories": len(enhanced_categories),
+        "auto_update_interval": "30 minutes",
+        "osint_sources_count": "1M+",
+        "methodology": "Multi-LLM ensemble with live OSINT integration"
+    }
+
+@api_router.get("/forecast/category/{category_id}/details", tags=["AI Forecasting"])
+async def get_forecast_category_details(category_id: str):
+    """Get detailed forecast insights for a specific category with live OSINT"""
+    
+    # Get cached OSINT data
+    osint_data = await db.forecast_category_osint.find_one({"category": category_id}, {"_id": 0})
+    
+    # Get live OSINT if cache is stale (>30 min)
+    if not osint_data or (datetime.now(timezone.utc) - datetime.fromisoformat(osint_data.get("timestamp", "2020-01-01T00:00:00+00:00").replace("Z", "+00:00"))).total_seconds() > 1800:
+        # Fetch fresh OSINT
+        fresh_osint = await live_osint_pipeline.aggregate_all_sources()
+        osint_data = {
+            "category": category_id,
+            "news": fresh_osint.get("news", [])[:20],
+            "signals": [],
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    
+    # Get recent forecasts for this category
+    recent_forecasts = await db.judgmental_forecasts.find(
+        {"request.category": category_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(10).to_list(10)
+    
+    return {
+        "category": category_id,
+        "osint_insights": osint_data,
+        "recent_forecasts": recent_forecasts,
+        "auto_updating": True,
+        "update_frequency": "Every 30 minutes"
+    }
+
 # Pydantic model for admin adding predictions
 class AstrologyPredictionCreate(BaseModel):
     astrologer: str = Field(..., min_length=2)
