@@ -1737,7 +1737,6 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   
   // Tab-specific data loading functions for Phase 2
   const loadHumanSignals = useCallback(async () => {
-    if (humanSignals) return; // Already loaded
     setHumanSignalsLoading(true);
     try {
       const res = await axios.get(`${API}/disasters/comprehensive/human-signals`);
@@ -1747,10 +1746,9 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       toast.error("Failed to load human signals data");
     }
     setHumanSignalsLoading(false);
-  }, [humanSignals]);
+  }, []);
 
   const loadSatelliteIot = useCallback(async () => {
-    if (satelliteIotData) return; // Already loaded
     setSatelliteLoading(true);
     try {
       const res = await axios.get(`${API}/disasters/comprehensive/satellite-iot`);
@@ -1760,10 +1758,9 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       toast.error("Failed to load satellite/IoT data");
     }
     setSatelliteLoading(false);
-  }, [satelliteIotData]);
+  }, []);
 
   const loadPlaybooks = useCallback(async () => {
-    if (playbooks) return; // Already loaded
     setPlaybooksLoading(true);
     try {
       const res = await axios.get(`${API}/disasters/comprehensive/playbooks`);
@@ -1773,7 +1770,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       toast.error("Failed to load playbooks data");
     }
     setPlaybooksLoading(false);
-  }, [playbooks]);
+  }, []);
 
   // Load Phase 2 data on tab switch
   useEffect(() => {
