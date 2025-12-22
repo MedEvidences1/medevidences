@@ -8579,6 +8579,31 @@ const MainApp = () => {
           <p className="text-xs text-[#888]">AI Forecasting & Disaster Prediction Platform</p>
           <p className="text-xs text-[#444] mt-2">Team: Parimal Shah (CEO) • Neil Shah (COO) • Aditya Jyoti (CTO)</p>
           
+          {/* Legal Links */}
+          <div className="mt-4 flex items-center justify-center gap-4">
+            <button 
+              onClick={() => setActiveTab("terms")}
+              className="text-xs text-[#888] hover:text-[#00E5FF] transition-colors"
+            >
+              Terms & Conditions
+            </button>
+            <span className="text-[#333]">|</span>
+            <button 
+              onClick={() => setActiveTab("privacy")}
+              className="text-xs text-[#888] hover:text-[#00E5FF] transition-colors"
+            >
+              Privacy Policy
+            </button>
+          </div>
+          
+          {/* Company Info */}
+          <p className="text-xs text-[#444] mt-3">
+            Plutus Predict LLC • 30 N Gould St, Ste R, Sheridan, WY 82801, USA
+          </p>
+          <p className="text-xs text-[#FF3333] mt-2">
+            ⚠️ Information Only - Not Financial or Investment Advice
+          </p>
+          
           {/* Footer Banner Ad */}
           <div className="mt-4">
             <BannerAd placement="footer" />
