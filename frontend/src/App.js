@@ -1496,6 +1496,16 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const [dailyBriefing, setDailyBriefing] = useState(null);
   const [loadingPredictions, setLoadingPredictions] = useState(false);
   const [loadingLongRange, setLoadingLongRange] = useState(false);
+  
+  // Judgmental Disaster Forecasting state
+  const [judgmentalForecast, setJudgmentalForecast] = useState(null);
+  const [loadingJudgmental, setLoadingJudgmental] = useState(false);
+  const [judgmentalForm, setJudgmentalForm] = useState({
+    disaster_type: "earthquake",
+    location: "",
+    timeframe: "2025",
+    severity: "any"
+  });
 
   const loadLiveDisasters = useCallback(async () => {
     try {
