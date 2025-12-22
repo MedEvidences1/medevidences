@@ -419,7 +419,7 @@ const useAuth = () => {
 const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, setShowChangePassword, logout, language, setLanguage }) => {
   const tabs = [
     { id: "dashboard", label: "DASHBOARD", icon: Home },
-    { id: "forecast", label: "AI_FORECAST", icon: Brain },
+    { id: "forecast", label: "EVENTS_FORECASTING", icon: Brain },
     { id: "deep-forecast", label: "DEEP_FORECAST", icon: Sparkles },
     { id: "investment", label: "IB_SUITE", icon: TrendingUp },
     { id: "disasters", label: "DISASTERS", icon: AlertTriangle },
@@ -788,7 +788,7 @@ const Dashboard = ({ getHeaders }) => {
   );
 };
 
-// AI Forecast Component
+// Events Forecasting Component - Plutus Predict
 const AIForecast = ({ getHeaders, user, setShowAuth }) => {
   const [question, setQuestion] = useState("");
   const [forecast, setForecast] = useState(null);
@@ -1539,7 +1539,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     model_preference: "ensemble"
   });
 
-  // Handle pending remediation from AI Forecast
+  // Handle pending remediation from Events Forecasting
   useEffect(() => {
     if (pendingRemediation) {
       setRemediationForm({
@@ -7947,7 +7947,7 @@ const Chat = ({ getHeaders, user, setShowAuth }) => {
             </CardHeader>
             <CardContent className="space-y-2">
               {[
-                { icon: Brain, label: "AI Forecasting", color: "#00E5FF" },
+                { icon: Brain, label: "Events Forecasting", color: "#00E5FF" },
                 { icon: AlertTriangle, label: "Disaster Analysis", color: "#FF6B6B" },
                 { icon: TrendingUp, label: "Market Insights", color: "#00FF94" },
                 { icon: Globe, label: "Geopolitical Risk", color: "#FFD700" },
@@ -10806,7 +10806,7 @@ const PaymentRequiredModal = ({ isOpen, onClose, onUpgrade }) => {
           <div className="p-4 bg-[#1A1A1A] rounded border border-[#333]">
             <h4 className="font-bold text-[#00E5FF] mb-2">What you get with a subscription:</h4>
             <ul className="text-sm text-[#888] space-y-1">
-              <li>✓ Unlimited AI Forecasts</li>
+              <li>✓ Unlimited Events Forecasts</li>
               <li>✓ Full OSINT Intelligence Access</li>
               <li>✓ Investment Banker Suite</li>
               <li>✓ Disaster Predictions & Alerts</li>
@@ -11310,7 +11310,7 @@ const MainApp = () => {
             <Zap className="w-5 h-5 text-[#00E5FF]" />
             <span className="font-bold tracking-wider">PLUTUS_PREDICT</span>
           </div>
-          <p className="text-xs text-[#888]">AI Forecasting & Disaster Prediction Platform</p>
+          <p className="text-xs text-[#888]">Events Forecasting & Disaster Prediction Platform</p>
           <p className="text-xs text-[#444] mt-2">Team: Parimal Shah (CEO) • Neil Shah (COO) • Aditya Jyoti (CTO)</p>
           
           {/* Legal Links */}
