@@ -1604,13 +1604,15 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     { id: "infrastructure", label: "INFRASTRUCTURE", icon: Zap },
     { id: "supply_chain", label: "SUPPLY CHAIN", icon: Truck },
     { id: "cyber", label: "CYBER", icon: Shield },
+    { id: "human_signals", label: "HUMAN SIGNALS", icon: Users },
+    { id: "sensors", label: "SATELLITES/IOT", icon: Cpu },
     { id: "predict", label: "AI PREDICT", icon: Brain },
+    { id: "playbooks", label: "PLAYBOOKS", icon: FileText },
     { id: "predictions", label: "2025-2026", icon: TrendingUp },
     { id: "longrange", label: "2026-2040", icon: Clock },
     { id: "judgmental", label: "JUDGMENTAL", icon: Target },
     { id: "remediation", label: "REMEDIATION", icon: Wrench },
     { id: "agencies", label: "AGENCIES", icon: Globe },
-    { id: "sensors", label: "SENSORS", icon: Cpu },
     { id: "economic", label: "ECONOMIC", icon: DollarSign },
   ];
 
