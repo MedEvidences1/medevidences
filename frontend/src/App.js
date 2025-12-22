@@ -8476,7 +8476,7 @@ const MainApp = () => {
 
   // Update URL when tab changes (optional - for bookmarking)
   useEffect(() => {
-    const tabRoutes = { admin: "/admin", pricing: "/pricing", chat: "/chat", osint: "/osint" };
+    const tabRoutes = { admin: "/admin", pricing: "/pricing", chat: "/chat", osint: "/osint", terms: "/terms", privacy: "/privacy" };
     if (tabRoutes[activeTab] && window.location.pathname !== tabRoutes[activeTab]) {
       window.history.replaceState(null, "", tabRoutes[activeTab]);
     } else if (!tabRoutes[activeTab] && window.location.pathname !== "/") {
