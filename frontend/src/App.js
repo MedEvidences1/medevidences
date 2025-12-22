@@ -79,6 +79,15 @@ import {
   Clock,
   Bell,
   Radio,
+  Truck,
+  Wrench,
+  Network,
+  Server,
+  Factory,
+  Ship,
+  Package,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 
 // Recharts
