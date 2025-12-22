@@ -1357,6 +1357,8 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       <div className="text-xs text-[#444] text-center">
         Prediction categories: Economics • Geopolitical • Technology • Finance • Disasters • Politics • Corporate • Health • Energy • Space
       </div>
+        </>
+      )}
     </div>
   );
 };
