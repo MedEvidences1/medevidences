@@ -9023,8 +9023,16 @@ const MainApp = () => {
         setLanguage={setLanguage}
       />
       
+      {/* Trial Banner - Shows countdown for logged in users */}
+      {user && trialStatus && (
+        <TrialBanner 
+          trialStatus={trialStatus} 
+          onUpgrade={() => setActiveTab("pricing")} 
+        />
+      )}
+      
       {/* Top Banner Advertisement */}
-      <div className="max-w-7xl mx-auto px-4 pt-4">
+      <div className={`max-w-7xl mx-auto px-4 pt-4 ${user && trialStatus && !trialStatus.has_unlimited_access ? 'mt-10' : ''}`}>
         <BannerAd placement="homepage_banner" />
       </div>
       
