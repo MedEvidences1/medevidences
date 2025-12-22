@@ -8160,6 +8160,288 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
   );
 };
 
+// Terms and Conditions Component
+const TermsConditions = ({ onBack }) => {
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-[#EDEDED] p-6">
+      <div className="max-w-4xl mx-auto">
+        <Button onClick={onBack} variant="ghost" className="mb-4">
+          <ChevronLeft className="w-4 h-4 mr-1" /> Back to Platform
+        </Button>
+        
+        <Card className="terminal-card">
+          <CardHeader>
+            <CardTitle className="text-2xl">Terms and Conditions</CardTitle>
+            <CardDescription>Last Updated: December 2025</CardDescription>
+          </CardHeader>
+          <CardContent className="prose prose-invert max-w-none text-sm space-y-6">
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">1. ACCEPTANCE OF TERMS</h3>
+              <p className="text-[#888]">
+                By accessing and using Plutus Predict ("the Platform"), you accept and agree to be bound by the terms and 
+                provisions of this agreement. If you do not agree to abide by these terms, please do not use this service.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">2. DESCRIPTION OF SERVICE</h3>
+              <p className="text-[#888]">
+                Plutus Predict is an <strong>INFORMATION PROVIDER ONLY</strong>. We provide AI-powered forecasting and 
+                prediction information for events including but not limited to economic events, geopolitical situations, 
+                natural disasters, market movements, and other global occurrences.
+              </p>
+              <p className="text-[#FF3333] font-bold mt-2">
+                WE DO NOT PROVIDE FINANCIAL ADVICE, INVESTMENT RECOMMENDATIONS, OR ANY FORM OF PROFESSIONAL GUIDANCE.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">3. DISCLAIMER OF LIABILITY</h3>
+              <p className="text-[#888]">
+                <strong>3.1</strong> All forecasts, predictions, and information provided on this platform are for 
+                <strong> INFORMATIONAL AND EDUCATIONAL PURPOSES ONLY</strong>.
+              </p>
+              <p className="text-[#888]">
+                <strong>3.2</strong> The predictions made by our AI systems, including judgmental forecasting, disaster 
+                predictions, and market analysis, are probabilistic estimates and should not be relied upon as 
+                guarantees of future events.
+              </p>
+              <p className="text-[#888]">
+                <strong>3.3</strong> Plutus Predict, its owners, employees, and affiliates shall not be held liable for 
+                any losses, damages, or decisions made based on information provided through this platform.
+              </p>
+              <p className="text-[#888]">
+                <strong>3.4</strong> Users acknowledge that all investment, financial, and personal decisions are made 
+                at their own risk and discretion.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">4. NO RECOMMENDATIONS OR ADVICE</h3>
+              <p className="text-[#888]">
+                <strong>4.1</strong> Nothing on this platform constitutes financial advice, investment advice, legal advice, 
+                medical advice, or any other professional advice.
+              </p>
+              <p className="text-[#888]">
+                <strong>4.2</strong> Any "recommendations" shown on the platform (such as IPO recommendations or M&A analysis) 
+                are algorithmically generated based on data patterns and DO NOT represent advice to buy, sell, or hold any 
+                securities or assets.
+              </p>
+              <p className="text-[#888]">
+                <strong>4.3</strong> Users should consult with qualified professionals (financial advisors, attorneys, 
+                medical professionals, etc.) before making any decisions based on information from this platform.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">5. ACCURACY OF INFORMATION</h3>
+              <p className="text-[#888]">
+                <strong>5.1</strong> While we strive to provide accurate and up-to-date information, we make no 
+                representations or warranties of any kind about the completeness, accuracy, reliability, or suitability 
+                of the information.
+              </p>
+              <p className="text-[#888]">
+                <strong>5.2</strong> Our forecasts are based on AI models, historical data, and OSINT (Open Source Intelligence) 
+                which may contain errors or become outdated.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">6. USER RESPONSIBILITIES</h3>
+              <p className="text-[#888]">
+                Users agree to: (a) use the platform only for lawful purposes; (b) not rely solely on our predictions 
+                for critical decisions; (c) conduct their own due diligence; (d) not redistribute our proprietary 
+                content without permission.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">7. INTELLECTUAL PROPERTY</h3>
+              <p className="text-[#888]">
+                All content, forecasting algorithms, and proprietary methodologies on Plutus Predict are protected by 
+                intellectual property laws. Unauthorized reproduction or distribution is prohibited.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">8. LIMITATION OF LIABILITY</h3>
+              <p className="text-[#888]">
+                IN NO EVENT SHALL PLUTUS PREDICT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, 
+                OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER 
+                INTANGIBLE LOSSES.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">9. GOVERNING LAW</h3>
+              <p className="text-[#888]">
+                These terms shall be governed by and construed in accordance with the laws of the State of Wyoming, 
+                United States, without regard to conflict of law provisions.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">10. CONTACT INFORMATION</h3>
+              <p className="text-[#888]">
+                <strong>Plutus Predict LLC</strong><br />
+                30 N Gould St, Ste R<br />
+                Sheridan, WY 82801<br />
+                United States<br />
+                Email: legal@plutuspredict.com
+              </p>
+            </section>
+
+            <section className="border-t border-[#1F1F1F] pt-4 mt-6">
+              <p className="text-xs text-[#666]">
+                By using Plutus Predict, you acknowledge that you have read, understood, and agree to be bound 
+                by these Terms and Conditions.
+              </p>
+            </section>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// Privacy Policy Component
+const PrivacyPolicy = ({ onBack }) => {
+  return (
+    <div className="min-h-screen bg-[#0A0A0A] text-[#EDEDED] p-6">
+      <div className="max-w-4xl mx-auto">
+        <Button onClick={onBack} variant="ghost" className="mb-4">
+          <ChevronLeft className="w-4 h-4 mr-1" /> Back to Platform
+        </Button>
+        
+        <Card className="terminal-card">
+          <CardHeader>
+            <CardTitle className="text-2xl">Privacy Policy</CardTitle>
+            <CardDescription>Last Updated: December 2025</CardDescription>
+          </CardHeader>
+          <CardContent className="prose prose-invert max-w-none text-sm space-y-6">
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">1. INTRODUCTION</h3>
+              <p className="text-[#888]">
+                Plutus Predict LLC ("we," "our," or "us") respects your privacy and is committed to protecting 
+                your personal data. This privacy policy explains how we collect, use, disclose, and safeguard 
+                your information when you visit our platform.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">2. INFORMATION WE COLLECT</h3>
+              <p className="text-[#888]"><strong>2.1 Personal Data:</strong></p>
+              <ul className="list-disc pl-6 text-[#888]">
+                <li>Name and email address (when you register)</li>
+                <li>Account credentials</li>
+                <li>Payment information (processed by third-party providers)</li>
+                <li>Communication preferences</li>
+              </ul>
+              <p className="text-[#888] mt-2"><strong>2.2 Usage Data:</strong></p>
+              <ul className="list-disc pl-6 text-[#888]">
+                <li>Browser type and version</li>
+                <li>Pages visited and time spent</li>
+                <li>Forecasts and features used</li>
+                <li>IP address and general location</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">3. HOW WE USE YOUR INFORMATION</h3>
+              <ul className="list-disc pl-6 text-[#888]">
+                <li>To provide and maintain our service</li>
+                <li>To notify you about changes to our service</li>
+                <li>To provide customer support</li>
+                <li>To gather analysis to improve our service</li>
+                <li>To detect and prevent fraud</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">4. DATA RETENTION</h3>
+              <p className="text-[#888]">
+                We retain your personal data only for as long as necessary to fulfill the purposes outlined 
+                in this privacy policy. Usage data is generally retained for a shorter period, except when 
+                used to improve security or functionality.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">5. DATA SHARING</h3>
+              <p className="text-[#888]">
+                We do not sell your personal data. We may share data with:
+              </p>
+              <ul className="list-disc pl-6 text-[#888]">
+                <li>Service providers (hosting, analytics, payment processing)</li>
+                <li>Law enforcement when required by law</li>
+                <li>Business partners with your consent</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">6. DATA SECURITY</h3>
+              <p className="text-[#888]">
+                We implement appropriate technical and organizational measures to protect your personal data. 
+                However, no method of transmission over the Internet is 100% secure.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">7. YOUR RIGHTS</h3>
+              <p className="text-[#888]">
+                Depending on your location, you may have the right to:
+              </p>
+              <ul className="list-disc pl-6 text-[#888]">
+                <li>Access your personal data</li>
+                <li>Correct inaccurate data</li>
+                <li>Request deletion of your data</li>
+                <li>Object to processing</li>
+                <li>Data portability</li>
+              </ul>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">8. COOKIES</h3>
+              <p className="text-[#888]">
+                We use cookies and similar tracking technologies to track activity on our platform and store 
+                certain information. You can instruct your browser to refuse all cookies or to indicate when 
+                a cookie is being sent.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">9. CHILDREN'S PRIVACY</h3>
+              <p className="text-[#888]">
+                Our service is not directed to anyone under the age of 18. We do not knowingly collect 
+                personal data from children under 18.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">10. CHANGES TO THIS POLICY</h3>
+              <p className="text-[#888]">
+                We may update our Privacy Policy from time to time. We will notify you of any changes by 
+                posting the new Privacy Policy on this page and updating the "Last Updated" date.
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-lg font-bold text-[#00E5FF]">11. CONTACT US</h3>
+              <p className="text-[#888]">
+                <strong>Plutus Predict LLC</strong><br />
+                30 N Gould St, Ste R<br />
+                Sheridan, WY 82801<br />
+                United States<br />
+                Email: privacy@plutuspredict.com
+              </p>
+            </section>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 // Main App Component
 const MainApp = () => {
   const location = window.location;
