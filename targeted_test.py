@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 
 class TargetedAPITester:
-    def __init__(self, base_url="https://predicto-hub.preview.emergentagent.com"):
+    def __init__(self, base_url="https://predict-safeguard.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
