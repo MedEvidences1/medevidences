@@ -583,13 +583,14 @@ const Dashboard = ({ getHeaders }) => {
         axios.get(`${API}/events/predictions?timeframe=2026-3000`),
         axios.get(`${API}/disasters/summary`),
       ]);
+      console.log("Dashboard data loaded:", { stats: statsRes.data, earthquakes: eqRes.data, predictions: predictionsRes.data, disaster: disasterRes.data });
       setStats(statsRes.data);
       setEarthquakes(eqRes.data.earthquakes || []);
       // Get future predictions from all categories
       setFuturePredictions(predictionsRes.data.predictions || []);
       setDisasterSummary(disasterRes.data);
     } catch (e) {
-      console.error(e);
+      console.error("Dashboard load error:", e);
     }
     setLoading(false);
   }, []);
