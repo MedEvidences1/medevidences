@@ -1335,7 +1335,7 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
           <div className="flex gap-2 mb-4">
             <Input
               data-testid="forecast-input"
-              placeholder="e.g., Will there be a major earthquake in Japan by 2025?"
+              placeholder="e.g., Will there be a magnitude 9+ earthquake in the Pacific by 2030?"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               className="terminal-input flex-1"
