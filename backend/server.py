@@ -14381,12 +14381,17 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    # Create indexes
-    await db.users.create_index("email", unique=True)
-    await db.users.create_index("id", unique=True)
-    await db.sessions.create_index("token", unique=True)
-    await db.forecasts.create_index("id", unique=True)
-    await db.predictions.create_index("id", unique=True)
+    if db is None:
+        logger.error("Database not available - skipping startup initialization")
+        return
+        
+    try:
+        # Create indexes with timeout
+        await asyncio.wait_for(db.users.create_index("email", unique=True), timeout=10)
+        await asyncio.wait_for(db.users.create_index("id", unique=True), timeout=10)
+        await asyncio.wait_for(db.sessions.create_index("token", unique=True), timeout=10)
+        await asyncio.wait_for(db.forecasts.create_index("id", unique=True), timeout=10)
+        await asyncio.wait_for(db.predictions.create_index("id", unique=True), timeout=10)
     
     # New indexes for accuracy tracking, dashboards, and alerts
     await db.prediction_outcomes.create_index("id", unique=True)
