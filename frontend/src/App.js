@@ -4613,10 +4613,10 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                     className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
                   >
                     <option value="2026">2026</option>
-                    <option value="2026">2026</option>
                     <option value="2027">2027</option>
                     <option value="2028-2030">2028-2030</option>
                     <option value="2030-2040">2030-2040</option>
+                    <option value="2040-3000">2040-3000</option>
                   </select>
                 </div>
                 <div>
@@ -4643,6 +4643,32 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                     GENERATE FORECAST
                   </Button>
                 </div>
+              </div>
+              
+              {/* Astrology Reconciliation Toggle */}
+              <div className="mt-4 pt-4 border-t border-[#1F1F1F]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔮</span>
+                    <div>
+                      <span className="text-sm text-[#EDEDED]">Reconcile with Vedic Astrology</span>
+                      <p className="text-xs text-[#888]">Include planetary influences from Abhigya Anand, Prashant Kapoor & other astrologers</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant={includeAstrology ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIncludeAstrology(!includeAstrology)}
+                    className={includeAstrology ? "bg-[#9D4EDD] text-white" : "border-[#1F1F1F] text-[#888]"}
+                  >
+                    {includeAstrology ? "✓ ENABLED" : "ENABLE"}
+                  </Button>
+                </div>
+                {includeAstrology && (
+                  <div className="mt-2 p-2 bg-[#9D4EDD]/10 rounded text-xs text-[#9D4EDD]">
+                    ⚠️ Astrology insights are provided for informational purposes only. Always rely on scientific data for disaster preparedness.
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
