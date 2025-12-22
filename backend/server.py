@@ -8030,10 +8030,16 @@ class EnterpriseAdminSystem:
         for emp in employees:
             try:
                 if RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder':
-                    await email_alert_service.send_alert(emp["email"], subject, message)
+                    # Send email via resend
+                    resend.Emails.send({
+                        "from": SENDER_EMAIL,
+                        "to": [emp["email"]],
+                        "subject": subject,
+                        "text": message
+                    })
                     emails_sent += 1
-            except:
-                pass
+            except Exception as e:
+                logger.error(f"Failed to send email to {emp.get('email')}: {e}")
         
         return {"success": True, "emails_sent": emails_sent, "total_employees": len(employees)}
     
