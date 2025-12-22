@@ -5532,7 +5532,7 @@ const Astrology = ({ getHeaders, user }) => {
                   <CardContent className="p-8 text-center">
                     <FileText className="w-12 h-12 text-[#444] mx-auto mb-4" />
                     <h3 className="text-lg text-[#888] mb-2">No predictions loaded yet</h3>
-                    <p className="text-sm text-[#666] mb-4">Click "LOAD_PREDICTIONS" to load curated predictions from Abhigya Anand, Prashant Kapoor, Ashish Mehta & Preetika Rao covering war, disasters, and metal prices for 2025-2030</p>
+                    <p className="text-sm text-[#666] mb-4">Click "LOAD_PREDICTIONS" to load curated predictions from Abhigya Anand, Prashant Kapoor, Ashish Mehta & Preetika Rao covering war, disasters, and metal prices for 2026-3000</p>
                     <Button onClick={loadCuratedPredictions} disabled={importing} className="bg-[#FFD700] text-black">
                       {importing ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <FileText className="w-4 h-4 mr-2" />}
                       LOAD PREDICTIONS NOW
