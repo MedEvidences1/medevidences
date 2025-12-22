@@ -2234,6 +2234,245 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </>
       )}
 
+      {/* JUDGMENTAL FORECASTING VIEW - Proprietary Multi-Factor Disaster Prediction */}
+      {activeView === "judgmental" && (
+        <div className="space-y-4">
+          {/* Header Card */}
+          <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Brain className="w-4 h-4 text-[#9D4EDD]" />
+                JUDGMENTAL DISASTER FORECASTING
+                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">PROPRIETARY ENGINE</Badge>
+              </CardTitle>
+              <CardDescription className="text-xs text-[#888]">
+                Multi-factor analysis with historical frequency, geographical risk, seasonal patterns, and climate indicators
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Forecast Form */}
+          <Card className="terminal-card">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="text-xs text-[#888] mb-1 block">DISASTER TYPE</label>
+                  <select
+                    value={judgmentalForm.disaster_type}
+                    onChange={(e) => setJudgmentalForm({...judgmentalForm, disaster_type: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
+                  >
+                    <option value="earthquake">Earthquake</option>
+                    <option value="hurricane">Hurricane/Typhoon</option>
+                    <option value="flood">Flood</option>
+                    <option value="wildfire">Wildfire</option>
+                    <option value="tornado">Tornado</option>
+                    <option value="tsunami">Tsunami</option>
+                    <option value="volcano">Volcanic Eruption</option>
+                    <option value="drought">Drought</option>
+                    <option value="heatwave">Heat Wave</option>
+                    <option value="winter_storm">Winter Storm</option>
+                    <option value="pandemic">Pandemic</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] mb-1 block">LOCATION</label>
+                  <Input
+                    value={judgmentalForm.location}
+                    onChange={(e) => setJudgmentalForm({...judgmentalForm, location: e.target.value})}
+                    placeholder="City, Region or Country"
+                    className="bg-[#0A0A0A] border-[#1F1F1F]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] mb-1 block">TIMEFRAME</label>
+                  <select
+                    value={judgmentalForm.timeframe}
+                    onChange={(e) => setJudgmentalForm({...judgmentalForm, timeframe: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
+                  >
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028-2030">2028-2030</option>
+                    <option value="2030-2040">2030-2040</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888] mb-1 block">SEVERITY</label>
+                  <select
+                    value={judgmentalForm.severity}
+                    onChange={(e) => setJudgmentalForm({...judgmentalForm, severity: e.target.value})}
+                    className="w-full bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
+                  >
+                    <option value="any">Any Severity</option>
+                    <option value="minor">Minor</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="major">Major</option>
+                    <option value="catastrophic">Catastrophic</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <Button 
+                    onClick={generateJudgmentalDisasterForecast}
+                    disabled={loadingJudgmental}
+                    className="w-full bg-[#9D4EDD] text-white hover:bg-[#9D4EDD]/80"
+                  >
+                    {loadingJudgmental ? <RefreshCw className="w-4 h-4 animate-spin mr-1" /> : <Brain className="w-4 h-4 mr-1" />}
+                    GENERATE FORECAST
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Forecast Results */}
+          {judgmentalForecast && (
+            <div className="space-y-4">
+              {/* Probability Card */}
+              <Card className="terminal-card border-l-4 border-l-[#FF3333]">
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-3xl font-bold text-[#FF3333]">{judgmentalForecast.probability}%</div>
+                      <div className="text-xs text-[#888]">PROBABILITY</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-xl font-bold text-[#00E5FF]">{judgmentalForecast.confidence?.level}</div>
+                      <div className="text-xs text-[#888]">CONFIDENCE</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-xl font-bold text-[#FFD700]">{judgmentalForecast.disaster_type?.toUpperCase()}</div>
+                      <div className="text-xs text-[#888]">DISASTER TYPE</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="text-xl font-bold text-[#00FF94]">{judgmentalForecast.location}</div>
+                      <div className="text-xs text-[#888]">LOCATION</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Factor Analysis */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">FACTOR ANALYSIS</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(judgmentalForecast.factors || {}).map(([factor, data]) => (
+                      <div key={factor} className="p-3 bg-[#0A0A0A] rounded">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-[#00E5FF]">{factor.replace(/_/g, ' ').toUpperCase()}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-[#888]">Weight: {((data.weight || 0) * 100).toFixed(0)}%</div>
+                            <Badge className={data.score > 0.6 ? "bg-[#FF3333]" : data.score > 0.4 ? "bg-[#FFAA00]" : "bg-[#00FF94]"}>
+                              {((data.score || 0) * 100).toFixed(0)}%
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="w-full bg-[#1F1F1F] rounded h-2">
+                          <div 
+                            className={`h-2 rounded ${data.score > 0.6 ? "bg-[#FF3333]" : data.score > 0.4 ? "bg-[#FFAA00]" : "bg-[#00FF94]"}`}
+                            style={{ width: `${(data.score || 0) * 100}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-[#888] mt-1">{data.evidence}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Risk Assessment */}
+              {judgmentalForecast.risk_assessment && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">RISK ASSESSMENT BREAKDOWN</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <div className="p-3 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold">{judgmentalForecast.risk_assessment.base_rate}%</div>
+                        <div className="text-xs text-[#888]">Base Rate</div>
+                      </div>
+                      <div className="p-3 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#FFD700]">{judgmentalForecast.risk_assessment.regional_multiplier}x</div>
+                        <div className="text-xs text-[#888]">Regional Multiplier</div>
+                      </div>
+                      <div className="p-3 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#00E5FF]">{judgmentalForecast.risk_assessment.seasonal_factor}x</div>
+                        <div className="text-xs text-[#888]">Seasonal Factor</div>
+                      </div>
+                      <div className="p-3 bg-[#0A0A0A] rounded text-center">
+                        <div className="text-lg font-bold text-[#FF3333]">{judgmentalForecast.risk_assessment.adjusted_probability}%</div>
+                        <div className="text-xs text-[#888]">Final Probability</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Recommendations */}
+              {judgmentalForecast.recommendations && judgmentalForecast.recommendations.length > 0 && (
+                <Card className="terminal-card border-l-2 border-l-[#00FF94]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-[#00FF94]" />
+                      RECOMMENDATIONS
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {judgmentalForecast.recommendations.map((rec, i) => (
+                        <div key={i} className={`p-3 bg-[#0A0A0A] rounded border-l-2 ${rec.priority === "CRITICAL" ? "border-l-[#FF3333]" : rec.priority === "HIGH" ? "border-l-[#FFAA00]" : "border-l-[#00FF94]"}`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-bold">{rec.action}</span>
+                            <Badge className={rec.priority === "CRITICAL" ? "bg-[#FF3333]" : rec.priority === "HIGH" ? "bg-[#FFAA00]" : "bg-[#00FF94]"}>
+                              {rec.priority}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-[#888]">{rec.details}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Link to Remediation */}
+              <Button 
+                onClick={() => {
+                  setRemediationForm({
+                    disaster_type: judgmentalForecast.disaster_type,
+                    severity: judgmentalForecast.severity_filter === "any" ? "high" : judgmentalForecast.severity_filter,
+                    location: judgmentalForecast.location,
+                    population_affected: 50000,
+                    model_preference: "ensemble"
+                  });
+                  setActiveView("remediation");
+                }}
+                className="w-full bg-[#00FF94] text-black hover:bg-[#00FF94]/80"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                GENERATE FULL REMEDIATION PLAN
+              </Button>
+            </div>
+          )}
+
+          {/* Methodology Info */}
+          <Card className="terminal-card">
+            <CardContent className="p-4">
+              <div className="text-xs text-[#888] text-center">
+                <span className="text-[#9D4EDD] font-bold">Plutus Judgmental Disaster Forecasting Engine v1.0</span>
+                <br />
+                Multi-factor analysis: Historical frequency • Geographical risk • Seasonal indicators • Climate patterns • Early warning signals
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* REMEDIATION VIEW - AI-Powered Disaster Response Planning */}
       {activeView === "remediation" && (
         <div className="space-y-4">
