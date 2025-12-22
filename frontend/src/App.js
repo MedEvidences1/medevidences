@@ -8599,6 +8599,8 @@ function App() {
           <Route path="/pricing" element={<MainApp />} />
           <Route path="/chat" element={<MainApp />} />
           <Route path="/osint" element={<MainApp />} />
+          <Route path="/terms" element={<MainApp />} />
+          <Route path="/privacy" element={<MainApp />} />
           <Route path="/*" element={<MainApp />} />
         </Routes>
       </BrowserRouter>
