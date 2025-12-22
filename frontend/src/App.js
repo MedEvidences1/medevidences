@@ -576,22 +576,27 @@ const Dashboard = ({ getHeaders }) => {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    // Load data independently to handle partial failures
     try {
-      const [statsRes, eqRes, predictionsRes, disasterRes] = await Promise.all([
-        axios.get(`${API}/stats`),
-        axios.get(`${API}/disasters/earthquakes?min_magnitude=4.5&limit=10`),
-        axios.get(`${API}/events/predictions?timeframe=2026-3000`),
-        axios.get(`${API}/disasters/summary`),
-      ]);
-      console.log("Dashboard data loaded:", { stats: statsRes.data, earthquakes: eqRes.data, predictions: predictionsRes.data, disaster: disasterRes.data });
+      const statsRes = await axios.get(`${API}/stats`);
       setStats(statsRes.data);
+    } catch (e) { console.error("Stats error:", e); }
+    
+    try {
+      const eqRes = await axios.get(`${API}/disasters/earthquakes?min_magnitude=4.5&limit=10`);
       setEarthquakes(eqRes.data.earthquakes || []);
-      // Get future predictions from all categories
+    } catch (e) { console.error("Earthquakes error:", e); }
+    
+    try {
+      const predictionsRes = await axios.get(`${API}/events/predictions?timeframe=2026-3000`);
       setFuturePredictions(predictionsRes.data.predictions || []);
+    } catch (e) { console.error("Predictions error:", e); }
+    
+    try {
+      const disasterRes = await axios.get(`${API}/disasters/summary`);
       setDisasterSummary(disasterRes.data);
-    } catch (e) {
-      console.error("Dashboard load error:", e);
-    }
+    } catch (e) { console.error("Disaster summary error:", e); }
+    
     setLoading(false);
   }, []);
 
