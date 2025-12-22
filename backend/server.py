@@ -10116,6 +10116,127 @@ async def get_investment_dashboard(user: dict = Depends(get_optional_user)):
     }
 
 # =============================================================================
+# API ENDPOINTS - ADVERTISEMENTS
+# =============================================================================
+
+class AdCreateRequest(BaseModel):
+    title: str
+    type: str = "banner"  # banner, video, native
+    placement: str = "homepage_banner"
+    media_url: str
+    click_url: Optional[str] = None
+    duration: int = 30  # Max 30 sec for video
+    skip_after: int = 5
+    targeting: Optional[Dict] = None
+    budget: float = 0
+    cpm: float = 5.0
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+@api_router.post("/ads/create", tags=["Advertisements"])
+async def create_advertisement(request: AdCreateRequest, user: dict = Depends(get_current_user)):
+    """Create a new advertisement (admin only)"""
+    if user.get("role") not in ["admin", "owner"]:
+        raise HTTPException(403, "Admin access required")
+    
+    ad_data = request.dict()
+    ad_data["created_by"] = user["id"]
+    
+    ad = await ad_manager.create_ad(ad_data)
+    return ad
+
+@api_router.get("/ads/placement/{placement}", tags=["Advertisements"])
+async def get_ads_for_placement(placement: str):
+    """Get active ads for a specific placement"""
+    ads = await ad_manager.get_ads_for_placement(placement)
+    return {"placement": placement, "ads": ads}
+
+@api_router.get("/ads/all", tags=["Advertisements"])
+async def get_all_ads(status: str = None, user: dict = Depends(get_current_user)):
+    """Get all advertisements (admin only)"""
+    if user.get("role") not in ["admin", "owner"]:
+        raise HTTPException(403, "Admin access required")
+    
+    ads = await ad_manager.get_all_ads(status)
+    return {"total": len(ads), "ads": ads}
+
+@api_router.post("/ads/{ad_id}/click", tags=["Advertisements"])
+async def record_ad_click(ad_id: str):
+    """Record an ad click"""
+    success = await ad_manager.record_click(ad_id)
+    return {"success": success}
+
+@api_router.put("/ads/{ad_id}/status", tags=["Advertisements"])
+async def update_ad_status(ad_id: str, status: str, user: dict = Depends(get_current_user)):
+    """Update ad status (admin only)"""
+    if user.get("role") not in ["admin", "owner"]:
+        raise HTTPException(403, "Admin access required")
+    
+    success = await ad_manager.update_ad_status(ad_id, status)
+    return {"success": success}
+
+@api_router.get("/ads/analytics", tags=["Advertisements"])
+async def get_ad_analytics(user: dict = Depends(get_current_user)):
+    """Get advertisement analytics dashboard (admin only)"""
+    if user.get("role") not in ["admin", "owner"]:
+        raise HTTPException(403, "Admin access required")
+    
+    analytics = await ad_manager.get_ad_analytics()
+    return analytics
+
+@api_router.get("/ads/placements", tags=["Advertisements"])
+async def get_ad_placements():
+    """Get available ad placements"""
+    return {
+        "placements": ad_manager.AD_PLACEMENTS,
+        "ad_types": ad_manager.AD_TYPES,
+        "video_constraints": {
+            "max_duration_seconds": 30,
+            "skip_after_seconds": 5,
+            "supported_formats": ["mp4", "webm", "youtube", "vimeo"]
+        }
+    }
+
+# =============================================================================
+# API ENDPOINTS - LIVE VIDEO
+# =============================================================================
+
+@api_router.get("/video/live/{disaster_type}", tags=["Live Video"])
+async def get_live_video_feeds(disaster_type: str, location: str = ""):
+    """Get live video feeds for a specific disaster type and location"""
+    feeds = await live_video_manager.get_live_feeds_for_disaster(disaster_type, location)
+    return feeds
+
+@api_router.get("/video/trending", tags=["Live Video"])
+async def get_trending_disaster_videos():
+    """Get trending disaster videos across all platforms"""
+    trending = await live_video_manager.get_trending_disaster_videos()
+    return {"total": len(trending), "trending": trending}
+
+@api_router.get("/video/search", tags=["Live Video"])
+async def search_videos(query: str, platform: str = "all"):
+    """Search for videos across platforms"""
+    results = {
+        "query": query,
+        "results": []
+    }
+    
+    if platform in ["all", "youtube"]:
+        youtube = await live_video_manager.search_youtube_live(query)
+        results["results"].extend(youtube)
+    
+    if platform in ["all", "twitter"]:
+        twitter = await live_video_manager.search_twitter_videos(query)
+        results["results"].extend(twitter)
+    
+    if platform in ["all", "news"]:
+        news = await live_video_manager.get_news_videos(query)
+        results["results"].extend(news)
+    
+    results["total"] = len(results["results"])
+    return results
+
+# =============================================================================
 # API ENDPOINTS - USAGE QUOTAS
 # =============================================================================
 
