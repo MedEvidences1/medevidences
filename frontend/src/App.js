@@ -1536,6 +1536,22 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     setLoadingPredictions(false);
   };
 
+  const generateJudgmentalDisasterForecast = async () => {
+    if (!judgmentalForm.location) {
+      toast.error("Please enter a location");
+      return;
+    }
+    setLoadingJudgmental(true);
+    try {
+      const res = await axios.post(`${API}/judgmental-forecast/disaster`, judgmentalForm, { headers: getHeaders() });
+      setJudgmentalForecast(res.data);
+      toast.success("Judgmental disaster forecast generated!");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to generate forecast");
+    }
+    setLoadingJudgmental(false);
+  };
+
   const loadLongRangeForecasts = async () => {
     setLoadingLongRange(true);
     try {
