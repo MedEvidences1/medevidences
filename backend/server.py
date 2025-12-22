@@ -14475,7 +14475,10 @@ async def startup():
         logger.error(f"Error during startup initialization: {e}")
     
     # Initialize cron job scheduler (outside try block - should always try)
-    cron_manager.initialize()
+    try:
+        cron_manager.initialize()
+    except Exception as e:
+        logger.error(f"Error initializing cron manager: {e}")
     
     logger.info("=" * 60)
     logger.info("PLUTUS PREDICT - PRODUCTION PLATFORM STARTED")
@@ -14487,4 +14490,5 @@ async def startup():
 async def shutdown_db_client():
     if cron_manager.scheduler:
         cron_manager.scheduler.shutdown()
-    client.close()
+    if client:
+        client.close()
