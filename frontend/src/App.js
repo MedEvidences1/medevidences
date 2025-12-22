@@ -7567,9 +7567,21 @@ const MainApp = () => {
         language={language}
         setLanguage={setLanguage}
       />
+      
+      {/* Top Banner Advertisement */}
+      <div className="max-w-7xl mx-auto px-4 pt-4">
+        <BannerAd placement="homepage_banner" />
+      </div>
+      
       <main className="max-w-7xl mx-auto px-4 py-6">
         {renderContent()}
       </main>
+      
+      {/* Sidebar Ad - shown on larger screens */}
+      <div className="hidden xl:block fixed right-4 top-1/2 transform -translate-y-1/2 w-48">
+        <BannerAd placement="sidebar" className="mb-4" />
+      </div>
+      
       <AuthModal
         isOpen={showAuth}
         onClose={() => setShowAuth(false)}
@@ -7586,6 +7598,11 @@ const MainApp = () => {
           </div>
           <p className="text-xs text-[#888]">AI Forecasting & Disaster Prediction Platform</p>
           <p className="text-xs text-[#444] mt-2">Team: Parimal Shah (CEO) • Neil Shah (COO) • Aditya Jyoti (CTO)</p>
+          
+          {/* Footer Banner Ad */}
+          <div className="mt-4">
+            <BannerAd placement="footer" />
+          </div>
         </div>
       </footer>
     </div>
