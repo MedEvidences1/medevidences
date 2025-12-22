@@ -1943,6 +1943,25 @@ const Disasters = ({ getHeaders }) => {
                             ))}
                           </div>
                         )}
+                        {/* Add PREPARE REMEDIATION button for disaster-related events */}
+                        {(event.category === "climate" || event.category === "natural_disaster" || event.category === "disaster" || event.impact_level === "critical") && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => {
+                              setRemediationForm({
+                                disaster_type: event.event || event.category,
+                                severity: event.impact_level || "high",
+                                location: event.region || "Global",
+                                population_affected: 50000,
+                                model_preference: "ensemble"
+                              });
+                              setActiveView("remediation");
+                            }}
+                            className="mt-2 w-full bg-[#00FF94] text-black hover:bg-[#00FF94]/80 text-xs"
+                          >
+                            <Shield className="w-3 h-3 mr-1" />PREPARE REMEDIATION
+                          </Button>
+                        )}
                       </div>
                     ))}
                   </div>
