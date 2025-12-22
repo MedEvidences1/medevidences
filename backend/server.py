@@ -9164,7 +9164,7 @@ async def forecast_disaster_judgmental(request: DisasterForecastRequest, user: d
     
     # Store forecast
     doc = {
-        "id": f"DJFN-{str(uuid4())[:8]}",
+        "id": f"DJFN-{uuid.uuid4().hex[:8]}",
         "user_id": user.get("id"),
         "type": "disaster_judgmental",
         "request": request.model_dump(),
