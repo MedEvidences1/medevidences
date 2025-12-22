@@ -8779,14 +8779,21 @@ const CustomDashboards = ({ getHeaders, user, setShowAuth }) => {
   );
 };
 
-// Holographic 3D Visualization Component
+// Holographic 3D Visualization Component - Enhanced
 const HolographicVisualization = ({ getHeaders }) => {
   const [holoData, setHoloData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState("globe");
+  const [selectedRegion, setSelectedRegion] = useState(null);
+  const [animationFrame, setAnimationFrame] = useState(0);
 
   useEffect(() => {
     loadHolographicData();
+    // Continuous animation loop for 3D effect
+    const interval = setInterval(() => {
+      setAnimationFrame(prev => (prev + 1) % 360);
+    }, 50);
+    return () => clearInterval(interval);
   }, []);
 
   const loadHolographicData = async () => {
@@ -8800,14 +8807,27 @@ const HolographicVisualization = ({ getHeaders }) => {
     setLoading(false);
   };
 
+  // Generate orbital ring positions
+  const getOrbitalPosition = (index, total, radius) => {
+    const angle = ((animationFrame + (index * 360 / total)) * Math.PI) / 180;
+    return {
+      x: 50 + radius * Math.cos(angle),
+      y: 50 + radius * Math.sin(angle) * 0.3, // Flatten for 3D perspective
+      z: Math.sin(angle) > 0 ? 1 : 0 // Front/back depth
+    };
+  };
+
   return (
     <div className="space-y-6" data-testid="holographic-view">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <Globe className="w-6 h-6 text-[#00E5FF]" />3D_HOLOGRAPHIC_VISUALIZATION
-        </h2>
+        <div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Globe className="w-6 h-6 text-[#00E5FF]" />3D_HOLOGRAPHIC_VISUALIZATION
+          </h2>
+          <p className="text-xs text-[#888]">Real-time global risk visualization with orbital data layers</p>
+        </div>
         <div className="flex gap-2">
-          {["globe", "probability", "timeline"].map(view => (
+          {["globe", "probability", "timeline", "orbital"].map(view => (
             <Button
               key={view}
               size="sm"
@@ -8825,79 +8845,265 @@ const HolographicVisualization = ({ getHeaders }) => {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-[#888]">Loading 3D visualization data...</div>
+        <div className="text-center py-12 text-[#888]">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-[#00E5FF] border-t-transparent animate-spin" />
+          Loading 3D visualization data...
+        </div>
       ) : (
         <>
           {/* Live Metrics Panel */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
-              <CardContent className="p-4 text-center">
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#FF4444]/10 to-transparent" />
+              <CardContent className="p-4 text-center relative z-10">
                 <div className="text-3xl font-bold text-[#FF4444]">{holoData?.live_metrics?.active_earthquakes_m5plus || 0}</div>
                 <div className="text-xs text-[#888] mt-1">ACTIVE_M5+_QUAKES</div>
               </CardContent>
             </Card>
-            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
-              <CardContent className="p-4 text-center">
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#FFD700]/10 to-transparent" />
+              <CardContent className="p-4 text-center relative z-10">
                 <div className="text-3xl font-bold text-[#FFD700]">{holoData?.live_metrics?.global_risk_index || 0}%</div>
                 <div className="text-xs text-[#888] mt-1">GLOBAL_RISK_INDEX</div>
               </CardContent>
             </Card>
-            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
-              <CardContent className="p-4 text-center">
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#00FF94]/10 to-transparent" />
+              <CardContent className="p-4 text-center relative z-10">
                 <div className="text-3xl font-bold text-[#00FF94]">{holoData?.live_metrics?.predictions_active || 0}</div>
                 <div className="text-xs text-[#888] mt-1">ACTIVE_PREDICTIONS</div>
               </CardContent>
             </Card>
-            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A]">
-              <CardContent className="p-4 text-center">
+            <Card className="terminal-card bg-gradient-to-br from-[#0A0A0A] to-[#1A1A1A] overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#9D4EDD]/10 to-transparent" />
+              <CardContent className="p-4 text-center relative z-10">
                 <div className="text-3xl font-bold text-[#9D4EDD]">{holoData?.live_metrics?.astrology_matches || 0}</div>
                 <div className="text-xs text-[#888] mt-1">ASTROLOGY_MATCHES</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* 3D Globe Simulation */}
+          {/* 3D Globe Simulation - Enhanced */}
           {activeView === "globe" && (
             <Card className="terminal-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Globe className="w-4 h-4 text-[#00E5FF]" />GLOBAL_RISK_HEATMAP_3D
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">LIVE</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px] bg-[#050505] rounded-lg border border-[#1F1F1F] relative overflow-hidden">
-                  {/* Simulated 3D Globe with CSS */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-[300px] h-[300px] rounded-full bg-gradient-to-br from-[#0A2540] via-[#1E3A5F] to-[#0A1628] relative animate-pulse" style={{boxShadow: "0 0 60px #00E5FF30, inset 0 0 60px #00E5FF20"}}>
-                      {/* Hotspots */}
-                      {holoData?.globe_visualization?.regions?.map((region, i) => (
-                        <div
-                          key={i}
-                          className="absolute w-3 h-3 rounded-full animate-ping"
-                          style={{
-                            backgroundColor: region.risk_score > 60 ? "#FF4444" : region.risk_score > 40 ? "#FFD700" : "#00FF94",
-                            top: `${30 + Math.random() * 40}%`,
-                            left: `${20 + Math.random() * 60}%`,
-                            animationDelay: `${i * 0.2}s`
-                          }}
-                        />
-                      ))}
+                <div className="h-[450px] bg-[#030308] rounded-lg border border-[#1F1F1F] relative overflow-hidden">
+                  {/* Scanline effect */}
+                  <div className="absolute inset-0 pointer-events-none" style={{
+                    background: 'repeating-linear-gradient(0deg, rgba(0,229,255,0.02) 0px, rgba(0,229,255,0.02) 1px, transparent 1px, transparent 3px)'
+                  }} />
+                  
+                  {/* 3D Globe with Holographic Effect */}
+                  <div className="absolute inset-0 flex items-center justify-center perspective-1000">
+                    {/* Outer glow ring */}
+                    <div 
+                      className="absolute w-[320px] h-[320px] rounded-full border border-[#00E5FF]/20"
+                      style={{
+                        transform: `rotateX(70deg) rotateZ(${animationFrame}deg)`,
+                        boxShadow: '0 0 40px rgba(0,229,255,0.1)'
+                      }}
+                    />
+                    
+                    {/* Main globe */}
+                    <div 
+                      className="w-[280px] h-[280px] rounded-full relative"
+                      style={{
+                        background: 'radial-gradient(circle at 30% 30%, #0A2540 0%, #1E3A5F 30%, #0A1628 70%, #050510 100%)',
+                        boxShadow: '0 0 80px rgba(0,229,255,0.2), inset 0 0 60px rgba(0,229,255,0.1), inset -30px -30px 60px rgba(0,0,0,0.5)',
+                        transform: `rotateY(${animationFrame * 0.5}deg)`
+                      }}
+                    >
+                      {/* Grid overlay */}
+                      <div className="absolute inset-0 rounded-full" style={{
+                        background: 'repeating-linear-gradient(0deg, transparent 0%, rgba(0,229,255,0.05) 10%, transparent 20%), repeating-linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.05) 10%, transparent 20%)'
+                      }} />
+                      
+                      {/* Risk Hotspots with pulsing animation */}
+                      {holoData?.globe_visualization?.regions?.map((region, i) => {
+                        const pos = {
+                          top: 20 + (i * 13) % 60,
+                          left: 15 + (i * 17) % 70
+                        };
+                        return (
+                          <div
+                            key={i}
+                            className="absolute cursor-pointer group"
+                            style={{ top: `${pos.top}%`, left: `${pos.left}%` }}
+                            onClick={() => setSelectedRegion(region)}
+                          >
+                            <div 
+                              className="w-4 h-4 rounded-full animate-pulse"
+                              style={{
+                                backgroundColor: region.risk_score > 60 ? "#FF4444" : region.risk_score > 40 ? "#FFD700" : "#00FF94",
+                                boxShadow: `0 0 ${region.risk_score / 5}px ${region.risk_score > 60 ? "#FF4444" : region.risk_score > 40 ? "#FFD700" : "#00FF94"}`,
+                                animationDelay: `${i * 0.1}s`
+                              }}
+                            />
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0A0A0A] px-2 py-1 rounded text-[10px] whitespace-nowrap border border-[#1F1F1F] z-10">
+                              {region.region_id?.replace("_", " ")} - {region.risk_score}%
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                    
+                    {/* Inner glow ring */}
+                    <div 
+                      className="absolute w-[240px] h-[240px] rounded-full border border-[#00E5FF]/10"
+                      style={{
+                        transform: `rotateX(70deg) rotateZ(${-animationFrame * 0.5}deg)`
+                      }}
+                    />
                   </div>
-                  <div className="absolute bottom-4 left-4 text-xs text-[#888]">
-                    HOLOGRAPHIC_SIMULATION • {holoData?.globe_visualization?.regions?.length || 0} RISK_ZONES
+                  
+                  {/* Legend */}
+                  <div className="absolute bottom-4 left-4 text-xs text-[#888] flex gap-4">
+                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#FF4444]" /> HIGH RISK</span>
+                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#FFD700]" /> MEDIUM</span>
+                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-[#00FF94]" /> LOW</span>
+                  </div>
+                  
+                  {/* Data info */}
+                  <div className="absolute top-4 right-4 text-xs text-[#888]">
+                    {holoData?.globe_visualization?.regions?.length || 0} ACTIVE ZONES
                   </div>
                 </div>
+                
+                {/* Selected Region Details */}
+                {selectedRegion && (
+                  <div className="mt-4 p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-lg font-bold">{selectedRegion.region_id?.replace("_", " ").toUpperCase()}</div>
+                        <div className="text-xs text-[#888]">Region Details</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold" style={{color: selectedRegion.risk_score > 60 ? "#FF4444" : selectedRegion.risk_score > 40 ? "#FFD700" : "#00FF94"}}>
+                          {selectedRegion.risk_score}%
+                        </div>
+                        <Badge className={selectedRegion.risk_score > 60 ? "bg-[#FF4444]/20 text-[#FF4444]" : selectedRegion.risk_score > 40 ? "bg-[#FFD700]/20 text-[#FFD700]" : "bg-[#00FF94]/20 text-[#00FF94]"}>
+                          {selectedRegion.risk_score > 60 ? "HIGH RISK" : selectedRegion.risk_score > 40 ? "MEDIUM RISK" : "LOW RISK"}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Button onClick={() => setSelectedRegion(null)} size="sm" className="mt-2 text-xs">
+                      <X className="w-3 h-3 mr-1" /> Close
+                    </Button>
+                  </div>
+                )}
+                
                 {/* Region Risk List */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
                   {holoData?.globe_visualization?.regions?.slice(0, 8).map((region, i) => (
-                    <div key={i} className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded">
+                    <div 
+                      key={i} 
+                      className="p-2 bg-[#0A0A0A] border border-[#1F1F1F] rounded cursor-pointer hover:border-[#00E5FF] transition-colors"
+                      onClick={() => setSelectedRegion(region)}
+                    >
                       <div className="text-xs text-[#888] uppercase">{region.region_id?.replace("_", " ")}</div>
                       <div className={`text-lg font-bold ${region.risk_score > 60 ? "text-[#FF4444]" : region.risk_score > 40 ? "text-[#FFD700]" : "text-[#00FF94]"}`}>
                         {region.risk_score}%
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* NEW: Orbital View - TDIS Integration */}
+          {activeView === "orbital" && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Satellite className="w-4 h-4 text-[#9D4EDD]" />
+                  ORBITAL_DATA_LAYERS
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">TDIS INTEGRATION</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px] bg-[#030308] rounded-lg border border-[#1F1F1F] relative overflow-hidden">
+                  {/* Central data core */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {/* Core */}
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00E5FF]/30 to-[#9D4EDD]/30 flex items-center justify-center" style={{boxShadow: '0 0 40px rgba(0,229,255,0.3)'}}>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-[#00E5FF]">{holoData?.live_metrics?.predictions_active || 47}</div>
+                        <div className="text-[8px] text-[#888]">ACTIVE</div>
+                      </div>
+                    </div>
+                    
+                    {/* Orbital rings with data points */}
+                    {[120, 160, 200].map((radius, ringIndex) => (
+                      <div key={ringIndex} className="absolute" style={{width: radius * 2, height: radius * 2}}>
+                        <div 
+                          className="absolute inset-0 rounded-full border"
+                          style={{
+                            borderColor: `rgba(0,229,255,${0.1 + ringIndex * 0.05})`,
+                            transform: `rotateX(60deg) rotateZ(${animationFrame * (0.5 + ringIndex * 0.2)}deg)`
+                          }}
+                        />
+                        {/* Data points on orbit */}
+                        {[0, 1, 2, 3].map((point) => {
+                          const pos = getOrbitalPosition(point + ringIndex * 2, 6, radius / 4);
+                          return (
+                            <div 
+                              key={point}
+                              className="absolute w-3 h-3 rounded-full transition-all"
+                              style={{
+                                left: `${pos.x}%`,
+                                top: `${pos.y}%`,
+                                backgroundColor: ringIndex === 0 ? "#00E5FF" : ringIndex === 1 ? "#FFD700" : "#00FF94",
+                                opacity: 0.5 + pos.z * 0.5,
+                                transform: `scale(${0.5 + pos.z * 0.5})`
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Data categories */}
+                  <div className="absolute bottom-4 left-4 right-4 flex justify-between text-xs">
+                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#00E5FF]" /> DISASTERS</div>
+                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#FFD700]" /> ECONOMICS</div>
+                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#00FF94]" /> GEOPOLITICAL</div>
+                  </div>
+                </div>
+                
+                {/* TDIS Data Layers */}
+                <div className="mt-4 grid md:grid-cols-3 gap-3">
+                  <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-2">SATELLITE COVERAGE</div>
+                    <div className="flex items-center gap-2">
+                      <Satellite className="w-4 h-4 text-[#00E5FF]" />
+                      <span className="text-lg font-bold text-[#00E5FF]">12</span>
+                      <span className="text-xs text-[#888]">active satellites</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-2">IoT SENSORS</div>
+                    <div className="flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-[#FFD700]" />
+                      <span className="text-lg font-bold text-[#FFD700]">57K+</span>
+                      <span className="text-xs text-[#888]">global sensors</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-2">DATA STREAMS</div>
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#00FF94]" />
+                      <span className="text-lg font-bold text-[#00FF94]">1M+</span>
+                      <span className="text-xs text-[#888]">OSINT sources</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
