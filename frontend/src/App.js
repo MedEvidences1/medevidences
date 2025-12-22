@@ -1771,6 +1771,89 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     setLoadingLongRange(false);
   };
 
+  // Load Remediation Intelligence data
+  const loadIntelligenceData = async () => {
+    setLoadingIntelligence(true);
+    try {
+      const [optionsRes, stakeholdersRes] = await Promise.all([
+        axios.get(`${API}/remediation/options/${intelligenceForm.disaster_type}?severity=${intelligenceForm.severity}&budget_usd=${intelligenceForm.budget_usd}`),
+        axios.get(`${API}/remediation/stakeholder-types`)
+      ]);
+      setRemediationOptions(optionsRes.data);
+      setStakeholderTypes(stakeholdersRes.data);
+    } catch (e) {
+      console.error("Intelligence data error:", e);
+    }
+    setLoadingIntelligence(false);
+  };
+
+  const runROIAnalysis = async (optionId) => {
+    setLoadingIntelligence(true);
+    try {
+      const res = await axios.post(`${API}/remediation/roi-calculation`, {
+        disaster_type: intelligenceForm.disaster_type,
+        option_id: optionId,
+        affected_population: intelligenceForm.affected_population,
+        infrastructure_value_usd: intelligenceForm.infrastructure_value_usd,
+        probability: intelligenceForm.probability
+      });
+      setRoiAnalysis(res.data);
+      toast.success("ROI analysis complete!");
+    } catch (e) {
+      toast.error("ROI calculation failed");
+    }
+    setLoadingIntelligence(false);
+  };
+
+  const runWhatIfSimulation = async () => {
+    setLoadingIntelligence(true);
+    try {
+      const res = await axios.post(`${API}/remediation/what-if-simulation`, {
+        disaster_type: intelligenceForm.disaster_type,
+        budget_usd: intelligenceForm.budget_usd,
+        delay_hours: intelligenceForm.delay_hours,
+        probability: intelligenceForm.probability,
+        affected_population: intelligenceForm.affected_population,
+        use_ai: true
+      });
+      setWhatIfSimulation(res.data);
+      toast.success("What-if simulation complete!");
+    } catch (e) {
+      toast.error("Simulation failed");
+    }
+    setLoadingIntelligence(false);
+  };
+
+  const loadPopulationMapping = async () => {
+    setLoadingIntelligence(true);
+    try {
+      const res = await axios.get(`${API}/remediation/population-mapping?location=${encodeURIComponent(intelligenceForm.location)}&radius_km=50`);
+      setPopulationMapping(res.data);
+      toast.success("Population mapping loaded!");
+    } catch (e) {
+      toast.error("Failed to load population data");
+    }
+    setLoadingIntelligence(false);
+  };
+
+  const runLossEstimation = async () => {
+    setLoadingIntelligence(true);
+    try {
+      const res = await axios.post(`${API}/remediation/loss-estimation`, {
+        disaster_type: intelligenceForm.disaster_type,
+        severity: intelligenceForm.severity,
+        affected_population: intelligenceForm.affected_population,
+        infrastructure_value_usd: intelligenceForm.infrastructure_value_usd,
+        duration_days: intelligenceForm.duration_days
+      });
+      setLossEstimation(res.data);
+      toast.success("Loss estimation complete!");
+    } catch (e) {
+      toast.error("Loss estimation failed");
+    }
+    setLoadingIntelligence(false);
+  };
+
   const generateRemediationFromLive = async (disaster) => {
     setIsGenerating(true);
     setRemediationForm({
