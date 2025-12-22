@@ -6317,7 +6317,7 @@ const DeepForecast = ({ getHeaders, user, setShowAuth }) => {
     if (topic.length < 5) { toast.error("Topic must be at least 5 characters"); return; }
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/deep-forecast`, { topic, num_questions: numQuestions, timeframe: "2025" }, { headers: getHeaders() });
+      const res = await axios.post(`${API}/deep-forecast`, { topic, num_questions: numQuestions, timeframe: "2026-3000" }, { headers: getHeaders() });
       setReport(res.data);
       toast.success("Deep forecast generated!");
     } catch (e) { toast.error("Failed to generate report"); }
