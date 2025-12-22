@@ -5780,6 +5780,87 @@ class VedicAstrologyEngine:
 astrology_engine = VedicAstrologyEngine()
 
 # =============================================================================
+# ADMIN VERIFICATION SERVICE
+# =============================================================================
+
+class AdminVerificationService:
+    """
+    Handle email verification for admin logins (Owner Admin, Enterprise Admin)
+    """
+    
+    def __init__(self):
+        self.verification_codes = {}  # In-memory store (use Redis in production)
+        self.code_expiry_seconds = 900  # 15 minutes
+    
+    def generate_verification_code(self, email: str) -> str:
+        """Generate a 6-digit verification code"""
+        import random
+        code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        self.verification_codes[email] = {
+            "code": code,
+            "created_at": datetime.now(timezone.utc),
+            "expires_at": datetime.now(timezone.utc) + timedelta(seconds=self.code_expiry_seconds)
+        }
+        return code
+    
+    def verify_code(self, email: str, code: str) -> bool:
+        """Verify the code for an email"""
+        if email not in self.verification_codes:
+            return False
+        
+        stored = self.verification_codes[email]
+        if datetime.now(timezone.utc) > stored["expires_at"]:
+            del self.verification_codes[email]
+            return False
+        
+        if stored["code"] == code:
+            del self.verification_codes[email]
+            return True
+        
+        return False
+    
+    async def send_verification_email(self, email: str, code: str, admin_type: str = "Admin") -> Dict:
+        """Send verification code via email"""
+        subject = f"🔐 Plutus Predict - {admin_type} Login Verification"
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; background-color: #0A0A0A; color: #EDEDED; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #1A1A1A; border-radius: 10px; padding: 30px;">
+                <h1 style="color: #00E5FF; margin-bottom: 10px; text-align: center;">⚡ PLUTUS PREDICT</h1>
+                <p style="color: #888; text-align: center; margin-bottom: 30px;">{admin_type} Login Verification</p>
+                
+                <div style="background-color: #0A0A0A; border: 2px solid #9D4EDD; border-radius: 10px; padding: 30px; text-align: center; margin-bottom: 20px;">
+                    <p style="color: #888; margin: 0 0 10px 0;">Your verification code is:</p>
+                    <h2 style="color: #00FF94; font-size: 48px; letter-spacing: 10px; margin: 0; font-family: monospace;">{code}</h2>
+                </div>
+                
+                <div style="background-color: #FF4444/10; border-left: 4px solid #FF4444; padding: 15px; margin-bottom: 20px;">
+                    <p style="color: #FF4444; margin: 0; font-size: 14px;">
+                        ⚠️ This code expires in 15 minutes. Do not share this code with anyone.
+                    </p>
+                </div>
+                
+                <p style="color: #888; font-size: 12px; text-align: center;">
+                    If you did not request this login, please secure your account immediately.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #333; margin: 20px 0;">
+                
+                <p style="color: #666; font-size: 11px; text-align: center;">
+                    © 2025 MedEvidences Corporation. All rights reserved.<br>
+                    Sheridan, Wyoming, USA
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        return await email_service.send_alert(email, subject, html_content)
+
+admin_verification_service = AdminVerificationService()
+
+# =============================================================================
 # EMAIL ALERT SERVICE (Resend)
 # =============================================================================
 
