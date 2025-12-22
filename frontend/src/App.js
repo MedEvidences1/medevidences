@@ -1411,6 +1411,14 @@ const Disasters = ({ getHeaders }) => {
             </CardContent>
           </Card>
           )}
+          
+          {/* Live Video Feeds for Current Disasters */}
+          {liveDisasters?.disasters?.[0] && (
+            <LiveVideoFeed 
+              disasterType={liveDisasters.disasters[0].type} 
+              location={liveDisasters.disasters[0].location} 
+            />
+          )}
         </div>
       )}
 
