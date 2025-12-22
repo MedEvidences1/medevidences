@@ -8361,9 +8361,9 @@ const PrivacyPolicy = ({ onBack }) => {
             <section>
               <h3 className="text-lg font-bold text-[#00E5FF]">1. INTRODUCTION</h3>
               <p className="text-[#888]">
-                Plutus Predict LLC ("we," "our," or "us") respects your privacy and is committed to protecting 
+                MedEvidences Corporation ("we," "our," or "us") respects your privacy and is committed to protecting 
                 your personal data. This privacy policy explains how we collect, use, disclose, and safeguard 
-                your information when you visit our platform.
+                your information when you visit our Plutus Predict platform.
               </p>
             </section>
 
