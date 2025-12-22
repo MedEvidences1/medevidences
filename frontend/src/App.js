@@ -2479,6 +2479,8 @@ const Astrology = ({ getHeaders, user }) => {
               )}
             </div>
           )}
+        </div>
+      )}
 
           {/* RECONCILED VIEW - Shows matches with AI disaster data */}
           {activeView === "reconciled" && (
