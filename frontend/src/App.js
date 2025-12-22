@@ -3745,18 +3745,28 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         <div className="space-y-4">
           <Card className="terminal-card border-l-4 border-l-[#FFD700]">
             <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#FFD700]" />
-                AUTOMATED RESPONSE PLAYBOOKS
-                <Badge className="bg-[#FFD700]/20 text-[#FFD700]">DECISION AUTOMATION</Badge>
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#FFD700]" />
+                  AUTOMATED RESPONSE PLAYBOOKS
+                  <Badge className="bg-[#FFD700]/20 text-[#FFD700]">DECISION AUTOMATION</Badge>
+                </CardTitle>
+                <Button onClick={() => { setPlaybooks(null); loadPlaybooks(); }} size="sm" variant="outline" className="text-xs">
+                  <RefreshCw className={`w-3 h-3 mr-1 ${playbooksLoading ? "animate-spin" : ""}`} />REFRESH
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-[#888]">Pre-defined action sequences, Pre-approved actions, Decision trees</p>
             </CardContent>
           </Card>
           
-          {playbooks ? (
+          {playbooksLoading ? (
+            <div className="text-center text-[#888] py-8">
+              <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
+              <p>Loading playbooks data...</p>
+            </div>
+          ) : playbooks ? (
             <div className="space-y-4">
               {/* Automation Status */}
               <Card className="terminal-card">
