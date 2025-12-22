@@ -657,29 +657,34 @@ const Dashboard = ({ getHeaders }) => {
 
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* Recent Forecasts */}
+        {/* Future Predictions 2026-3000 */}
         <Card className="terminal-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#00E5FF]" />
-              RECENT_FORECASTS
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#00E5FF]" />
+                FUTURE_FORECASTS
+              </CardTitle>
+              <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">2026-3000</Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px]">
-              {forecasts.length > 0 ? (
+              {futurePredictions.length > 0 ? (
                 <div className="space-y-2">
-                  {forecasts.map((f, i) => (
+                  {futurePredictions.slice(0, 8).map((pred, i) => (
                     <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#00E5FF] transition-colors">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-sm text-[#EDEDED] flex-1 pr-4">{f.question}</span>
-                        <span className="font-mono text-lg font-bold text-[#00E5FF]">{f.probability}%</span>
+                        <span className="text-sm text-[#EDEDED] flex-1 pr-4">{pred.event}</span>
+                        <span className="font-mono text-lg font-bold text-[#00E5FF]">{pred.probability}%</span>
                       </div>
                       <div className="probability-bar">
-                        <div className="probability-bar-fill" style={{ width: `${f.probability}%` }} />
+                        <div className="probability-bar-fill" style={{ width: `${pred.probability}%` }} />
                       </div>
                       <div className="flex gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs border-[#1F1F1F]">{f.confidence}</Badge>
+                        <Badge variant="outline" className="text-xs border-[#1F1F1F]">{pred.category}</Badge>
+                        <Badge variant="outline" className="text-xs border-[#00FF94]/30 text-[#00FF94]">{pred.timeframe}</Badge>
+                        <Badge variant="outline" className={`text-xs ${pred.confidence === "high" ? "border-[#00FF94]/30 text-[#00FF94]" : pred.confidence === "medium" ? "border-[#FFD700]/30 text-[#FFD700]" : "border-[#888]/30 text-[#888]"}`}>{pred.confidence}</Badge>
                       </div>
                     </div>
                   ))}
@@ -687,7 +692,7 @@ const Dashboard = ({ getHeaders }) => {
               ) : (
                 <div className="text-center text-[#888] py-8">
                   <Brain className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>No forecasts yet. Generate one!</p>
+                  <p>Loading future predictions...</p>
                 </div>
               )}
             </ScrollArea>
