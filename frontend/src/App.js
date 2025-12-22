@@ -1019,45 +1019,97 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
 
   const selectExample = (example) => {
     setQuestion(example);
-    setSelectedCategory(null);
+  };
+
+  // Category images from design guidelines
+  const categoryImages = {
+    economics: "https://images.unsplash.com/photo-1684610529682-553625a1ffed?w=400&h=200&fit=crop",
+    geopolitical: "https://images.unsplash.com/photo-1570106413982-7f2897b8d0c5?w=400&h=200&fit=crop",
+    technology: "https://images.unsplash.com/photo-1744640326166-433469d102f2?w=400&h=200&fit=crop",
+    finance: "https://images.unsplash.com/photo-1592495989226-03f88104f8cc?w=400&h=200&fit=crop",
+    disasters: "https://images.unsplash.com/photo-1695605117525-67a53b26e2ea?w=400&h=200&fit=crop",
+    politics: "https://images.unsplash.com/photo-1570492912464-4b6ca4a2bb9c?w=400&h=200&fit=crop",
+    corporate: "https://images.unsplash.com/photo-1748811371852-b27529c29546?w=400&h=200&fit=crop",
+    health: "https://images.unsplash.com/photo-1706205041897-c1e3d8cdb7b7?w=400&h=200&fit=crop",
+    energy: "https://images.unsplash.com/photo-1762381157166-f51ac99ab412?w=400&h=200&fit=crop",
+    space: "https://images.unsplash.com/photo-1562780361-3bffcc78f1da?w=400&h=200&fit=crop"
   };
 
   return (
-    <div className="space-y-6" data-testid="forecast-view">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Brain className="w-5 h-5 text-[#00E5FF]" />
-            PLUTUS_EVENTS_FORECASTING
-          </h2>
-          <p className="text-xs text-[#888] mt-1">
-            1M+ OSINT Sources • Multi-LLM Ensemble (GPT-4, Claude, Gemini) • Auto-Updates: Daily + Every 5 Min
-          </p>
-          <p className="text-xs text-[#00FF94] mt-1">
-            📡 Real-time intelligence from news, social media, government data, financial feeds, satellite imagery & more
-          </p>
+    <div className="space-y-8" data-testid="forecast-view">
+      {/* Hero Header - Control Room Style */}
+      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] border border-[#1F1F1F] p-8">
+        {/* Grid background */}
+        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'linear-gradient(#1F1F1F 1px, transparent 1px), linear-gradient(90deg, #1F1F1F 1px, transparent 1px)', backgroundSize: '20px 20px'}} />
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded bg-[#00E5FF]/10 flex items-center justify-center border border-[#00E5FF]/30">
+                <Brain className="w-6 h-6 text-[#00E5FF]" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white" style={{fontFamily: 'JetBrains Mono, monospace'}}>
+                  PLUTUS_EVENTS_FORECASTING
+                </h1>
+                <p className="text-sm text-[#888]">Prediction Intelligence Platform • 2026-3000</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm text-[#00FF94] flex items-center gap-2">
+                <span className="w-2 h-2 bg-[#00FF94] rounded-full animate-pulse" />
+                1M+ OSINT Sources • Multi-LLM Ensemble • Auto-Updates Every 5 Min
+              </p>
+              <p className="text-xs text-[#888] max-w-xl">
+                Real-time intelligence aggregation from news, social media, government data, financial feeds, satellite imagery, and academic research across 10 prediction categories.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            <Badge className="bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30 px-3 py-1">
+              <span className="w-2 h-2 bg-[#00E5FF] rounded-full mr-2 animate-pulse" />LIVE
+            </Badge>
+            <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30 px-3 py-1">JUDGMENTAL AI</Badge>
+            <Badge className="bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30 px-3 py-1">1M+ OSINT</Badge>
+          </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Badge variant="outline" className="text-xs border-[#00E5FF]/30 text-[#00E5FF]">
-            <span className="w-2 h-2 bg-[#00E5FF] rounded-full mr-1 animate-pulse" />LIVE
-          </Badge>
-          <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30">1M+ OSINT</Badge>
-          <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD] border border-[#9D4EDD]/30">AUTO-UPDATE</Badge>
+        
+        {/* Stats Bar */}
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-[#1F1F1F]">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[#00E5FF]" style={{fontFamily: 'JetBrains Mono, monospace'}}>10</div>
+            <div className="text-xs text-[#888]">CATEGORIES</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[#00FF94]" style={{fontFamily: 'JetBrains Mono, monospace'}}>1M+</div>
+            <div className="text-xs text-[#888]">OSINT SOURCES</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[#FFD700]" style={{fontFamily: 'JetBrains Mono, monospace'}}>3</div>
+            <div className="text-xs text-[#888]">LLM ENSEMBLE</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[#9D4EDD]" style={{fontFamily: 'JetBrains Mono, monospace'}}>5min</div>
+            <div className="text-xs text-[#888]">AUTO-UPDATE</div>
+          </div>
         </div>
       </div>
       
-      {/* View Tabs */}
-      <div className="flex gap-2 flex-wrap">
+      {/* View Tabs - Terminal Style */}
+      <div className="flex gap-1 p-1 bg-[#050505] rounded border border-[#1F1F1F]">
         {views.map((v) => (
           <Button
             key={v.id}
             size="sm"
-            variant={activeView === v.id ? "default" : "outline"}
             onClick={() => setActiveView(v.id)}
-            className={activeView === v.id ? "bg-[#00E5FF] text-black" : "border-[#1F1F1F] text-[#888]"}
+            className={`flex-1 rounded-sm transition-all ${activeView === v.id 
+              ? "bg-[#00E5FF] text-black font-bold" 
+              : "bg-transparent text-[#888] hover:text-white hover:bg-[#1F1F1F]"}`}
+            data-testid={`tab-${v.id}`}
           >
-            <v.icon className="w-3 h-3 mr-1" />
+            <v.icon className="w-4 h-4 mr-2" />
             {v.label}
           </Button>
         ))}
