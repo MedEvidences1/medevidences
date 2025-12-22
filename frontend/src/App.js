@@ -88,6 +88,8 @@ import {
   Package,
   Wifi,
   WifiOff,
+  Droplet,
+  Archive,
 } from "lucide-react";
 
 // Recharts
