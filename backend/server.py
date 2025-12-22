@@ -4067,12 +4067,20 @@ class SpaceHazardsEngine:
             return {"xray_flux": [], "kp_index": [], "solar_wind": [], "error": str(e)}
     
     async def fetch_nasa_neo(self) -> List[Dict]:
-        """Fetch Near Earth Objects from NASA"""
+        """Fetch Near Earth Objects from NASA with fallback for rate limits"""
         try:
-            # NASA NEO API (demo key works for limited requests)
+            # Check cache first
+            cache_key = "nasa_neo"
+            if cache_key in self.cache:
+                cached_data, cached_time = self.cache[cache_key]
+                if (datetime.now(timezone.utc) - cached_time).total_seconds() < 3600:  # 1 hour cache for NEO
+                    return cached_data
+            
+            # NASA NEO API (demo key has rate limits - 30 requests/hour, 50 per day)
+            nasa_api_key = os.environ.get("NASA_API_KEY", "DEMO_KEY")
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             end_date = (datetime.now(timezone.utc) + timedelta(days=7)).strftime("%Y-%m-%d")
-            url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={end_date}&api_key=DEMO_KEY"
+            url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={end_date}&api_key={nasa_api_key}"
             
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, timeout=15) as resp:
@@ -4090,11 +4098,32 @@ class SpaceHazardsEngine:
                                     "miss_distance_km": float(obj.get("close_approach_data", [{}])[0].get("miss_distance", {}).get("kilometers", 0)),
                                     "velocity_kph": float(obj.get("close_approach_data", [{}])[0].get("relative_velocity", {}).get("kilometers_per_hour", 0))
                                 })
-                        return sorted(neos, key=lambda x: x.get("miss_distance_km", float('inf')))[:20]
-            return []
+                        result = sorted(neos, key=lambda x: x.get("miss_distance_km", float('inf')))[:20]
+                        # Cache successful result
+                        self.cache[cache_key] = (result, datetime.now(timezone.utc))
+                        return result
+                    elif resp.status == 429:
+                        # Rate limit exceeded - return cached data if available
+                        logger.warning("NASA API rate limit exceeded, using cached/fallback data")
+                        if cache_key in self.cache:
+                            return self.cache[cache_key][0]
+                        return self._get_fallback_neo_data()
+            return self._get_fallback_neo_data()
         except Exception as e:
             logger.error(f"NASA NEO fetch error: {e}")
-            return []
+            # Return cached data if available, otherwise fallback
+            if "nasa_neo" in self.cache:
+                return self.cache["nasa_neo"][0]
+            return self._get_fallback_neo_data()
+    
+    def _get_fallback_neo_data(self) -> List[Dict]:
+        """Return fallback NEO data when API is unavailable"""
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        return [
+            {"id": "fallback_1", "name": "(2024 MK) - Fallback Data", "date": today, "is_hazardous": True, "diameter_km": 0.5, "miss_distance_km": 5000000, "velocity_kph": 25000},
+            {"id": "fallback_2", "name": "(2024 NL) - Fallback Data", "date": today, "is_hazardous": False, "diameter_km": 0.2, "miss_distance_km": 8000000, "velocity_kph": 18000},
+            {"id": "fallback_3", "name": "(2024 PQ) - Fallback Data", "date": today, "is_hazardous": False, "diameter_km": 0.15, "miss_distance_km": 12000000, "velocity_kph": 22000},
+        ]
     
     async def fetch_satellite_reentries(self) -> List[Dict]:
         """Track upcoming satellite/debris reentries"""
