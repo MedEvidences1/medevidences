@@ -4398,6 +4398,58 @@ const InvestmentBankerSuite = () => {
       {/* M&A Predictions */}
       {activeView === "ma" && maPredictions && (
         <div className="space-y-4">
+          {/* Header Stats */}
+          <Card className="terminal-card">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                  <div className="text-2xl font-bold text-[#9D4EDD]">{maPredictions.all_deals_count || maPredictions.predictions?.length || 0}</div>
+                  <div className="text-xs text-[#888]">TOTAL DEALS</div>
+                </div>
+                <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                  <div className="text-xl font-bold text-[#00FF94]">{maPredictions.total_predicted_value}</div>
+                  <div className="text-xs text-[#888]">PIPELINE VALUE</div>
+                </div>
+                <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                  <div className="text-lg font-bold text-[#00E5FF]">{maPredictions.market_conditions?.ma_activity_level?.toUpperCase()}</div>
+                  <div className="text-xs text-[#888]">ACTIVITY LEVEL</div>
+                </div>
+                <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                  <div className="text-lg font-bold text-[#FFD700]">{maPredictions.osint_signals || 0}</div>
+                  <div className="text-xs text-[#888]">OSINT SIGNALS</div>
+                </div>
+                <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                  <div className="text-xs font-bold text-[#888]">{(maPredictions.sources || []).slice(0, 3).join(", ")}</div>
+                  <div className="text-xs text-[#888]">DATA SOURCES</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Country-wise View */}
+          {maPredictions.country_wise_deals && Object.keys(maPredictions.country_wise_deals).length > 0 && (
+            <Card className="terminal-card">
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#00E5FF]" />
+                  COUNTRY-WISE M&A ACTIVITY
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {Object.entries(maPredictions.country_wise_deals || {}).map(([country, deals]) => (
+                    <div key={country} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#9D4EDD] transition-colors cursor-pointer">
+                      <div className="text-sm font-bold text-[#EDEDED]">{country}</div>
+                      <div className="text-xl font-bold text-[#9D4EDD]">{deals.length}</div>
+                      <div className="text-xs text-[#888]">deals</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Deal List */}
           <Card className="terminal-card">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -4409,27 +4461,27 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {(maPredictions.predictions || []).map((deal, i) => (
                   <div key={i} className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#9D4EDD] transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-lg font-bold text-[#EDEDED]">{deal.acquirer}</span>
                         <ChevronRight className="w-4 h-4 text-[#888]" />
                         <span className="text-lg font-bold text-[#9D4EDD]">{deal.target}</span>
+                        {deal.country && (
+                          <Badge variant="outline" className="text-xs border-[#00E5FF] text-[#00E5FF]">{deal.country}</Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={deal.confidence === 'high' ? 'bg-[#00FF94]/20 text-[#00FF94]' : deal.confidence === 'medium' ? 'bg-[#FFD700]/20 text-[#FFD700]' : 'bg-[#888]/20 text-[#888]'}>
                           {deal.probability}%
                         </Badge>
-                        <span className={`text-xs ${deal.change_30d >= 0 ? 'text-[#00FF94]' : 'text-[#FF4444]'}`}>
-                          {deal.change_30d >= 0 ? '↑' : '↓'}{Math.abs(deal.change_30d)}%
-                        </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-[#888]">
+                    <div className="flex items-center gap-4 text-xs text-[#888] flex-wrap">
                       <span className="bg-[#1F1F1F] px-2 py-1 rounded">{deal.sector}</span>
-                      <span className="text-[#FFD700]">{deal.deal_value}</span>
+                      <span className="text-[#FFD700] font-bold">{deal.deal_value}</span>
                       <span>{deal.timeline}</span>
                     </div>
                     <div className="mt-2 text-xs text-[#888]">{deal.rationale}</div>
@@ -4438,7 +4490,6 @@ const InvestmentBankerSuite = () => {
               </div>
             </CardContent>
           </Card>
-          )}
         </div>
       )}
 
