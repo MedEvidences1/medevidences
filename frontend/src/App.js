@@ -675,7 +675,7 @@ const Dashboard = ({ getHeaders }) => {
                   {futurePredictions.slice(0, 8).map((pred, i) => (
                     <div key={i} className="p-3 bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#00E5FF] transition-colors">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="text-sm text-[#EDEDED] flex-1 pr-4">{pred.event}</span>
+                        <span className="text-sm text-[#EDEDED] flex-1 pr-4">{pred.title}</span>
                         <span className="font-mono text-lg font-bold text-[#00E5FF]">{pred.probability}%</span>
                       </div>
                       <div className="probability-bar">
@@ -683,7 +683,7 @@ const Dashboard = ({ getHeaders }) => {
                       </div>
                       <div className="flex gap-2 mt-2">
                         <Badge variant="outline" className="text-xs border-[#1F1F1F]">{pred.category}</Badge>
-                        <Badge variant="outline" className="text-xs border-[#00FF94]/30 text-[#00FF94]">{pred.timeframe}</Badge>
+                        <Badge variant="outline" className="text-xs border-[#00FF94]/30 text-[#00FF94]">{pred.estimated_date}</Badge>
                         <Badge variant="outline" className={`text-xs ${pred.confidence === "high" ? "border-[#00FF94]/30 text-[#00FF94]" : pred.confidence === "medium" ? "border-[#FFD700]/30 text-[#FFD700]" : "border-[#888]/30 text-[#888]"}`}>{pred.confidence}</Badge>
                       </div>
                     </div>
