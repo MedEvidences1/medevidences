@@ -13785,6 +13785,247 @@ async def get_disaster_economic_impact():
     }
 
 # =============================================================================
+# API ENDPOINTS - REMEDIATION INTELLIGENCE SYSTEM
+# =============================================================================
+
+class RemediationOptionsRequest(BaseModel):
+    disaster_type: str
+    severity: str = "high"
+    budget_usd: Optional[float] = None
+
+class ROICalculationRequest(BaseModel):
+    disaster_type: str
+    option_id: str
+    affected_population: int
+    infrastructure_value_usd: float
+    probability: float
+
+class WhatIfSimulationRequest(BaseModel):
+    disaster_type: str
+    budget_usd: float = 5000000
+    delay_hours: float = 0
+    probability: float = 50
+    affected_population: int = 100000
+    use_ai: bool = True
+
+class CreateIncidentRequest(BaseModel):
+    name: str
+    disaster_type: str
+    severity: str = "high"
+    location: str
+    affected_population: int = 0
+
+class AssignTaskRequest(BaseModel):
+    incident_id: str
+    title: str
+    description: str = ""
+    assigned_to: str
+    priority: str = "high"
+    due_date: Optional[str] = None
+
+class AutomatedTriggerRequest(BaseModel):
+    incident_id: str
+    triggers: List[Dict]
+
+class LossEstimationRequest(BaseModel):
+    disaster_type: str
+    severity: str
+    affected_population: int
+    infrastructure_value_usd: float
+    duration_days: int
+
+class PublicCommunicationRequest(BaseModel):
+    incident_id: str
+    communication_type: str
+    use_ai: bool = True
+
+@api_router.get("/remediation/options/{disaster_type}", tags=["Remediation Intelligence"])
+async def get_remediation_options(
+    disaster_type: str,
+    severity: str = "high",
+    budget_usd: Optional[float] = None
+):
+    """
+    Get pre-built remediation options ranked by cost, speed, and effectiveness.
+    Options include evacuation, shelter-in-place, grid management, etc.
+    """
+    result = await remediation_intelligence.get_remediation_options(disaster_type, severity, budget_usd)
+    return result
+
+@api_router.post("/remediation/roi-calculation", tags=["Remediation Intelligence"])
+async def calculate_remediation_roi(request: ROICalculationRequest):
+    """
+    Calculate ROI for a specific remediation action.
+    Includes cost of action vs inaction, lives saved, assets protected, downtime avoided.
+    """
+    result = await remediation_intelligence.calculate_roi(
+        request.disaster_type,
+        request.option_id,
+        request.affected_population,
+        request.infrastructure_value_usd,
+        request.probability
+    )
+    return result
+
+@api_router.post("/remediation/what-if-simulation", tags=["Remediation Intelligence"])
+async def run_what_if_simulation(request: WhatIfSimulationRequest):
+    """
+    Run what-if simulation for budget and timing scenarios.
+    Shows loss curves for delays and budget optimization recommendations.
+    """
+    result = await remediation_intelligence.run_what_if_simulation(
+        request.disaster_type,
+        {
+            "budget_usd": request.budget_usd,
+            "delay_hours": request.delay_hours,
+            "probability": request.probability,
+            "affected_population": request.affected_population
+        },
+        request.use_ai
+    )
+    return result
+
+@api_router.post("/remediation/incidents", tags=["Remediation Intelligence"])
+async def create_incident(request: CreateIncidentRequest, user: dict = Depends(get_current_user)):
+    """
+    Create a new incident for coordination and tracking.
+    """
+    incident = await remediation_intelligence.create_incident(
+        {
+            "name": request.name,
+            "disaster_type": request.disaster_type,
+            "severity": request.severity,
+            "location": request.location,
+            "affected_population": request.affected_population
+        },
+        user["id"]
+    )
+    return incident
+
+@api_router.get("/remediation/incidents/{incident_id}/timeline", tags=["Remediation Intelligence"])
+async def get_incident_timeline(incident_id: str):
+    """
+    Get execution timeline for an incident with phases and tasks.
+    """
+    return await remediation_intelligence.get_execution_timeline(incident_id)
+
+@api_router.post("/remediation/tasks", tags=["Remediation Intelligence"])
+async def assign_incident_task(request: AssignTaskRequest, user: dict = Depends(get_current_user)):
+    """
+    Assign a task to a stakeholder for an incident.
+    """
+    return await remediation_intelligence.assign_task(
+        request.incident_id,
+        {
+            "title": request.title,
+            "description": request.description,
+            "assigned_to": request.assigned_to,
+            "priority": request.priority,
+            "due_date": request.due_date
+        },
+        user["id"]
+    )
+
+@api_router.get("/remediation/incidents/{incident_id}/stakeholders", tags=["Remediation Intelligence"])
+async def get_stakeholder_coordination(incident_id: str, disaster_type: str = "earthquake"):
+    """
+    Get multi-stakeholder coordination plan for an incident.
+    Includes government, utilities, corporations, first responders, NGOs.
+    """
+    return await remediation_intelligence.get_stakeholder_coordination(incident_id, disaster_type)
+
+@api_router.post("/remediation/automated-triggers", tags=["Remediation Intelligence"])
+async def configure_automated_triggers(request: AutomatedTriggerRequest, user: dict = Depends(get_current_user)):
+    """
+    Configure automated triggers for an incident.
+    Types: alert_leaders, activate_contracts, release_funds, notify_public.
+    """
+    return await remediation_intelligence.configure_automated_triggers(
+        request.incident_id,
+        request.triggers,
+        user["id"]
+    )
+
+@api_router.get("/remediation/population-mapping", tags=["Remediation Intelligence"])
+async def get_population_mapping(location: str, radius_km: float = 50):
+    """
+    Get asset and population mapping for a location.
+    Includes vulnerable groups, mobility constraints, evacuation feasibility.
+    """
+    return await remediation_intelligence.get_population_mapping(location, radius_km)
+
+@api_router.get("/remediation/incidents/{incident_id}/audit-trail", tags=["Remediation Intelligence"])
+async def get_incident_audit_trail(incident_id: str):
+    """
+    Get complete audit trail for transparency and governance.
+    Includes decisions, data sources, assumptions, and accountability.
+    """
+    return await remediation_intelligence.get_audit_trail(incident_id)
+
+@api_router.post("/remediation/loss-estimation", tags=["Remediation Intelligence"])
+async def estimate_disaster_losses(request: LossEstimationRequest):
+    """
+    Comprehensive loss estimation including insured/uninsured losses,
+    short-term and long-term economic impact, employment effects.
+    """
+    return await remediation_intelligence.estimate_losses(
+        request.disaster_type,
+        request.severity,
+        request.affected_population,
+        request.infrastructure_value_usd,
+        request.duration_days
+    )
+
+@api_router.get("/remediation/incidents/{incident_id}/capital-deployment", tags=["Remediation Intelligence"])
+async def get_capital_deployment_plan(incident_id: str, total_budget_usd: float = 10000000):
+    """
+    Generate capital deployment plan for incident response.
+    Includes allocation by category, release schedule, approval authorities.
+    """
+    return await remediation_intelligence.get_capital_deployment_plan(incident_id, total_budget_usd)
+
+@api_router.post("/remediation/public-communication", tags=["Remediation Intelligence"])
+async def generate_public_communication(request: PublicCommunicationRequest):
+    """
+    Generate public communication for incident.
+    Types: initial_alert, evacuation_order, shelter_in_place, all_clear, status_update.
+    """
+    return await remediation_intelligence.generate_public_communication(
+        request.incident_id,
+        request.communication_type,
+        request.use_ai
+    )
+
+@api_router.get("/remediation/stakeholder-types", tags=["Remediation Intelligence"])
+async def get_stakeholder_types():
+    """
+    Get all stakeholder types and their entities for coordination.
+    """
+    return {
+        "stakeholders": remediation_intelligence.STAKEHOLDERS,
+        "coordination_levels": ["local", "state", "federal", "international"],
+        "communication_channels": [
+            "Emergency Alert System",
+            "Wireless Emergency Alerts",
+            "FirstNet (First Responders)",
+            "WebEOC (Emergency Management)",
+            "Social Media",
+            "Local TV/Radio",
+            "Satellite Communications"
+        ]
+    }
+
+@api_router.get("/remediation/disaster-types", tags=["Remediation Intelligence"])
+async def get_supported_disaster_types():
+    """
+    Get all supported disaster types with their remediation options.
+    """
+    return {
+        "disaster_types": list(remediation_intelligence.REMEDIATION_OPTIONS.keys()),
+        "options_per_type": {k: len(v) for k, v in remediation_intelligence.REMEDIATION_OPTIONS.items()}
+    }
+
+# =============================================================================
 # API ENDPOINTS - SPACE HAZARDS (Real-Time NASA, NOAA SWPC Data)
 # =============================================================================
 
