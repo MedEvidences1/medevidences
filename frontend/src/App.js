@@ -4775,7 +4775,7 @@ const InvestmentBankerSuite = () => {
         </div>
       )}
 
-      {loading && (
+      {loading && !dashboardData && !maPredictions && !ipoTiming && !sectorRotation && (
         <div className="text-center py-8 text-[#888]">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
           Loading investment analysis...
