@@ -1092,6 +1092,16 @@ const Disasters = ({ getHeaders }) => {
       {/* LIVE NOW VIEW - Real disasters happening right now */}
       {activeView === "live" && (
         <div className="space-y-4">
+          {/* Loading State */}
+          {!liveDisasters && (
+            <Card className="terminal-card">
+              <CardContent className="p-6 text-center">
+                <RefreshCw className="w-8 h-8 animate-spin mx-auto text-[#00E5FF]" />
+                <p className="text-sm text-[#888] mt-2">Loading live disasters from GDACS, USGS, NOAA...</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Daily Briefing Card */}
           {dailyBriefing && (
             <Card className={`terminal-card border-l-4 ${dailyBriefing.alert_level === "red" ? "border-l-[#FF3333]" : dailyBriefing.alert_level === "orange" ? "border-l-[#FFAA00]" : "border-l-[#00FF94]"}`}>
