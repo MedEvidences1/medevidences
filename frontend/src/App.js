@@ -9160,6 +9160,482 @@ const HolographicVisualization = ({ getHeaders }) => {
   );
 };
 
+// TDIS Portal Component - Threat and Disaster Information System
+const TDISPortal = ({ getHeaders }) => {
+  const [tdisData, setTdisData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("dashboard");
+  const [layers, setLayers] = useState(null);
+  const [regions, setRegions] = useState(null);
+  const [alerts, setAlerts] = useState(null);
+  const [selectedRegion, setSelectedRegion] = useState(null);
+  const [activeLayers, setActiveLayers] = useState(["seismic_activity", "weather_alerts"]);
+
+  useEffect(() => {
+    loadTDISData();
+  }, []);
+
+  const loadTDISData = async () => {
+    setLoading(true);
+    try {
+      const [dashboardRes, layersRes, regionsRes, alertsRes] = await Promise.all([
+        axios.get(`${API}/tdis/dashboard`),
+        axios.get(`${API}/tdis/layers`),
+        axios.get(`${API}/tdis/regions`),
+        axios.get(`${API}/tdis/alerts`)
+      ]);
+      setTdisData(dashboardRes.data);
+      setLayers(layersRes.data);
+      setRegions(regionsRes.data);
+      setAlerts(alertsRes.data);
+    } catch (e) {
+      console.error("TDIS load error:", e);
+      toast.error("Failed to load TDIS data");
+    }
+    setLoading(false);
+  };
+
+  const toggleLayer = (layerId) => {
+    setActiveLayers(prev => 
+      prev.includes(layerId) 
+        ? prev.filter(l => l !== layerId) 
+        : [...prev, layerId]
+    );
+  };
+
+  const getSeverityColor = (severity) => {
+    const colors = { CRITICAL: "#FF0000", HIGH: "#FF4444", MEDIUM: "#FFD700", LOW: "#00FF94" };
+    return colors[severity] || "#888";
+  };
+
+  return (
+    <div className="space-y-6" data-testid="tdis-portal">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Map className="w-6 h-6 text-[#00E5FF]" />TDIS_PORTAL
+            <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">ENTERPRISE</Badge>
+          </h2>
+          <p className="text-xs text-[#888]">Threat & Disaster Information System • Interactive GIS Platform</p>
+        </div>
+        <div className="flex gap-2">
+          {["dashboard", "map", "alerts", "layers", "regions"].map(view => (
+            <Button
+              key={view}
+              size="sm"
+              variant={activeView === view ? "default" : "outline"}
+              onClick={() => setActiveView(view)}
+              className={activeView === view ? "bg-[#00E5FF] text-black" : "border-[#333]"}
+            >
+              {view.toUpperCase()}
+            </Button>
+          ))}
+          <Button onClick={loadTDISData} size="sm" variant="outline" className="border-[#333]">
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-[#888]">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-[#00E5FF] border-t-transparent animate-spin" />
+          Loading TDIS Portal data...
+        </div>
+      ) : (
+        <>
+          {/* Dashboard View */}
+          {activeView === "dashboard" && tdisData && (
+            <div className="space-y-4">
+              {/* Status Banner */}
+              <Card className="terminal-card bg-gradient-to-r from-[#0A1628] to-[#0A0A0A] border-l-4 border-l-[#00E5FF]">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-3 h-3 rounded-full bg-[#00FF94] animate-pulse" />
+                    <span className="text-lg font-bold">SYSTEM STATUS: {tdisData.status}</span>
+                  </div>
+                  <div className="flex gap-6 text-xs">
+                    <span><span className="text-[#00E5FF]">{tdisData.osint_feeds?.total_sources?.toLocaleString()}</span> OSINT Sources</span>
+                    <span><span className="text-[#00FF94]">{tdisData.osint_feeds?.languages_monitored}</span> Languages</span>
+                    <span><span className="text-[#FFD700]">{tdisData.osint_feeds?.update_interval_minutes}min</span> Update Cycle</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Risk Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#FFD700]">{tdisData.risk_summary?.global_index}</div>
+                    <div className="text-xs text-[#888] mt-1">GLOBAL_RISK_INDEX</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#FF4444]">{tdisData.risk_summary?.high_risk_regions}</div>
+                    <div className="text-xs text-[#888] mt-1">HIGH_RISK_REGIONS</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#FF8800]">{tdisData.risk_summary?.active_emergencies}</div>
+                    <div className="text-xs text-[#888] mt-1">ACTIVE_EMERGENCIES</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#00E5FF]">{tdisData.risk_summary?.populations_at_risk}</div>
+                    <div className="text-xs text-[#888] mt-1">POPULATIONS_AT_RISK</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Data Layers Overview */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-[#00E5FF]" />
+                    DATA_LAYERS_OVERVIEW
+                    <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">{Object.keys(tdisData.data_layers || {}).length} ACTIVE</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {Object.entries(tdisData.data_layers || {}).map(([key, layer]) => (
+                      <div key={key} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#00E5FF] transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-bold uppercase">{key.replace("_", " ")}</span>
+                          <Badge className="bg-[#00FF94]/20 text-[#00FF94] text-xs">{layer.real_time ? "LIVE" : "STATIC"}</Badge>
+                        </div>
+                        <div className="text-xs text-[#888] space-y-1">
+                          {layer.active_monitors && <div>Monitors: <span className="text-[#00E5FF]">{layer.active_monitors?.toLocaleString()}</span></div>}
+                          {layer.networks && <div>Networks: {layer.networks.slice(0, 3).join(", ")}</div>}
+                          {layer.active_alerts && <div>Alerts: <span className="text-[#FFD700]">{layer.active_alerts}</span></div>}
+                          {layer.active_satellites && <div>Satellites: <span className="text-[#9D4EDD]">{layer.active_satellites}</span></div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Interactive Map View */}
+          {activeView === "map" && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Map className="w-4 h-4 text-[#00E5FF]" />
+                  INTERACTIVE_GIS_MAP
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">MULTI-LAYER</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Map Container with Simulated View */}
+                <div className="h-[500px] bg-[#030308] rounded-lg border border-[#1F1F1F] relative overflow-hidden">
+                  {/* Simulated world map background */}
+                  <div className="absolute inset-0" style={{
+                    background: `
+                      radial-gradient(circle at 20% 40%, rgba(0,229,255,0.1) 0%, transparent 30%),
+                      radial-gradient(circle at 70% 30%, rgba(157,78,221,0.1) 0%, transparent 25%),
+                      radial-gradient(circle at 50% 70%, rgba(255,170,0,0.1) 0%, transparent 25%),
+                      linear-gradient(180deg, #0A1628 0%, #050510 100%)
+                    `
+                  }}>
+                    {/* Grid overlay */}
+                    <div className="absolute inset-0" style={{
+                      backgroundImage: 'linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px)',
+                      backgroundSize: '50px 50px'
+                    }} />
+                    
+                    {/* Simulated data points for active layers */}
+                    {regions?.regions?.map((region, i) => (
+                      <div
+                        key={i}
+                        className="absolute cursor-pointer group"
+                        style={{
+                          top: `${20 + (i * 8)}%`,
+                          left: `${10 + (i * 9)}%`
+                        }}
+                        onClick={() => setSelectedRegion(region)}
+                      >
+                        <div 
+                          className="w-4 h-4 rounded-full animate-pulse"
+                          style={{
+                            backgroundColor: region.risk_score > 50 ? "#FF4444" : region.risk_score > 30 ? "#FFD700" : "#00FF94",
+                            boxShadow: `0 0 15px ${region.risk_score > 50 ? "#FF4444" : region.risk_score > 30 ? "#FFD700" : "#00FF94"}`
+                          }}
+                        />
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0A0A0A] px-2 py-1 rounded text-[10px] whitespace-nowrap border border-[#1F1F1F] z-10">
+                          {region.name} - Risk: {region.risk_score}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Layer Toggle Panel */}
+                  <div className="absolute top-4 left-4 bg-[#0A0A0A]/90 p-3 rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-2">ACTIVE LAYERS</div>
+                    <div className="space-y-2">
+                      {layers?.layers?.slice(0, 6).map(layer => (
+                        <label key={layer.id} className="flex items-center gap-2 text-xs cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={activeLayers.includes(layer.id)}
+                            onChange={() => toggleLayer(layer.id)}
+                            className="rounded border-[#333]"
+                          />
+                          <span className={activeLayers.includes(layer.id) ? "text-[#00E5FF]" : "text-[#888]"}>
+                            {layer.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Legend */}
+                  <div className="absolute bottom-4 right-4 bg-[#0A0A0A]/90 p-3 rounded border border-[#1F1F1F]">
+                    <div className="text-xs text-[#888] mb-2">RISK LEVEL</div>
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#FF4444]" /> Critical (50+)</div>
+                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#FFD700]" /> Elevated (30-50)</div>
+                      <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[#00FF94]" /> Normal (0-30)</div>
+                    </div>
+                  </div>
+                  
+                  {/* Selected Region Info */}
+                  {selectedRegion && (
+                    <div className="absolute bottom-4 left-4 right-4 mx-auto max-w-md bg-[#0A0A0A] p-4 rounded border border-[#00E5FF]">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-lg font-bold">{selectedRegion.name}</div>
+                          <div className="text-xs text-[#888]">Population: {selectedRegion.population_m}M</div>
+                        </div>
+                        <Button size="sm" variant="ghost" onClick={() => setSelectedRegion(null)}>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <div className="text-xs text-[#888]">Risk Score</div>
+                          <div className="text-xl font-bold" style={{color: selectedRegion.risk_score > 50 ? "#FF4444" : selectedRegion.risk_score > 30 ? "#FFD700" : "#00FF94"}}>
+                            {selectedRegion.risk_score}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-[#888]">Active Events</div>
+                          <div className="text-xl font-bold text-[#00E5FF]">{selectedRegion.active_events}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerts View */}
+          {activeView === "alerts" && alerts && (
+            <div className="space-y-4">
+              {/* Alert Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="terminal-card border-l-4 border-l-[#FF0000]">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#FF0000]">{alerts.summary?.critical}</div>
+                    <div className="text-xs text-[#888] mt-1">CRITICAL</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card border-l-4 border-l-[#FF4444]">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#FF4444]">{alerts.summary?.high}</div>
+                    <div className="text-xs text-[#888] mt-1">HIGH</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card border-l-4 border-l-[#FFD700]">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#FFD700]">{alerts.summary?.medium}</div>
+                    <div className="text-xs text-[#888] mt-1">MEDIUM</div>
+                  </CardContent>
+                </Card>
+                <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+                  <CardContent className="p-4 text-center">
+                    <div className="text-3xl font-bold text-[#00FF94]">{alerts.summary?.low}</div>
+                    <div className="text-xs text-[#888] mt-1">LOW</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Active Alerts List */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-[#FF4444]" />
+                    ACTIVE_ALERTS
+                    <Badge className="bg-[#FF4444]/20 text-[#FF4444]">{alerts.alerts?.length} ACTIVE</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {alerts.alerts?.map((alert) => (
+                      <div 
+                        key={alert.id} 
+                        className="p-4 bg-[#0A0A0A] rounded border-l-4 transition-colors hover:bg-[#0A0A0A]/80"
+                        style={{borderLeftColor: getSeverityColor(alert.severity)}}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge style={{backgroundColor: `${getSeverityColor(alert.severity)}30`, color: getSeverityColor(alert.severity)}}>
+                                {alert.severity}
+                              </Badge>
+                              <Badge className="bg-[#333] text-[#888]">{alert.type}</Badge>
+                            </div>
+                            <h4 className="font-bold mb-1">{alert.title}</h4>
+                            <div className="text-xs text-[#888] space-y-1">
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-3 h-3" />
+                                {alert.location?.region}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users className="w-3 h-3" />
+                                Affected: {alert.affected_population}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right text-xs text-[#888]">
+                            <div>{alert.source}</div>
+                            <Badge className={alert.status === "ACTIVE" ? "bg-[#FF4444]/20 text-[#FF4444]" : "bg-[#333]"}>
+                              {alert.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Layers Configuration View */}
+          {activeView === "layers" && layers && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#9D4EDD]" />
+                  DATA_LAYER_CONFIGURATION
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{layers.layers?.length} AVAILABLE</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {layers.layers?.map((layer) => (
+                    <div key={layer.id} className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#333] transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-bold">{layer.name}</span>
+                            <Badge className={layer.real_time ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#333] text-[#888]"}>
+                              {layer.real_time ? "REAL-TIME" : "STATIC"}
+                            </Badge>
+                            <Badge className="bg-[#00E5FF]/20 text-[#00E5FF] text-xs">{layer.type.toUpperCase()}</Badge>
+                          </div>
+                          <div className="text-xs text-[#888] mb-2">Source: {layer.source}</div>
+                          <div className="flex flex-wrap gap-1">
+                            {layer.filters?.map((filter, i) => (
+                              <Badge key={i} variant="outline" className="text-xs border-[#333]">{filter}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={activeLayers.includes(layer.id) ? "default" : "outline"}
+                          onClick={() => toggleLayer(layer.id)}
+                          className={activeLayers.includes(layer.id) ? "bg-[#00FF94] text-black" : "border-[#333]"}
+                        >
+                          {activeLayers.includes(layer.id) ? "ENABLED" : "ENABLE"}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Base Maps */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-bold mb-3">BASE_MAPS</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {layers.base_maps?.map((base) => (
+                      <div key={base.id} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] text-center cursor-pointer hover:border-[#00E5FF] transition-colors">
+                        <div className="text-sm font-bold">{base.name}</div>
+                        <div className="text-xs text-[#888]">{base.provider}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Regional Analysis View */}
+          {activeView === "regions" && regions && (
+            <Card className="terminal-card">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#00E5FF]" />
+                  REGIONAL_RISK_ANALYSIS
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">AVG: {regions.global_average_risk?.toFixed(1)}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {regions.regions?.map((region) => (
+                    <div 
+                      key={region.id}
+                      className="p-4 bg-[#0A0A0A] rounded border border-[#1F1F1F] hover:border-[#00E5FF] transition-colors cursor-pointer"
+                      onClick={() => setSelectedRegion(region)}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-bold">{region.name}</span>
+                        <div 
+                          className="text-2xl font-bold"
+                          style={{color: region.risk_score > 50 ? "#FF4444" : region.risk_score > 30 ? "#FFD700" : "#00FF94"}}
+                        >
+                          {region.risk_score}
+                        </div>
+                      </div>
+                      <div className="h-2 bg-[#1F1F1F] rounded-full overflow-hidden mb-3">
+                        <div 
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${region.risk_score}%`,
+                            backgroundColor: region.risk_score > 50 ? "#FF4444" : region.risk_score > 30 ? "#FFD700" : "#00FF94"
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-[#888]">
+                        <span>Events: <span className="text-[#00E5FF]">{region.active_events}</span></span>
+                        <span>Pop: <span className="text-[#FFD700]">{region.population_m}M</span></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Total Stats */}
+                <div className="mt-4 p-4 bg-[#0A1628] rounded border border-[#00E5FF]/30">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">TOTAL ACTIVE EVENTS GLOBALLY</span>
+                    <span className="text-2xl font-bold text-[#00E5FF]">{regions.total_active_events}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 // Enterprise Admin Component - Stripe-like Admin Panel
 const EnterpriseAdmin = ({ getHeaders, user, setShowAuth }) => {
   const [adminData, setAdminData] = useState(null);
