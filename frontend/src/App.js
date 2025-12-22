@@ -3562,6 +3562,11 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                 </CardContent>
               </Card>
             </div>
+          ) : (
+            <div className="text-center text-[#888] py-8">
+              <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
+              <p>Loading playbooks data...</p>
+            </div>
           )}
         </div>
       )}
