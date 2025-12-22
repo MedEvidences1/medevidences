@@ -90,6 +90,11 @@ import {
   WifiOff,
   Droplet,
   Archive,
+  Satellite,
+  Activity,
+  Wind,
+  Phone,
+  MessageCircle,
 } from "lucide-react";
 
 // Recharts
