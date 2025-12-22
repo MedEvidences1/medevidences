@@ -6306,7 +6306,6 @@ const SpaceHazards = ({ getHeaders }) => {
               </div>
             </CardContent>
           </Card>
-          )}
         </div>
       )}
 
