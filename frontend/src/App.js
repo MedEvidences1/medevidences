@@ -2035,7 +2035,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </div>
       )}
 
-      {/* FUTURE PREDICTIONS VIEW - AI-powered 2025-2026+ */}
+      {/* FUTURE PREDICTIONS VIEW - AI-powered 2026-3000 */}
       {activeView === "predictions" && (
         <div className="space-y-4">
           <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
