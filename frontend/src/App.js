@@ -29,6 +29,7 @@ import {
   BarChart3,
   Brain,
   ChevronRight,
+  ChevronLeft,
   Cloud,
   CreditCard,
   Cpu,
