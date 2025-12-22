@@ -2358,6 +2358,652 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </>
       )}
 
+      {/* INFRASTRUCTURE STATUS VIEW */}
+      {activeView === "infrastructure" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#FFD700]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[#FFD700]" />
+                GLOBAL INFRASTRUCTURE STATUS
+                <Badge className="bg-[#FFD700]/20 text-[#FFD700]">LIVE MONITORING</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Power grids, Telecom, Transportation, Utilities - Real-time status and disruption tracking</p>
+            </CardContent>
+          </Card>
+          
+          {infrastructureStatus && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Power Grids */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-[#FFD700]" />
+                    POWER GRIDS
+                    <Badge className={infrastructureStatus.power_grids?.global_status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                      {infrastructureStatus.power_grids?.global_status?.toUpperCase()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Capacity Utilization</span>
+                      <span className="font-mono text-[#00E5FF]">{infrastructureStatus.power_grids?.capacity_utilization}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Renewable %</span>
+                      <span className="font-mono text-[#00FF94]">{infrastructureStatus.power_grids?.renewable_percentage}%</span>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Current Outages:</div>
+                      {infrastructureStatus.power_grids?.current_outages?.map((outage, i) => (
+                        <div key={i} className="p-2 bg-[#0A0A0A] rounded mb-1 border-l-2 border-l-[#FF3333]">
+                          <div className="text-sm">{outage.region}</div>
+                          <div className="text-xs text-[#888]">{outage.affected_customers?.toLocaleString()} customers • {outage.cause}</div>
+                          <div className="text-xs text-[#00FF94]">ETA Restore: {outage.eta_restore}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-[#888]">
+                      Regions at Risk: {infrastructureStatus.power_grids?.regions_at_risk?.join(", ")}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Telecom */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Wifi className="w-4 h-4 text-[#00E5FF]" />
+                    TELECOMMUNICATIONS
+                    <Badge className={infrastructureStatus.telecom?.global_status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                      {infrastructureStatus.telecom?.global_status?.toUpperCase()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-xs text-[#888]">Network Congestion: {infrastructureStatus.telecom?.network_congestion?.join(", ")}</div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">5G EXPANDING</Badge>
+                    </div>
+                    {infrastructureStatus.telecom?.current_outages?.map((outage, i) => (
+                      <div key={i} className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#FFAA00]">
+                        <div className="text-sm">{outage.provider} - {outage.region}</div>
+                        <div className="text-xs text-[#888]">Services: {outage.services_affected?.join(", ")}</div>
+                        <div className="text-xs text-[#00FF94]">ETA: {outage.eta_restore}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Transportation */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#9D4EDD]" />
+                    TRANSPORTATION
+                    <Badge className={infrastructureStatus.transportation?.global_status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                      {infrastructureStatus.transportation?.global_status?.toUpperCase()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-xs text-[#888] mb-2">Major Disruptions:</div>
+                    {infrastructureStatus.transportation?.major_disruptions?.map((d, i) => (
+                      <div key={i} className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#9D4EDD]">
+                        <div className="text-sm">{d.type}</div>
+                        <div className="text-xs text-[#888]">{d.location} • {d.cause || d.delay}</div>
+                      </div>
+                    ))}
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Traffic Indices:</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {Object.entries(infrastructureStatus.transportation?.traffic_indices || {}).map(([city, index]) => (
+                          <div key={city} className="text-center p-1 bg-[#0A0A0A] rounded">
+                            <div className="text-xs text-[#888]">{city}</div>
+                            <div className={`font-mono text-sm ${index > 80 ? 'text-[#FF3333]' : index > 70 ? 'text-[#FFAA00]' : 'text-[#00FF94]'}`}>{index}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Water Utilities */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Droplet className="w-4 h-4 text-[#00E5FF]" />
+                    WATER & UTILITIES
+                    <Badge className={infrastructureStatus.water_utilities?.global_status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                      {infrastructureStatus.water_utilities?.global_status?.toUpperCase()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Water Quality Alerts</span>
+                      <Badge className="bg-[#FFAA00]/20 text-[#FFAA00]">{infrastructureStatus.water_utilities?.water_quality_alerts}</Badge>
+                    </div>
+                    <div className="text-xs text-[#888]">
+                      Drought Warnings: {infrastructureStatus.water_utilities?.drought_warnings?.join(", ")}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SUPPLY CHAIN STATUS VIEW */}
+      {activeView === "supply_chain" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#00E5FF]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Ship className="w-4 h-4 text-[#00E5FF]" />
+                GLOBAL SUPPLY CHAIN STATUS
+                <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">REAL-TIME</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Shipping routes, Port congestion, Vendor disruptions, Inventory levels</p>
+            </CardContent>
+          </Card>
+          
+          {supplyChainStatus && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Shipping */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Ship className="w-4 h-4 text-[#00E5FF]" />
+                    SHIPPING ROUTES
+                    <Badge className={supplyChainStatus.shipping?.global_status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FFAA00]/20 text-[#FFAA00]"}>
+                      {supplyChainStatus.shipping?.global_status?.toUpperCase().replace("_", " ")}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {supplyChainStatus.shipping?.major_route_disruptions?.map((route, i) => (
+                      <div key={i} className={`p-2 bg-[#0A0A0A] rounded border-l-2 ${route.status === "operational" ? "border-l-[#00FF94]" : route.status === "high_risk" ? "border-l-[#FF3333]" : "border-l-[#FFAA00]"}`}>
+                        <div className="flex justify-between">
+                          <span className="text-sm font-medium">{route.route}</span>
+                          <Badge className={route.status === "operational" ? "bg-[#00FF94]/20 text-[#00FF94]" : route.status === "high_risk" ? "bg-[#FF3333]/20 text-[#FF3333]" : "bg-[#FFAA00]/20 text-[#FFAA00]"}>
+                            {route.status?.toUpperCase().replace("_", " ")}
+                          </Badge>
+                        </div>
+                        {route.reason && <div className="text-xs text-[#888] mt-1">{route.reason}</div>}
+                        {route.impact && <div className="text-xs text-[#FF3333]">{route.impact}</div>}
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center pt-2 border-t border-[#1F1F1F]">
+                      <span className="text-xs text-[#888]">Container Availability</span>
+                      <Badge className="bg-[#FFAA00]/20 text-[#FFAA00]">{supplyChainStatus.shipping?.container_availability?.toUpperCase()}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Freight Rates Trend</span>
+                      <span className="text-xs text-[#FF3333]">↑ {supplyChainStatus.shipping?.freight_rates_trend?.toUpperCase()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Ports */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Factory className="w-4 h-4 text-[#9D4EDD]" />
+                    PORT CONGESTION
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="text-xs text-[#888] mb-2">Hotspots: {supplyChainStatus.ports?.congestion_hotspots?.join(", ")}</div>
+                    <div className="text-xs text-[#888] mb-2">Average Wait Times:</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(supplyChainStatus.ports?.average_wait_time_days || {}).map(([port, days]) => (
+                        <div key={port} className="p-2 bg-[#0A0A0A] rounded">
+                          <div className="text-xs text-[#888]">{port}</div>
+                          <div className={`font-mono ${days > 2 ? 'text-[#FF3333]' : days > 1 ? 'text-[#FFAA00]' : 'text-[#00FF94]'}`}>{days} days</div>
+                        </div>
+                      ))}
+                    </div>
+                    {supplyChainStatus.ports?.labor_disruptions?.length > 0 && (
+                      <div className="p-2 bg-[#FF3333]/10 border border-[#FF3333] rounded mt-2">
+                        <div className="text-xs text-[#FF3333]">⚠️ Labor Disruptions: {supplyChainStatus.ports?.labor_disruptions?.join(", ")}</div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Vendors & Raw Materials */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Package className="w-4 h-4 text-[#FFD700]" />
+                    VENDORS & RAW MATERIALS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Semiconductor Supply</span>
+                      <Badge className="bg-[#FFAA00]/20 text-[#FFAA00]">{supplyChainStatus.vendors?.semiconductor_supply?.toUpperCase()}</Badge>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Raw Materials Status:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.entries(supplyChainStatus.vendors?.raw_materials || {}).map(([material, status]) => (
+                          <div key={material} className="flex justify-between items-center p-1 bg-[#0A0A0A] rounded">
+                            <span className="text-xs capitalize">{material}</span>
+                            <Badge className={status === "stable" ? "bg-[#00FF94]/20 text-[#00FF94] text-xs" : "bg-[#FFAA00]/20 text-[#FFAA00] text-xs"}>
+                              {status?.toUpperCase().replace("_", " ")}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Factory Disruptions:</div>
+                      {supplyChainStatus.vendors?.factory_disruptions?.map((d, i) => (
+                        <div key={i} className="p-2 bg-[#0A0A0A] rounded mb-1 border-l-2 border-l-[#FF3333]">
+                          <div className="text-sm">{d.industry} - {d.region}</div>
+                          <div className="text-xs text-[#888]">{d.cause}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Inventory */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Archive className="w-4 h-4 text-[#00FF94]" />
+                    INVENTORY STATUS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Global Inventory Levels</span>
+                      <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{supplyChainStatus.inventory?.global_inventory_levels?.toUpperCase()}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Just-In-Time Risk</span>
+                      <Badge className="bg-[#FFAA00]/20 text-[#FFAA00]">{supplyChainStatus.inventory?.just_in_time_risk?.toUpperCase()}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[#888]">Stockpiling Trend</span>
+                      <span className="text-xs text-[#00E5FF]">↑ {supplyChainStatus.inventory?.stockpiling_trend?.toUpperCase()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* CYBER THREAT STATUS VIEW */}
+      {activeView === "cyber" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#FF3333]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#FF3333]" />
+                CYBER THREAT LANDSCAPE
+                <Badge className={cyberStatus?.threat_level === "elevated" ? "bg-[#FFAA00]/20 text-[#FFAA00]" : cyberStatus?.threat_level === "critical" ? "bg-[#FF3333]/20 text-[#FF3333]" : "bg-[#00FF94]/20 text-[#00FF94]"}>
+                  {cyberStatus?.threat_level?.toUpperCase()}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Cyber attacks, Cloud outages, Critical vulnerabilities - Real-time threat intelligence</p>
+            </CardContent>
+          </Card>
+          
+          {cyberStatus && (
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Active Campaigns */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-[#FF3333]" />
+                    ACTIVE THREAT CAMPAIGNS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {cyberStatus.active_campaigns?.map((campaign, i) => (
+                      <div key={i} className={`p-3 bg-[#0A0A0A] rounded border-l-2 ${campaign.severity === "critical" ? "border-l-[#FF3333]" : "border-l-[#FFAA00]"}`}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{campaign.name}</span>
+                          <Badge className={campaign.severity === "critical" ? "bg-[#FF3333]/20 text-[#FF3333]" : "bg-[#FFAA00]/20 text-[#FFAA00]"}>
+                            {campaign.severity?.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-[#888] mt-1">Targets: {campaign.targets}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Recent Incidents */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Radio className="w-4 h-4 text-[#FFAA00]" />
+                    RECENT INCIDENTS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {cyberStatus.recent_incidents?.map((incident, i) => (
+                      <div key={i} className="p-3 bg-[#0A0A0A] rounded border-l-2 border-l-[#FFAA00]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{incident.type}</span>
+                          <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">{incident.sector}</Badge>
+                        </div>
+                        <div className="text-xs text-[#888] mt-1">{incident.region}</div>
+                        <div className="text-xs text-[#FF3333] mt-1">{incident.impact}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Cloud Status */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Server className="w-4 h-4 text-[#00E5FF]" />
+                    CLOUD PROVIDER STATUS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {Object.entries(cyberStatus.cloud_status || {}).map(([provider, status]) => (
+                      <div key={provider} className="flex justify-between items-center p-2 bg-[#0A0A0A] rounded">
+                        <span className="text-sm font-mono uppercase">{provider}</span>
+                        <div className="flex items-center gap-2">
+                          {status.incidents_24h > 0 && (
+                            <Badge className={status.resolved ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FF3333]/20 text-[#FF3333]"}>
+                              {status.incidents_24h} incident{status.incidents_24h > 1 ? "s" : ""} {status.resolved ? "(resolved)" : ""}
+                            </Badge>
+                          )}
+                          <div className={`w-3 h-3 rounded-full ${status.status === "operational" ? "bg-[#00FF94]" : "bg-[#FF3333]"}`}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Vulnerabilities */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-[#9D4EDD]" />
+                    VULNERABILITY ALERTS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="text-center p-2 bg-[#FF3333]/10 border border-[#FF3333] rounded">
+                        <div className="font-mono text-xl text-[#FF3333]">{cyberStatus.vulnerability_alerts?.critical}</div>
+                        <div className="text-xs text-[#888]">Critical</div>
+                      </div>
+                      <div className="text-center p-2 bg-[#FFAA00]/10 border border-[#FFAA00] rounded">
+                        <div className="font-mono text-xl text-[#FFAA00]">{cyberStatus.vulnerability_alerts?.high}</div>
+                        <div className="text-xs text-[#888]">High</div>
+                      </div>
+                      <div className="text-center p-2 bg-[#FF3333]/10 border border-[#FF3333] rounded">
+                        <div className="font-mono text-xl text-[#FF3333]">{cyberStatus.vulnerability_alerts?.actively_exploited}</div>
+                        <div className="text-xs text-[#888]">Exploited</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-[#1F1F1F] pt-2">
+                      <div className="text-xs text-[#888] mb-2">Recommendations:</div>
+                      <div className="space-y-1">
+                        {cyberStatus.recommendations?.map((rec, i) => (
+                          <div key={i} className="text-xs text-[#00E5FF] flex items-start gap-1">
+                            <Check className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                            {rec}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI PREDICT VIEW - Full Analysis Pipeline */}
+      {activeView === "predict" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Brain className="w-4 h-4 text-[#00FF94]" />
+                AI DISASTER PREDICTION & ANALYSIS
+                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">ML + OSINT + PHYSICS</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Complete analysis pipeline: Data → Prediction → Impact → Remediation → Action</p>
+            </CardContent>
+          </Card>
+          
+          {/* Prediction Form */}
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">RUN PREDICTION</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-xs text-[#888]">Disaster Type</label>
+                  <select 
+                    value={predictionForm.disaster_type}
+                    onChange={(e) => setPredictionForm({...predictionForm, disaster_type: e.target.value})}
+                    className="w-full mt-1 bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
+                  >
+                    <optgroup label="Natural">
+                      <option value="earthquake">Earthquake</option>
+                      <option value="flood">Flood</option>
+                      <option value="hurricane">Hurricane</option>
+                      <option value="wildfire">Wildfire</option>
+                      <option value="tsunami">Tsunami</option>
+                      <option value="tornado">Tornado</option>
+                    </optgroup>
+                    <optgroup label="Infrastructure">
+                      <option value="power_outage">Power Outage</option>
+                      <option value="telecom_failure">Telecom Failure</option>
+                    </optgroup>
+                    <optgroup label="Cyber">
+                      <option value="cyber_attack">Cyber Attack</option>
+                      <option value="ransomware">Ransomware</option>
+                    </optgroup>
+                    <optgroup label="Supply Chain">
+                      <option value="supply_chain_disruption">Supply Chain Disruption</option>
+                      <option value="port_closure">Port Closure</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Region</label>
+                  <select 
+                    value={predictionForm.region}
+                    onChange={(e) => setPredictionForm({...predictionForm, region: e.target.value})}
+                    className="w-full mt-1 bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
+                  >
+                    <option value="global">Global</option>
+                    <option value="north_america">North America</option>
+                    <option value="south_america">South America</option>
+                    <option value="europe">Europe</option>
+                    <option value="asia_pacific">Asia Pacific</option>
+                    <option value="middle_east">Middle East</option>
+                    <option value="africa">Africa</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-[#888]">Timeframe</label>
+                  <select 
+                    value={predictionForm.timeframe_hours}
+                    onChange={(e) => setPredictionForm({...predictionForm, timeframe_hours: parseInt(e.target.value)})}
+                    className="w-full mt-1 bg-[#0A0A0A] border border-[#1F1F1F] rounded px-3 py-2 text-sm"
+                  >
+                    <option value={24}>24 Hours</option>
+                    <option value={48}>48 Hours</option>
+                    <option value={72}>72 Hours</option>
+                    <option value={168}>7 Days</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <Button 
+                    onClick={runPrediction} 
+                    disabled={predictionLoading}
+                    className="w-full bg-[#00FF94] text-black hover:bg-[#00FF94]/80"
+                  >
+                    {predictionLoading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
+                    ANALYZE
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Analysis Results */}
+          {fullAnalysis && (
+            <div className="space-y-4">
+              {/* Executive Summary */}
+              <Card className="terminal-card border-2 border-[#00FF94]">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Target className="w-4 h-4 text-[#00FF94]" />
+                    EXECUTIVE SUMMARY
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className={`font-mono text-3xl font-bold ${fullAnalysis.executive_summary?.risk_level === "critical" ? "text-[#FF3333]" : fullAnalysis.executive_summary?.risk_level === "high" ? "text-[#FFAA00]" : "text-[#00FF94]"}`}>
+                        {fullAnalysis.executive_summary?.probability}
+                      </div>
+                      <div className="text-xs text-[#888]">PROBABILITY</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="font-mono text-2xl font-bold text-[#00E5FF]">
+                        {(fullAnalysis.executive_summary?.affected_population / 1000000).toFixed(1)}M
+                      </div>
+                      <div className="text-xs text-[#888]">AFFECTED POP.</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="font-mono text-2xl font-bold text-[#FFD700]">
+                        {fullAnalysis.executive_summary?.economic_loss_estimate}
+                      </div>
+                      <div className="text-xs text-[#888]">ECONOMIC LOSS</div>
+                    </div>
+                    <div className="text-center p-3 bg-[#0A0A0A] rounded">
+                      <div className="font-mono text-2xl font-bold text-[#FF3333]">
+                        {fullAnalysis.executive_summary?.immediate_actions_required}
+                      </div>
+                      <div className="text-xs text-[#888]">CRITICAL ACTIONS</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 p-2 bg-[#FFAA00]/10 border border-[#FFAA00] rounded text-center">
+                    <span className="text-xs text-[#FFAA00]">⏰ Decision Deadline: {fullAnalysis.executive_summary?.decision_deadline}</span>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Impact Analysis */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">POPULATION IMPACT</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {Object.entries(fullAnalysis.impact_analysis?.population_impact || {}).filter(([k]) => k !== "demographics").map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-center">
+                          <span className="text-xs text-[#888] capitalize">{key.replace(/_/g, " ")}</span>
+                          <span className="font-mono text-[#00E5FF]">{typeof value === "number" ? value.toLocaleString() : value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">ECONOMIC IMPACT</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {Object.entries(fullAnalysis.impact_analysis?.economic_impact || {}).map(([key, value]) => (
+                        <div key={key} className="flex justify-between items-center">
+                          <span className="text-xs text-[#888] capitalize">{key.replace(/_/g, " ")}</span>
+                          <span className="font-mono text-[#FFD700]">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Recommended Actions */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-[#9D4EDD]" />
+                    RECOMMENDED ACTIONS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {fullAnalysis.remediation_plan?.recommended_actions?.map((action, i) => (
+                      <div key={i} className={`p-3 bg-[#0A0A0A] rounded border-l-2 ${action.priority === "critical" ? "border-l-[#FF3333]" : action.priority === "high" ? "border-l-[#FFAA00]" : "border-l-[#00E5FF]"}`}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">{action.action}</span>
+                          <Badge className={action.priority === "critical" ? "bg-[#FF3333]/20 text-[#FF3333]" : action.priority === "high" ? "bg-[#FFAA00]/20 text-[#FFAA00]" : "bg-[#00E5FF]/20 text-[#00E5FF]"}>
+                            {action.priority?.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-4 mt-1 text-xs text-[#888]">
+                          <span>⏰ {action.timeline}</span>
+                          <span>👤 {action.responsible}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* JUDGMENTAL FORECASTING VIEW - Proprietary Multi-Factor Disaster Prediction */}
       {activeView === "judgmental" && (
         <div className="space-y-4">
