@@ -4787,6 +4787,120 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                 </Card>
               )}
 
+              {/* Astrology Reconciliation Results */}
+              {astrologyReconciliation && includeAstrology && (
+                <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <span className="text-lg">🔮</span>
+                      VEDIC ASTROLOGY RECONCILIATION
+                      <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">OPTIONAL INSIGHT</Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs text-[#888]">
+                      Planetary influences and astrological factors for {astrologyReconciliation.location} - {astrologyReconciliation.timeframe}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Planetary Influences */}
+                    <div className="mb-4">
+                      <div className="text-xs text-[#888] mb-2">PLANETARY INFLUENCES</div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {astrologyReconciliation.astrology_insights?.planetary_influences?.map((planet, i) => (
+                          <div key={i} className="p-2 bg-[#0A0A0A] rounded">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-bold text-[#9D4EDD]">{planet.planet}</span>
+                              <Badge className={`text-xs ${planet.strength === "strong" ? "bg-[#FF3333]/20 text-[#FF3333]" : planet.strength === "beneficial" ? "bg-[#00FF94]/20 text-[#00FF94]" : "bg-[#FFD700]/20 text-[#FFD700]"}`}>
+                                {planet.strength}
+                              </Badge>
+                            </div>
+                            <div className="text-xs text-[#888]">in {planet.position}</div>
+                            <div className="text-xs text-[#EDEDED] mt-1">{planet.influence}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Nakshatra & Dasha */}
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                      <div className="p-3 bg-[#0A0A0A] rounded">
+                        <div className="text-xs text-[#888] mb-1">NAKSHATRA ANALYSIS</div>
+                        <div className="text-sm font-bold text-[#00E5FF]">{astrologyReconciliation.astrology_insights?.nakshatra_analysis?.current}</div>
+                        <div className="text-xs text-[#888] mt-1">{astrologyReconciliation.astrology_insights?.nakshatra_analysis?.influence}</div>
+                        <Badge className="mt-2 bg-[#FFD700]/20 text-[#FFD700]">
+                          Risk Period: {astrologyReconciliation.astrology_insights?.nakshatra_analysis?.risk_period}
+                        </Badge>
+                      </div>
+                      <div className="p-3 bg-[#0A0A0A] rounded">
+                        <div className="text-xs text-[#888] mb-1">DASHA PERIOD</div>
+                        <div className="text-sm font-bold text-[#9D4EDD]">{astrologyReconciliation.astrology_insights?.dasha_period?.current}</div>
+                        <div className="text-xs text-[#888]">Sub: {astrologyReconciliation.astrology_insights?.dasha_period?.sub_period}</div>
+                        <div className="text-xs text-[#EDEDED] mt-1">{astrologyReconciliation.astrology_insights?.dasha_period?.interpretation}</div>
+                      </div>
+                    </div>
+
+                    {/* Regional Analysis */}
+                    <div className="p-3 bg-[#0A0A0A] rounded mb-4">
+                      <div className="text-xs text-[#888] mb-2">REGIONAL ASTROLOGICAL ANALYSIS</div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-[#FF3333] mb-1">⚠️ Vulnerable Periods:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {astrologyReconciliation.astrology_insights?.regional_analysis?.vulnerable_periods?.map((period, i) => (
+                              <Badge key={i} variant="outline" className="text-xs border-[#FF3333]/30 text-[#FF3333]">{period}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-[#00FF94] mb-1">✓ Favorable Periods:</div>
+                          <div className="flex flex-wrap gap-1">
+                            {astrologyReconciliation.astrology_insights?.regional_analysis?.favorable_periods?.map((period, i) => (
+                              <Badge key={i} variant="outline" className="text-xs border-[#00FF94]/30 text-[#00FF94]">{period}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Astrologer Insights */}
+                    {astrologyReconciliation.astrology_insights?.astrologer_insights?.length > 0 && (
+                      <div className="mb-4">
+                        <div className="text-xs text-[#888] mb-2">ASTROLOGER INSIGHTS</div>
+                        <div className="space-y-2">
+                          {astrologyReconciliation.astrology_insights.astrologer_insights.map((insight, i) => (
+                            <div key={i} className="p-2 bg-[#0A0A0A] rounded border-l-2 border-l-[#9D4EDD]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-[#9D4EDD]">{insight.source}</span>
+                                <Badge variant="outline" className="text-xs">{insight.confidence}</Badge>
+                              </div>
+                              <div className="text-xs text-[#EDEDED] mt-1">{insight.prediction}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reconciliation Score */}
+                    <div className="p-3 bg-gradient-to-r from-[#9D4EDD]/20 to-[#00E5FF]/20 rounded">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-xs text-[#888]">FORECAST-ASTROLOGY ALIGNMENT</div>
+                          <div className="text-2xl font-bold text-[#9D4EDD]">{astrologyReconciliation.astrology_insights?.reconciliation_score?.alignment}%</div>
+                        </div>
+                        <Badge className={`${astrologyReconciliation.astrology_insights?.reconciliation_score?.confidence === "high" ? "bg-[#00FF94]" : "bg-[#FFD700]"} text-black`}>
+                          {astrologyReconciliation.astrology_insights?.reconciliation_score?.confidence} confidence
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-[#888] mt-2">{astrologyReconciliation.astrology_insights?.reconciliation_score?.recommendation}</div>
+                    </div>
+
+                    {/* Disclaimer */}
+                    <div className="mt-4 p-2 bg-[#1F1F1F] rounded text-xs text-[#888] text-center">
+                      ⚠️ {astrologyReconciliation.astrology_insights?.disclaimer}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Link to Remediation */}
               <Button 
                 onClick={() => {
