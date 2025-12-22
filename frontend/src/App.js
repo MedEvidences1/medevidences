@@ -1652,6 +1652,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     { id: "sensors", label: "SATELLITES/IOT", icon: Cpu },
     { id: "predict", label: "AI PREDICT", icon: Brain },
     { id: "playbooks", label: "PLAYBOOKS", icon: FileText },
+    { id: "intelligence", label: "INTELLIGENCE", icon: Sparkles },
     { id: "predictions", label: "2025-2026", icon: TrendingUp },
     { id: "longrange", label: "2026-2040", icon: Clock },
     { id: "judgmental", label: "JUDGMENTAL", icon: Target },
@@ -1659,6 +1660,27 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     { id: "agencies", label: "AGENCIES", icon: Globe },
     { id: "economic", label: "ECONOMIC", icon: DollarSign },
   ];
+
+  // Remediation Intelligence state
+  const [remediationOptions, setRemediationOptions] = useState(null);
+  const [roiAnalysis, setRoiAnalysis] = useState(null);
+  const [whatIfSimulation, setWhatIfSimulation] = useState(null);
+  const [populationMapping, setPopulationMapping] = useState(null);
+  const [lossEstimation, setLossEstimation] = useState(null);
+  const [stakeholderTypes, setStakeholderTypes] = useState(null);
+  const [loadingIntelligence, setLoadingIntelligence] = useState(false);
+  const [intelligenceTab, setIntelligenceTab] = useState("options");
+  const [intelligenceForm, setIntelligenceForm] = useState({
+    disaster_type: "earthquake",
+    severity: "high",
+    budget_usd: 10000000,
+    affected_population: 100000,
+    infrastructure_value_usd: 5000000000,
+    probability: 50,
+    delay_hours: 0,
+    location: "Los Angeles",
+    duration_days: 7
+  });
 
   // State for live disasters and predictions
   const [liveDisasters, setLiveDisasters] = useState(null);
