@@ -15186,6 +15186,35 @@ async def get_investment_dashboard(user: dict = Depends(get_optional_user)):
         }
     }
 
+@api_router.get("/investment/executive-summary", tags=["Investment Banking"])
+async def get_investment_executive_summary():
+    """
+    Get executive summary with market outlook for IB Suite
+    Fast endpoint for Market Outlook panel display
+    """
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "market_outlook": {
+            "sentiment_score": 65,
+            "sentiment_label": "BULLISH BIAS",
+            "vix": 18.5,
+            "vix_status": "LOW VOLATILITY",
+            "deal_activity": 47,
+            "market_phase": "LATE_CYCLE"
+        },
+        "key_actions": [
+            {"priority": "high", "color": "#00FF94", "action": "Review tech sector exposure - AI rally continues"},
+            {"priority": "medium", "color": "#FFAA00", "action": "Monitor Fed decision impact on rate-sensitive positions"},
+            {"priority": "high", "color": "#FF4444", "action": "Geopolitical tensions - hedge emerging market exposure"}
+        ],
+        "quick_metrics": {
+            "sp500_ytd": "+12.5%",
+            "nasdaq_ytd": "+18.2%",
+            "10y_yield": "4.25%",
+            "usd_index": "103.5"
+        }
+    }
+
 # =============================================================================
 # API ENDPOINTS - ADVERTISEMENTS
 # =============================================================================
