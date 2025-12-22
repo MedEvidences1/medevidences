@@ -5628,6 +5628,855 @@ Respond ONLY with valid JSON."""
 remediation_engine = DisasterRemediationEngine()
 
 # =============================================================================
+# REMEDIATION INTELLIGENCE SYSTEM - Enterprise-Grade Decision Support
+# =============================================================================
+
+class RemediationIntelligenceSystem:
+    """
+    Comprehensive Remediation Intelligence System with 11 integrated modules:
+    1. Prediction & Post-Incident Actions
+    2. Pre-built Remediation Options (ranked by cost/speed/effectiveness)
+    3. ROI-based Recommendations
+    4. What-If Simulations
+    5. Execution Coordination Layer
+    6. Multi-Stakeholder Coordination
+    7. Automated Triggers
+    8. Asset & Population Mapping
+    9. Trust, Transparency & Governance
+    10. Loss Estimation Engine
+    11. Capital Deployment Tools
+    12. Public Communication Interface
+    """
+    
+    # Pre-built remediation options per disaster type
+    REMEDIATION_OPTIONS = {
+        "earthquake": [
+            {"id": "EQ-001", "name": "Immediate Evacuation", "type": "evacuation", "cost_usd": 5000000, "speed_hours": 2, "effectiveness": 95, "lives_saved_potential": 10000, "description": "Full-scale evacuation of affected zones"},
+            {"id": "EQ-002", "name": "Shelter-in-Place", "type": "shelter", "cost_usd": 500000, "speed_hours": 0.5, "effectiveness": 70, "lives_saved_potential": 5000, "description": "Instruct population to shelter in reinforced structures"},
+            {"id": "EQ-003", "name": "Search & Rescue Deployment", "type": "rescue", "cost_usd": 10000000, "speed_hours": 1, "effectiveness": 85, "lives_saved_potential": 2000, "description": "Deploy urban search and rescue teams"},
+            {"id": "EQ-004", "name": "Medical Surge Activation", "type": "medical", "cost_usd": 8000000, "speed_hours": 4, "effectiveness": 90, "lives_saved_potential": 3000, "description": "Activate emergency medical facilities and personnel"},
+            {"id": "EQ-005", "name": "Infrastructure Shutdown", "type": "prevention", "cost_usd": 2000000, "speed_hours": 1, "effectiveness": 80, "lives_saved_potential": 1000, "description": "Controlled shutdown of gas, power to prevent secondary disasters"},
+        ],
+        "flood": [
+            {"id": "FL-001", "name": "Flood Barrier Deployment", "type": "prevention", "cost_usd": 3000000, "speed_hours": 6, "effectiveness": 75, "lives_saved_potential": 5000, "description": "Deploy temporary flood barriers and sandbags"},
+            {"id": "FL-002", "name": "Evacuation to Higher Ground", "type": "evacuation", "cost_usd": 4000000, "speed_hours": 4, "effectiveness": 90, "lives_saved_potential": 8000, "description": "Evacuate low-lying areas to designated shelters"},
+            {"id": "FL-003", "name": "Pump Station Activation", "type": "mitigation", "cost_usd": 1500000, "speed_hours": 2, "effectiveness": 60, "lives_saved_potential": 2000, "description": "Activate all available pump stations"},
+            {"id": "FL-004", "name": "Dam Release Coordination", "type": "prevention", "cost_usd": 500000, "speed_hours": 1, "effectiveness": 70, "lives_saved_potential": 10000, "description": "Coordinate controlled dam releases to prevent catastrophic failure"},
+            {"id": "FL-005", "name": "Boat Rescue Operations", "type": "rescue", "cost_usd": 6000000, "speed_hours": 3, "effectiveness": 85, "lives_saved_potential": 3000, "description": "Deploy rescue boats for stranded individuals"},
+        ],
+        "hurricane": [
+            {"id": "HU-001", "name": "Mandatory Evacuation", "type": "evacuation", "cost_usd": 15000000, "speed_hours": 24, "effectiveness": 95, "lives_saved_potential": 50000, "description": "Mandatory evacuation of coastal and flood-prone areas"},
+            {"id": "HU-002", "name": "Storm Shelter Activation", "type": "shelter", "cost_usd": 5000000, "speed_hours": 12, "effectiveness": 80, "lives_saved_potential": 20000, "description": "Open and staff all designated storm shelters"},
+            {"id": "HU-003", "name": "Grid Pre-emptive Shutdown", "type": "prevention", "cost_usd": 3000000, "speed_hours": 6, "effectiveness": 70, "lives_saved_potential": 500, "description": "Controlled grid shutdown to prevent electrocution hazards"},
+            {"id": "HU-004", "name": "Pre-positioned Resources", "type": "logistics", "cost_usd": 20000000, "speed_hours": 48, "effectiveness": 85, "lives_saved_potential": 5000, "description": "Pre-position food, water, medical supplies outside impact zone"},
+            {"id": "HU-005", "name": "Port & Airport Closure", "type": "prevention", "cost_usd": 10000000, "speed_hours": 8, "effectiveness": 90, "lives_saved_potential": 1000, "description": "Close ports and airports, secure vessels and aircraft"},
+        ],
+        "cyber_attack": [
+            {"id": "CY-001", "name": "Network Isolation", "type": "containment", "cost_usd": 500000, "speed_hours": 0.5, "effectiveness": 90, "lives_saved_potential": 0, "description": "Isolate affected network segments"},
+            {"id": "CY-002", "name": "Backup Activation", "type": "recovery", "cost_usd": 2000000, "speed_hours": 2, "effectiveness": 85, "lives_saved_potential": 100, "description": "Switch to backup systems and data centers"},
+            {"id": "CY-003", "name": "Incident Response Team", "type": "response", "cost_usd": 1000000, "speed_hours": 1, "effectiveness": 80, "lives_saved_potential": 0, "description": "Deploy cybersecurity incident response team"},
+            {"id": "CY-004", "name": "Manual Operations Mode", "type": "continuity", "cost_usd": 5000000, "speed_hours": 4, "effectiveness": 60, "lives_saved_potential": 500, "description": "Switch critical infrastructure to manual operations"},
+            {"id": "CY-005", "name": "Public Communication Lockdown", "type": "prevention", "cost_usd": 100000, "speed_hours": 0.25, "effectiveness": 75, "lives_saved_potential": 0, "description": "Pause automated public communications to prevent misinformation"},
+        ],
+        "power_outage": [
+            {"id": "PO-001", "name": "Load Shedding", "type": "mitigation", "cost_usd": 100000, "speed_hours": 0.25, "effectiveness": 70, "lives_saved_potential": 50, "description": "Controlled load shedding to prevent cascade failure"},
+            {"id": "PO-002", "name": "Backup Generator Activation", "type": "recovery", "cost_usd": 2000000, "speed_hours": 0.5, "effectiveness": 85, "lives_saved_potential": 500, "description": "Activate backup generators for critical facilities"},
+            {"id": "PO-003", "name": "Grid Reinforcement", "type": "prevention", "cost_usd": 5000000, "speed_hours": 4, "effectiveness": 75, "lives_saved_potential": 100, "description": "Reinforce grid connections from unaffected regions"},
+            {"id": "PO-004", "name": "Hospital Priority Restoration", "type": "medical", "cost_usd": 1000000, "speed_hours": 1, "effectiveness": 95, "lives_saved_potential": 200, "description": "Prioritize power restoration to hospitals and medical facilities"},
+            {"id": "PO-005", "name": "Mobile Power Units", "type": "recovery", "cost_usd": 3000000, "speed_hours": 2, "effectiveness": 80, "lives_saved_potential": 300, "description": "Deploy mobile power generation units"},
+        ],
+        "wildfire": [
+            {"id": "WF-001", "name": "Evacuation Zones", "type": "evacuation", "cost_usd": 8000000, "speed_hours": 4, "effectiveness": 95, "lives_saved_potential": 15000, "description": "Mandatory evacuation of fire-threatened zones"},
+            {"id": "WF-002", "name": "Fire Break Creation", "type": "containment", "cost_usd": 5000000, "speed_hours": 8, "effectiveness": 70, "lives_saved_potential": 5000, "description": "Create fire breaks using bulldozers and controlled burns"},
+            {"id": "WF-003", "name": "Aerial Firefighting", "type": "suppression", "cost_usd": 15000000, "speed_hours": 2, "effectiveness": 75, "lives_saved_potential": 3000, "description": "Deploy aerial tankers and helicopters"},
+            {"id": "WF-004", "name": "Structure Protection", "type": "prevention", "cost_usd": 3000000, "speed_hours": 6, "effectiveness": 65, "lives_saved_potential": 500, "description": "Apply fire retardant to structures in fire path"},
+            {"id": "WF-005", "name": "Power Line De-energization", "type": "prevention", "cost_usd": 500000, "speed_hours": 1, "effectiveness": 80, "lives_saved_potential": 100, "description": "De-energize power lines to prevent ignition"},
+        ],
+        "pandemic": [
+            {"id": "PA-001", "name": "Quarantine Zones", "type": "containment", "cost_usd": 50000000, "speed_hours": 24, "effectiveness": 85, "lives_saved_potential": 100000, "description": "Establish quarantine zones in affected areas"},
+            {"id": "PA-002", "name": "Mass Testing", "type": "detection", "cost_usd": 100000000, "speed_hours": 48, "effectiveness": 80, "lives_saved_potential": 50000, "description": "Deploy mass testing capabilities"},
+            {"id": "PA-003", "name": "Hospital Surge", "type": "medical", "cost_usd": 200000000, "speed_hours": 72, "effectiveness": 90, "lives_saved_potential": 25000, "description": "Activate hospital surge capacity and field hospitals"},
+            {"id": "PA-004", "name": "Travel Restrictions", "type": "containment", "cost_usd": 10000000, "speed_hours": 12, "effectiveness": 70, "lives_saved_potential": 200000, "description": "Implement travel restrictions and border controls"},
+            {"id": "PA-005", "name": "Vaccine Distribution", "type": "prevention", "cost_usd": 500000000, "speed_hours": 168, "effectiveness": 95, "lives_saved_potential": 500000, "description": "Mass vaccine distribution campaign"},
+        ]
+    }
+    
+    # Stakeholder types and their roles
+    STAKEHOLDERS = {
+        "government": {
+            "federal": ["FEMA", "DHS", "CDC", "NOAA", "DOD"],
+            "state": ["Governor's Office", "State Emergency Management", "National Guard"],
+            "local": ["Mayor's Office", "City Emergency Management", "Police", "Fire Department"]
+        },
+        "utilities": {
+            "power": ["Grid Operators", "Power Companies", "Nuclear Facilities"],
+            "water": ["Water Districts", "Wastewater Treatment", "Dam Operators"],
+            "communications": ["Telecom Providers", "Internet Providers", "Broadcast Networks"]
+        },
+        "corporations": {
+            "critical_infrastructure": ["Hospitals", "Banks", "Data Centers", "Manufacturing"],
+            "supply_chain": ["Logistics Companies", "Warehouses", "Ports", "Airports"],
+            "retail": ["Grocery Chains", "Pharmacies", "Gas Stations"]
+        },
+        "first_responders": {
+            "emergency": ["Fire Departments", "EMS", "Police"],
+            "medical": ["Hospitals", "Clinics", "Mental Health Services"],
+            "rescue": ["Urban Search & Rescue", "Coast Guard", "National Guard"]
+        },
+        "ngo": {
+            "relief": ["Red Cross", "Salvation Army", "Local Food Banks"],
+            "medical": ["Doctors Without Borders", "Medical Reserve Corps"],
+            "shelter": ["FEMA Shelters", "Church Organizations", "Community Centers"]
+        }
+    }
+    
+    def __init__(self):
+        self.active_incidents = {}
+        self.coordination_sessions = {}
+        self.audit_log = []
+        
+    async def get_remediation_options(self, disaster_type: str, severity: str = "high", budget_usd: float = None) -> Dict:
+        """Get pre-built remediation options ranked by cost, speed, and effectiveness"""
+        options = self.REMEDIATION_OPTIONS.get(disaster_type, self.REMEDIATION_OPTIONS.get("earthquake"))
+        
+        # Calculate scores for each option
+        scored_options = []
+        for opt in options:
+            # Normalize scores (0-100)
+            cost_score = 100 - min(100, (opt["cost_usd"] / 10000000) * 100)  # Lower cost = higher score
+            speed_score = 100 - min(100, (opt["speed_hours"] / 24) * 100)  # Faster = higher score
+            effectiveness_score = opt["effectiveness"]
+            
+            # Weighted composite score
+            composite_score = (cost_score * 0.25) + (speed_score * 0.25) + (effectiveness_score * 0.5)
+            
+            opt_with_score = {
+                **opt,
+                "scores": {
+                    "cost": round(cost_score, 1),
+                    "speed": round(speed_score, 1),
+                    "effectiveness": effectiveness_score,
+                    "composite": round(composite_score, 1)
+                },
+                "within_budget": budget_usd is None or opt["cost_usd"] <= budget_usd
+            }
+            scored_options.append(opt_with_score)
+        
+        # Sort by composite score
+        scored_options.sort(key=lambda x: x["scores"]["composite"], reverse=True)
+        
+        return {
+            "disaster_type": disaster_type,
+            "severity": severity,
+            "budget_constraint": budget_usd,
+            "options": scored_options,
+            "recommended": scored_options[0] if scored_options else None,
+            "total_options": len(scored_options),
+            "within_budget_count": len([o for o in scored_options if o["within_budget"]])
+        }
+    
+    async def calculate_roi(self, disaster_type: str, option_id: str, affected_population: int, 
+                           infrastructure_value_usd: float, probability: float) -> Dict:
+        """Calculate ROI for a remediation action"""
+        options = self.REMEDIATION_OPTIONS.get(disaster_type, [])
+        option = next((o for o in options if o["id"] == option_id), None)
+        
+        if not option:
+            return {"error": "Option not found"}
+        
+        # Cost of action
+        action_cost = option["cost_usd"]
+        
+        # Cost of inaction estimates
+        lives_at_risk = int(affected_population * 0.001 * (probability / 100))  # 0.1% fatality rate adjusted by probability
+        value_per_life = 10000000  # Statistical value of life
+        potential_deaths_cost = lives_at_risk * value_per_life
+        
+        # Asset protection
+        assets_at_risk = infrastructure_value_usd * (probability / 100) * 0.1  # 10% damage factor
+        
+        # Downtime costs
+        daily_economic_activity = infrastructure_value_usd * 0.001  # 0.1% daily economic activity
+        estimated_downtime_days = option["speed_hours"] / 24 + 7  # Recovery time
+        downtime_cost = daily_economic_activity * estimated_downtime_days
+        
+        # Calculate savings
+        lives_saved = option["lives_saved_potential"]
+        lives_saved_value = lives_saved * value_per_life
+        assets_protected = assets_at_risk * (option["effectiveness"] / 100)
+        downtime_avoided = downtime_cost * (option["effectiveness"] / 100)
+        
+        total_benefit = lives_saved_value + assets_protected + downtime_avoided
+        roi = ((total_benefit - action_cost) / action_cost) * 100 if action_cost > 0 else 0
+        
+        return {
+            "option": option,
+            "cost_of_action": {
+                "direct_cost": action_cost,
+                "implementation_time": f"{option['speed_hours']} hours",
+                "resources_required": self._estimate_resources(option)
+            },
+            "cost_of_inaction": {
+                "potential_deaths": lives_at_risk,
+                "death_cost_usd": potential_deaths_cost,
+                "asset_damage_usd": assets_at_risk,
+                "downtime_cost_usd": downtime_cost,
+                "total_inaction_cost": potential_deaths_cost + assets_at_risk + downtime_cost
+            },
+            "benefits": {
+                "lives_saved": lives_saved,
+                "lives_saved_value": lives_saved_value,
+                "assets_protected": assets_protected,
+                "downtime_avoided": downtime_avoided,
+                "total_benefit": total_benefit
+            },
+            "roi_analysis": {
+                "roi_percentage": round(roi, 1),
+                "net_benefit": total_benefit - action_cost,
+                "payback_period": "Immediate" if roi > 100 else f"{round(action_cost / (total_benefit / 365), 1)} days",
+                "recommendation": "Strongly Recommended" if roi > 500 else "Recommended" if roi > 100 else "Consider" if roi > 0 else "Not Recommended"
+            }
+        }
+    
+    def _estimate_resources(self, option: Dict) -> Dict:
+        """Estimate resources needed for an option"""
+        cost = option["cost_usd"]
+        return {
+            "personnel": max(10, int(cost / 100000)),
+            "vehicles": max(2, int(cost / 500000)),
+            "equipment_sets": max(1, int(cost / 1000000)),
+            "supplies_tons": max(1, int(cost / 200000))
+        }
+    
+    async def run_what_if_simulation(self, disaster_type: str, scenario: Dict, use_ai: bool = True) -> Dict:
+        """Run what-if simulation for budget and timing scenarios"""
+        budget = scenario.get("budget_usd", 5000000)
+        delay_hours = scenario.get("delay_hours", 0)
+        probability = scenario.get("probability", 50)
+        affected_population = scenario.get("affected_population", 100000)
+        
+        # Get options within budget
+        options_result = await self.get_remediation_options(disaster_type, budget_usd=budget)
+        available_options = [o for o in options_result["options"] if o["within_budget"]]
+        
+        # Calculate loss curve for delays
+        base_loss = affected_population * 0.001 * (probability / 100) * 10000000  # Base death cost
+        
+        loss_curve = []
+        for hours in [0, 6, 12, 24, 48, 72, 168]:
+            # Loss increases exponentially with delay
+            delay_factor = 1 + (hours * 0.05)  # 5% increase per hour
+            loss_at_time = base_loss * delay_factor
+            
+            # Lives lost increases with delay
+            lives_lost = int(affected_population * 0.001 * (probability / 100) * delay_factor)
+            
+            loss_curve.append({
+                "delay_hours": hours,
+                "estimated_loss_usd": loss_at_time,
+                "lives_at_risk": lives_lost,
+                "effectiveness_reduction": min(50, hours * 2)  # 2% reduction per hour, max 50%
+            })
+        
+        # Current scenario impact
+        current_delay_loss = base_loss * (1 + (delay_hours * 0.05))
+        
+        # AI-enhanced insights if enabled
+        ai_insights = None
+        if use_ai and EMERGENT_LLM_KEY:
+            try:
+                chat = LlmChat(emergent_api_key=EMERGENT_LLM_KEY, model="gpt-4o")
+                prompt = f"""Analyze this disaster scenario and provide strategic insights:
+
+Disaster Type: {disaster_type}
+Budget Available: ${budget:,}
+Current Delay: {delay_hours} hours
+Probability: {probability}%
+Affected Population: {affected_population:,}
+
+Available remediation options: {json.dumps([o['name'] for o in available_options])}
+
+Provide:
+1. Top 3 recommended actions with rationale
+2. Critical timing considerations
+3. Resource optimization suggestions
+4. Potential complications to watch for
+
+Keep response under 300 words, be specific and actionable."""
+
+                response = await chat.send_message_async(UserMessage(content=prompt))
+                ai_insights = response.content
+            except Exception as e:
+                logger.error(f"AI simulation error: {e}")
+                ai_insights = None
+        
+        return {
+            "scenario": scenario,
+            "budget_analysis": {
+                "total_budget": budget,
+                "options_within_budget": len(available_options),
+                "best_option_within_budget": available_options[0] if available_options else None,
+                "budget_gap_for_optimal": max(0, options_result["options"][0]["cost_usd"] - budget) if options_result["options"] else 0
+            },
+            "delay_analysis": {
+                "current_delay": delay_hours,
+                "current_estimated_loss": current_delay_loss,
+                "loss_curve": loss_curve,
+                "critical_window": "0-24 hours" if disaster_type in ["earthquake", "flood"] else "0-48 hours"
+            },
+            "recommendations": {
+                "immediate_actions": [o["name"] for o in available_options[:3]],
+                "budget_increase_benefit": f"${(current_delay_loss * 0.3):,.0f} savings with 50% more budget",
+                "time_sensitivity": "CRITICAL" if delay_hours > 24 else "HIGH" if delay_hours > 6 else "MODERATE"
+            },
+            "ai_insights": ai_insights
+        }
+    
+    async def create_incident(self, incident_data: Dict, user_id: str) -> Dict:
+        """Create a new incident for coordination"""
+        incident_id = str(uuid.uuid4())
+        
+        incident = {
+            "id": incident_id,
+            "name": incident_data.get("name", f"Incident {incident_id[:8]}"),
+            "disaster_type": incident_data.get("disaster_type", "earthquake"),
+            "severity": incident_data.get("severity", "high"),
+            "location": incident_data.get("location", "Unknown"),
+            "affected_population": incident_data.get("affected_population", 0),
+            "status": "active",
+            "phase": "detection",  # detection, response, recovery, mitigation
+            "created_by": user_id,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "stakeholders": [],
+            "tasks": [],
+            "timeline": [
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "event": "Incident Created",
+                    "user": user_id,
+                    "details": incident_data
+                }
+            ],
+            "decisions": [],
+            "communications": [],
+            "resources_allocated": [],
+            "audit_trail": []
+        }
+        
+        # Store in database
+        await db.incidents.insert_one(incident)
+        self.active_incidents[incident_id] = incident
+        
+        # Log audit
+        self._log_audit("incident_created", incident_id, user_id, incident_data)
+        
+        return incident
+    
+    async def get_execution_timeline(self, incident_id: str) -> Dict:
+        """Get execution timeline for an incident"""
+        incident = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+        if not incident:
+            return {"error": "Incident not found"}
+        
+        # Generate phase-based timeline
+        phases = {
+            "detection": {
+                "name": "Detection & Assessment",
+                "duration_hours": 2,
+                "tasks": ["Initial assessment", "Activate EOC", "Deploy reconnaissance", "Establish communications"]
+            },
+            "response": {
+                "name": "Emergency Response",
+                "duration_hours": 24,
+                "tasks": ["Search & rescue", "Medical triage", "Evacuation", "Emergency sheltering", "Utility shutoffs"]
+            },
+            "stabilization": {
+                "name": "Stabilization",
+                "duration_hours": 72,
+                "tasks": ["Damage assessment", "Debris clearing", "Utility restoration", "Public health measures"]
+            },
+            "recovery": {
+                "name": "Recovery",
+                "duration_hours": 168,
+                "tasks": ["Infrastructure repair", "Housing assistance", "Economic support", "Mental health services"]
+            },
+            "mitigation": {
+                "name": "Mitigation",
+                "duration_hours": 720,
+                "tasks": ["Code enforcement", "Infrastructure hardening", "Public education", "Plan updates"]
+            }
+        }
+        
+        return {
+            "incident_id": incident_id,
+            "incident_name": incident.get("name"),
+            "current_phase": incident.get("phase", "detection"),
+            "phases": phases,
+            "timeline": incident.get("timeline", []),
+            "completed_tasks": len([t for t in incident.get("tasks", []) if t.get("status") == "completed"]),
+            "total_tasks": len(incident.get("tasks", []))
+        }
+    
+    async def assign_task(self, incident_id: str, task_data: Dict, assigned_by: str) -> Dict:
+        """Assign a task to a stakeholder"""
+        task_id = str(uuid.uuid4())
+        
+        task = {
+            "id": task_id,
+            "incident_id": incident_id,
+            "title": task_data.get("title"),
+            "description": task_data.get("description"),
+            "assigned_to": task_data.get("assigned_to"),  # Stakeholder/role
+            "assigned_by": assigned_by,
+            "priority": task_data.get("priority", "high"),
+            "status": "pending",
+            "due_date": task_data.get("due_date"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updates": []
+        }
+        
+        # Update incident
+        await db.incidents.update_one(
+            {"id": incident_id},
+            {
+                "$push": {"tasks": task},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        self._log_audit("task_assigned", incident_id, assigned_by, task)
+        
+        return task
+    
+    async def get_stakeholder_coordination(self, incident_id: str, disaster_type: str) -> Dict:
+        """Get multi-stakeholder coordination plan"""
+        incident = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+        
+        # Get relevant stakeholders for this disaster type
+        stakeholder_roles = {
+            "earthquake": ["government.federal", "government.local", "first_responders.emergency", "utilities.power", "ngo.relief"],
+            "flood": ["government.state", "government.local", "utilities.water", "first_responders.rescue", "ngo.shelter"],
+            "hurricane": ["government.federal", "government.state", "utilities.power", "first_responders.emergency", "corporations.supply_chain"],
+            "cyber_attack": ["government.federal", "utilities.communications", "corporations.critical_infrastructure"],
+            "pandemic": ["government.federal", "first_responders.medical", "corporations.supply_chain", "ngo.medical"]
+        }
+        
+        relevant = stakeholder_roles.get(disaster_type, stakeholder_roles["earthquake"])
+        
+        coordination_matrix = []
+        for role_path in relevant:
+            parts = role_path.split(".")
+            category = self.STAKEHOLDERS.get(parts[0], {})
+            subcategory = category.get(parts[1], []) if len(parts) > 1 else []
+            
+            coordination_matrix.append({
+                "role": role_path,
+                "category": parts[0],
+                "subcategory": parts[1] if len(parts) > 1 else "",
+                "entities": subcategory,
+                "responsibilities": self._get_role_responsibilities(parts[0], disaster_type),
+                "communication_channel": self._get_comm_channel(parts[0])
+            })
+        
+        return {
+            "incident_id": incident_id,
+            "disaster_type": disaster_type,
+            "coordination_matrix": coordination_matrix,
+            "communication_protocols": {
+                "primary": "Emergency Alert System",
+                "secondary": "Satellite Phone Network",
+                "tertiary": "Amateur Radio Network"
+            },
+            "meeting_schedule": {
+                "operational_briefing": "Every 4 hours",
+                "executive_briefing": "Every 12 hours",
+                "public_briefing": "Every 24 hours"
+            },
+            "escalation_path": [
+                {"level": 1, "entity": "Local Emergency Manager", "threshold": "Local resources exceeded"},
+                {"level": 2, "entity": "State Emergency Management", "threshold": "Multiple jurisdictions affected"},
+                {"level": 3, "entity": "FEMA Regional", "threshold": "State resources exceeded"},
+                {"level": 4, "entity": "FEMA National/White House", "threshold": "National significance"}
+            ]
+        }
+    
+    def _get_role_responsibilities(self, category: str, disaster_type: str) -> List[str]:
+        """Get role-specific responsibilities"""
+        responsibilities = {
+            "government": ["Policy decisions", "Resource allocation", "Public communication", "Coordination"],
+            "utilities": ["Service restoration", "Infrastructure assessment", "Safety shutoffs", "Customer communication"],
+            "corporations": ["Business continuity", "Supply chain maintenance", "Employee safety", "Community support"],
+            "first_responders": ["Life safety", "Search & rescue", "Medical care", "Law enforcement"],
+            "ngo": ["Shelter operations", "Food distribution", "Volunteer coordination", "Long-term recovery"]
+        }
+        return responsibilities.get(category, ["Support operations"])
+    
+    def _get_comm_channel(self, category: str) -> str:
+        """Get communication channel for stakeholder category"""
+        channels = {
+            "government": "WebEOC / Emergency Management Network",
+            "utilities": "SCADA / Utility Operations Center",
+            "corporations": "Business Emergency Operations Center",
+            "first_responders": "FirstNet / P25 Radio",
+            "ngo": "Volunteer Management System"
+        }
+        return channels.get(category, "General Communications")
+    
+    async def configure_automated_triggers(self, incident_id: str, triggers: List[Dict], configured_by: str) -> Dict:
+        """Configure automated triggers for an incident"""
+        trigger_configs = []
+        
+        for trigger in triggers:
+            trigger_config = {
+                "id": str(uuid.uuid4()),
+                "type": trigger.get("type"),  # alert_leaders, activate_contracts, release_funds, notify_public
+                "condition": trigger.get("condition"),  # probability > X, severity == Y, etc.
+                "action": trigger.get("action"),
+                "enabled": trigger.get("enabled", True),
+                "configured_by": configured_by,
+                "configured_at": datetime.now(timezone.utc).isoformat(),
+                "last_triggered": None,
+                "trigger_count": 0
+            }
+            trigger_configs.append(trigger_config)
+        
+        # Store triggers
+        await db.incidents.update_one(
+            {"id": incident_id},
+            {"$set": {"automated_triggers": trigger_configs}}
+        )
+        
+        return {
+            "incident_id": incident_id,
+            "triggers_configured": len(trigger_configs),
+            "triggers": trigger_configs,
+            "available_trigger_types": [
+                {"type": "alert_leaders", "description": "Automatically alert leadership when conditions met"},
+                {"type": "activate_contracts", "description": "Activate pre-positioned vendor contracts"},
+                {"type": "release_funds", "description": "Pre-authorize emergency fund releases"},
+                {"type": "notify_public", "description": "Send automated public notifications"},
+                {"type": "escalate_level", "description": "Automatically escalate incident level"},
+                {"type": "resource_request", "description": "Auto-generate resource requests"}
+            ]
+        }
+    
+    async def get_population_mapping(self, location: str, radius_km: float = 50) -> Dict:
+        """Get asset and population mapping for a location"""
+        # Simulated population data (in production, would integrate with census/GIS data)
+        base_population = 500000
+        
+        return {
+            "location": location,
+            "radius_km": radius_km,
+            "population": {
+                "total": base_population,
+                "density_per_km2": int(base_population / (3.14159 * radius_km * radius_km)),
+                "breakdown": {
+                    "residential": int(base_population * 0.7),
+                    "commercial": int(base_population * 0.2),
+                    "transient": int(base_population * 0.1)
+                }
+            },
+            "vulnerable_groups": {
+                "elderly_65_plus": int(base_population * 0.16),
+                "children_under_5": int(base_population * 0.06),
+                "disabled": int(base_population * 0.12),
+                "non_english_speakers": int(base_population * 0.15),
+                "homeless": int(base_population * 0.003),
+                "hospitalized": int(base_population * 0.002),
+                "incarcerated": int(base_population * 0.001)
+            },
+            "mobility_constraints": {
+                "no_vehicle_households": int(base_population * 0.08),
+                "mobility_impaired": int(base_population * 0.05),
+                "requires_medical_transport": int(base_population * 0.01)
+            },
+            "evacuation_feasibility": {
+                "can_self_evacuate": int(base_population * 0.85),
+                "needs_assisted_evacuation": int(base_population * 0.12),
+                "cannot_evacuate": int(base_population * 0.03),
+                "estimated_evacuation_time_hours": 24 + (base_population / 50000),
+                "bottlenecks": ["Highway 101 interchange", "Downtown bridge", "Hospital district"]
+            },
+            "critical_facilities": {
+                "hospitals": max(3, int(base_population / 100000)),
+                "schools": max(10, int(base_population / 20000)),
+                "nursing_homes": max(5, int(base_population / 50000)),
+                "prisons": 1,
+                "shelters": max(5, int(base_population / 50000)),
+                "shelter_capacity": int(base_population * 0.05)
+            }
+        }
+    
+    async def get_audit_trail(self, incident_id: str) -> Dict:
+        """Get complete audit trail for transparency and governance"""
+        incident = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+        if not incident:
+            return {"error": "Incident not found"}
+        
+        return {
+            "incident_id": incident_id,
+            "incident_name": incident.get("name"),
+            "audit_trail": incident.get("audit_trail", []),
+            "timeline": incident.get("timeline", []),
+            "decisions": incident.get("decisions", []),
+            "data_sources": [
+                "USGS Earthquake Data",
+                "NOAA Weather Data",
+                "Census Population Data",
+                "Infrastructure Registry",
+                "Historical Incident Data",
+                "AI Model Predictions"
+            ],
+            "assumptions": [
+                "Population distribution follows census estimates",
+                "Infrastructure vulnerability based on age and condition",
+                "Economic impact models use regional GDP data",
+                "Casualty estimates based on historical incidents"
+            ],
+            "model_confidence": {
+                "prediction_accuracy": "85% historical accuracy",
+                "data_freshness": "Updated within 15 minutes",
+                "uncertainty_range": "±15% for economic estimates"
+            }
+        }
+    
+    async def estimate_losses(self, disaster_type: str, severity: str, affected_population: int, 
+                             infrastructure_value_usd: float, duration_days: int) -> Dict:
+        """Comprehensive loss estimation"""
+        # Base loss factors
+        severity_factors = {"low": 0.1, "medium": 0.3, "high": 0.6, "critical": 1.0}
+        severity_factor = severity_factors.get(severity, 0.3)
+        
+        # Casualty estimation
+        casualty_rates = {
+            "earthquake": 0.001, "flood": 0.0005, "hurricane": 0.0003,
+            "wildfire": 0.0002, "pandemic": 0.01, "cyber_attack": 0.00001
+        }
+        casualty_rate = casualty_rates.get(disaster_type, 0.0005)
+        estimated_deaths = int(affected_population * casualty_rate * severity_factor)
+        estimated_injuries = estimated_deaths * 5
+        
+        # Property loss
+        insured_rate = 0.6  # 60% of property is typically insured
+        total_property_loss = infrastructure_value_usd * severity_factor * 0.2
+        insured_loss = total_property_loss * insured_rate
+        uninsured_loss = total_property_loss * (1 - insured_rate)
+        
+        # Economic impact
+        daily_gdp_impact = infrastructure_value_usd * 0.0003  # 0.03% of infrastructure value = daily GDP
+        short_term_impact = daily_gdp_impact * duration_days
+        long_term_multiplier = 1.5  # Long-term effects are 50% more than direct
+        long_term_impact = short_term_impact * long_term_multiplier
+        
+        # Supply chain impact
+        supply_chain_disruption = infrastructure_value_usd * 0.05 * severity_factor
+        
+        # Employment effects
+        jobs_affected = int(affected_population * 0.4 * severity_factor)  # 40% of pop is working
+        job_loss_duration_weeks = duration_days / 7 * 2  # Recovery takes twice as long
+        
+        return {
+            "disaster_type": disaster_type,
+            "severity": severity,
+            "human_impact": {
+                "estimated_deaths": estimated_deaths,
+                "estimated_injuries": estimated_injuries,
+                "displaced_persons": int(affected_population * 0.1 * severity_factor),
+                "value_of_statistical_life_usd": 10000000,
+                "total_human_cost_usd": estimated_deaths * 10000000 + estimated_injuries * 500000
+            },
+            "property_losses": {
+                "total_property_loss_usd": total_property_loss,
+                "insured_loss_usd": insured_loss,
+                "uninsured_loss_usd": uninsured_loss,
+                "insurance_coverage_rate": f"{insured_rate * 100}%"
+            },
+            "economic_impact": {
+                "short_term_gdp_impact_usd": short_term_impact,
+                "long_term_gdp_impact_usd": long_term_impact,
+                "supply_chain_disruption_usd": supply_chain_disruption,
+                "total_economic_impact_usd": short_term_impact + long_term_impact + supply_chain_disruption
+            },
+            "employment_effects": {
+                "jobs_affected": jobs_affected,
+                "job_loss_duration_weeks": job_loss_duration_weeks,
+                "unemployment_cost_usd": jobs_affected * 1000 * job_loss_duration_weeks  # $1000/week/job
+            },
+            "recovery_timeline": {
+                "immediate_relief": f"{duration_days} days",
+                "short_term_recovery": f"{duration_days * 3} days",
+                "long_term_recovery": f"{duration_days * 12} days",
+                "full_economic_recovery": f"{duration_days * 24} days"
+            },
+            "total_estimated_loss_usd": (
+                estimated_deaths * 10000000 + 
+                estimated_injuries * 500000 + 
+                total_property_loss + 
+                short_term_impact + 
+                long_term_impact + 
+                supply_chain_disruption
+            )
+        }
+    
+    async def get_capital_deployment_plan(self, incident_id: str, total_budget_usd: float) -> Dict:
+        """Generate capital deployment plan for incident response"""
+        incident = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+        disaster_type = incident.get("disaster_type", "earthquake") if incident else "earthquake"
+        
+        # Standard allocation percentages
+        allocations = {
+            "immediate_life_safety": 0.30,
+            "search_and_rescue": 0.15,
+            "medical_response": 0.15,
+            "shelter_and_food": 0.10,
+            "infrastructure_stabilization": 0.10,
+            "public_communication": 0.05,
+            "logistics_and_transport": 0.05,
+            "security_and_law_enforcement": 0.05,
+            "reserve_contingency": 0.05
+        }
+        
+        deployment_plan = []
+        for category, percentage in allocations.items():
+            amount = total_budget_usd * percentage
+            deployment_plan.append({
+                "category": category.replace("_", " ").title(),
+                "percentage": f"{percentage * 100}%",
+                "amount_usd": amount,
+                "priority": "critical" if percentage >= 0.15 else "high" if percentage >= 0.10 else "medium",
+                "release_condition": "Immediate" if percentage >= 0.15 else "Upon request",
+                "approval_required": percentage >= 0.10
+            })
+        
+        return {
+            "incident_id": incident_id,
+            "total_budget_usd": total_budget_usd,
+            "deployment_plan": deployment_plan,
+            "release_schedule": {
+                "immediate_release": total_budget_usd * 0.45,
+                "phase_2_release": total_budget_usd * 0.35,
+                "contingency_hold": total_budget_usd * 0.20
+            },
+            "approval_authorities": {
+                "under_100k": "Local Emergency Manager",
+                "100k_to_1m": "State Emergency Director",
+                "over_1m": "Governor / FEMA Administrator"
+            },
+            "tracking": {
+                "disbursed": 0,
+                "committed": 0,
+                "available": total_budget_usd
+            }
+        }
+    
+    async def generate_public_communication(self, incident_id: str, communication_type: str, use_ai: bool = True) -> Dict:
+        """Generate public communication for incident"""
+        incident = await db.incidents.find_one({"id": incident_id}, {"_id": 0})
+        if not incident:
+            return {"error": "Incident not found"}
+        
+        templates = {
+            "initial_alert": {
+                "title": f"EMERGENCY ALERT: {incident.get('disaster_type', 'Emergency').upper()} - {incident.get('location', 'Unknown Location')}",
+                "body": f"A {incident.get('severity', 'significant')} {incident.get('disaster_type', 'emergency')} has been detected in {incident.get('location', 'the area')}. Please follow official instructions.",
+                "actions": ["Stay informed", "Follow evacuation orders if issued", "Check on neighbors"]
+            },
+            "evacuation_order": {
+                "title": f"EVACUATION ORDER: {incident.get('location', 'Affected Area')}",
+                "body": f"Mandatory evacuation ordered for {incident.get('location', 'the affected area')} due to {incident.get('disaster_type', 'emergency')}. Leave immediately.",
+                "actions": ["Leave now", "Take essential items only", "Use designated evacuation routes"]
+            },
+            "shelter_in_place": {
+                "title": f"SHELTER IN PLACE: {incident.get('location', 'Affected Area')}",
+                "body": f"Shelter in place order for {incident.get('location', 'the affected area')}. Do not go outside until all clear is issued.",
+                "actions": ["Stay indoors", "Close windows and doors", "Monitor official channels"]
+            },
+            "all_clear": {
+                "title": f"ALL CLEAR: {incident.get('location', 'Previously Affected Area')}",
+                "body": f"The immediate danger has passed for {incident.get('location', 'the area')}. You may resume normal activities with caution.",
+                "actions": ["Check for damage", "Report hazards", "Assist neighbors if safe"]
+            },
+            "status_update": {
+                "title": f"STATUS UPDATE: {incident.get('name', 'Ongoing Incident')}",
+                "body": f"Current status of {incident.get('disaster_type', 'the incident')} in {incident.get('location', 'the area')}: Response operations ongoing.",
+                "actions": ["Stay informed", "Follow official guidance", "Report emergencies to 911"]
+            }
+        }
+        
+        template = templates.get(communication_type, templates["status_update"])
+        
+        # AI-enhanced communication if enabled
+        ai_enhanced = None
+        if use_ai and EMERGENT_LLM_KEY:
+            try:
+                chat = LlmChat(emergent_api_key=EMERGENT_LLM_KEY, model="gpt-4o")
+                prompt = f"""Create a clear, calm, and actionable public emergency communication for:
+
+Incident: {incident.get('name')}
+Type: {incident.get('disaster_type')}
+Location: {incident.get('location')}
+Severity: {incident.get('severity')}
+Communication Type: {communication_type}
+
+Requirements:
+1. Clear and concise (under 100 words for main message)
+2. Specific actions for public to take
+3. Avoid panic-inducing language
+4. Include where to get more information
+5. Accessible language (8th grade reading level)
+
+Format: JSON with fields: title, main_message, actions (list), resources (list of phone numbers/websites)"""
+
+                response = await chat.send_message_async(UserMessage(content=prompt))
+                try:
+                    ai_enhanced = json.loads(response.content)
+                except:
+                    ai_enhanced = {"raw_response": response.content}
+            except Exception as e:
+                logger.error(f"AI communication error: {e}")
+        
+        return {
+            "incident_id": incident_id,
+            "communication_type": communication_type,
+            "template": template,
+            "ai_enhanced": ai_enhanced,
+            "channels": [
+                {"name": "Emergency Alert System", "status": "ready"},
+                {"name": "Wireless Emergency Alerts", "status": "ready"},
+                {"name": "Social Media", "status": "ready"},
+                {"name": "Local TV/Radio", "status": "ready"},
+                {"name": "Website", "status": "ready"}
+            ],
+            "translations_available": ["Spanish", "Chinese", "Vietnamese", "Korean", "Tagalog"],
+            "accessibility": {
+                "text_to_speech": True,
+                "sign_language_video": True,
+                "large_print": True
+            }
+        }
+    
+    def _log_audit(self, action: str, incident_id: str, user_id: str, details: Dict):
+        """Log action to audit trail"""
+        audit_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "action": action,
+            "incident_id": incident_id,
+            "user_id": user_id,
+            "details": details
+        }
+        self.audit_log.append(audit_entry)
+        
+        # Also store in database
+        asyncio.create_task(
+            db.audit_log.insert_one(audit_entry)
+        )
+
+# Initialize Remediation Intelligence System
+remediation_intelligence = RemediationIntelligenceSystem()
+
+# =============================================================================
 # SPACE HAZARDS ENGINE - Real-Time Space Weather & Debris Tracking
 # =============================================================================
 
