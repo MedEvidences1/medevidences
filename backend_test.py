@@ -748,6 +748,187 @@ class PlutusAPITester:
             self.log_result("Disasters Playbooks", False, f"Exception: {str(e)}")
             return False
 
+    def test_tdis_dashboard(self):
+        """Test TDIS Portal Dashboard - should show OPERATIONAL status and data layers"""
+        try:
+            response = requests.get(f"{self.api_url}/tdis/dashboard", timeout=15)
+            success = response.status_code == 200
+            self.log_result("TDIS Portal Dashboard", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   System status: {data.get('system_status', 'unknown')}")
+                print(f"   Data layers: {'✅' if 'data_layers' in data else '❌'}")
+                print(f"   Active sensors: {data.get('active_sensors', 0)}")
+                print(f"   Coverage regions: {data.get('coverage_regions', 0)}")
+                
+                # Check for OPERATIONAL status
+                if data.get('system_status') == 'OPERATIONAL':
+                    print(f"   ✅ System status is OPERATIONAL")
+                else:
+                    print(f"   ⚠️  System status is not OPERATIONAL: {data.get('system_status')}")
+                
+                # Check data layers
+                if 'data_layers' in data:
+                    layers = data['data_layers']
+                    expected_layers = ['seismic', 'meteorological', 'hydrological', 'geological', 'atmospheric']
+                    found_layers = [layer for layer in expected_layers if any(l.get('type') == layer for l in layers)]
+                    print(f"   Data layer types: {len(found_layers)}/{len(expected_layers)}")
+                    if len(found_layers) >= 3:
+                        print(f"   ✅ Good data layer coverage")
+                    else:
+                        print(f"   ⚠️  Limited data layer coverage")
+            return success
+        except Exception as e:
+            self.log_result("TDIS Portal Dashboard", False, f"Exception: {str(e)}")
+            return False
+
+    def test_tdis_alerts(self):
+        """Test TDIS Portal Alerts - should show alert summary with counts"""
+        try:
+            response = requests.get(f"{self.api_url}/tdis/alerts", timeout=15)
+            success = response.status_code == 200
+            self.log_result("TDIS Portal Alerts", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Total alerts: {data.get('total_alerts', 0)}")
+                
+                # Check alert summary counts
+                if 'alert_summary' in data:
+                    summary = data['alert_summary']
+                    print(f"   Critical alerts: {summary.get('critical', 0)}")
+                    print(f"   High alerts: {summary.get('high', 0)}")
+                    print(f"   Medium alerts: {summary.get('medium', 0)}")
+                    print(f"   Low alerts: {summary.get('low', 0)}")
+                    
+                    total_summary = sum(summary.get(level, 0) for level in ['critical', 'high', 'medium', 'low'])
+                    if total_summary > 0:
+                        print(f"   ✅ Alert summary has data")
+                    else:
+                        print(f"   ⚠️  Alert summary is empty")
+                
+                # Check alerts array
+                if 'alerts' in data:
+                    alerts = data['alerts']
+                    print(f"   Alert entries: {len(alerts)}")
+                    if alerts:
+                        first_alert = alerts[0]
+                        print(f"   Sample alert: {first_alert.get('type', 'N/A')} - {first_alert.get('severity', 'N/A')}")
+            return success
+        except Exception as e:
+            self.log_result("TDIS Portal Alerts", False, f"Exception: {str(e)}")
+            return False
+
+    def test_tdis_regions(self):
+        """Test TDIS Portal Regions - should show 10 global regions with risk scores"""
+        try:
+            response = requests.get(f"{self.api_url}/tdis/regions", timeout=15)
+            success = response.status_code == 200
+            self.log_result("TDIS Portal Regions", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                regions = data.get('regions', [])
+                print(f"   Total regions: {len(regions)}")
+                
+                # Check for 10 global regions
+                if len(regions) >= 10:
+                    print(f"   ✅ Expected 10+ regions found")
+                else:
+                    print(f"   ⚠️  Expected 10 regions, found {len(regions)}")
+                
+                # Check risk scores
+                regions_with_scores = [r for r in regions if 'risk_score' in r]
+                print(f"   Regions with risk scores: {len(regions_with_scores)}")
+                
+                if regions:
+                    # Show sample regions
+                    for i, region in enumerate(regions[:3]):
+                        print(f"   - {region.get('name', 'Unknown')}: Risk {region.get('risk_score', 'N/A')}%")
+                    
+                    if len(regions_with_scores) >= 8:
+                        print(f"   ✅ Good risk score coverage")
+                    else:
+                        print(f"   ⚠️  Limited risk score coverage")
+            return success
+        except Exception as e:
+            self.log_result("TDIS Portal Regions", False, f"Exception: {str(e)}")
+            return False
+
+    def test_tdis_layers(self):
+        """Test TDIS Portal Data Layers - should show interactive layer toggles"""
+        try:
+            response = requests.get(f"{self.api_url}/tdis/layers", timeout=15)
+            success = response.status_code == 200
+            self.log_result("TDIS Portal Data Layers", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                layers = data.get('layers', [])
+                print(f"   Total data layers: {len(layers)}")
+                
+                # Check for expected layer types
+                expected_types = ['seismic', 'meteorological', 'hydrological', 'geological', 'atmospheric']
+                found_types = set(layer.get('type', '') for layer in layers)
+                matching_types = found_types.intersection(expected_types)
+                print(f"   Layer types found: {len(matching_types)}/{len(expected_types)}")
+                print(f"   Types: {', '.join(sorted(matching_types))}")
+                
+                # Check layer properties
+                active_layers = [l for l in layers if l.get('active', False)]
+                print(f"   Active layers: {len(active_layers)}")
+                
+                if layers:
+                    # Show sample layer
+                    first_layer = layers[0]
+                    print(f"   Sample: {first_layer.get('name', 'Unknown')} ({first_layer.get('type', 'N/A')})")
+                    print(f"   Status: {'Active' if first_layer.get('active') else 'Inactive'}")
+                
+                if len(matching_types) >= 4:
+                    print(f"   ✅ Good layer type coverage")
+                else:
+                    print(f"   ⚠️  Limited layer type coverage")
+            return success
+        except Exception as e:
+            self.log_result("TDIS Portal Data Layers", False, f"Exception: {str(e)}")
+            return False
+
+    def test_ib_suite_executive_summary(self):
+        """Test IB Suite Executive Summary - should show Market Outlook panel"""
+        try:
+            response = requests.get(f"{self.api_url}/investment/executive-summary", timeout=15)
+            success = response.status_code == 200
+            self.log_result("IB Suite Executive Summary", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Market outlook: {'✅' if 'market_outlook' in data else '❌'}")
+                print(f"   Risk assessment: {'✅' if 'risk_assessment' in data else '❌'}")
+                print(f"   Investment recommendations: {'✅' if 'investment_recommendations' in data else '❌'}")
+                
+                # Check Market Outlook panel specifically
+                if 'market_outlook' in data:
+                    outlook = data['market_outlook']
+                    print(f"   Market sentiment: {outlook.get('sentiment', 'N/A')}")
+                    print(f"   Risk level: {outlook.get('risk_level', 'N/A')}")
+                    print(f"   Key factors: {len(outlook.get('key_factors', []))}")
+                    print(f"   ✅ Market Outlook panel present")
+                else:
+                    print(f"   ❌ Market Outlook panel missing")
+                
+                # Check other sections
+                required_sections = ['market_outlook', 'risk_assessment', 'investment_recommendations']
+                found_sections = sum(1 for section in required_sections if section in data)
+                if found_sections >= 2:
+                    print(f"   ✅ Good executive summary coverage ({found_sections}/3)")
+                else:
+                    print(f"   ⚠️  Limited executive summary coverage ({found_sections}/3)")
+            return success
+        except Exception as e:
+            self.log_result("IB Suite Executive Summary", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting Plutus Predict API Tests")
