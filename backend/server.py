@@ -12250,6 +12250,7 @@ async def get_methodology():
             "Backtesting capability for model validation",
             "Transparent methodology with factor breakdown"
         ]
+    }
 
 # All 10 Event Forecasting Categories with Judgmental Approach
 JUDGMENTAL_CATEGORIES = {
