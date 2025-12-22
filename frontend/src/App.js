@@ -583,6 +583,44 @@ const Dashboard = ({ getHeaders }) => {
         <StatsCard label="GLOBAL RISK" value={`${riskScore}%`} icon={AlertTriangle} color={riskScore > 50 ? "red" : "green"} />
       </div>
 
+      {/* Hero Video Ad Showcase */}
+      <Card className="terminal-card border-l-4 border-l-[#9D4EDD] overflow-hidden">
+        <CardContent className="p-0">
+          <div className="relative">
+            <video 
+              src="/videos/plutus_ad.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-48 md:h-64 object-cover"
+              poster="/videos/plutus_poster.jpg"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent flex items-center">
+              <div className="p-6">
+                <Badge className="bg-[#FF3333] text-white mb-2">AI-POWERED</Badge>
+                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">PREDICTIVE INTELLIGENCE</h2>
+                <p className="text-sm text-white/80 max-w-md">
+                  AI forecasting for events, disasters, markets & geopolitics. 
+                  Powered by GPT-4, Claude & Gemini ensemble with 1M+ OSINT sources.
+                </p>
+                <div className="flex gap-2 mt-4">
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">DISASTERS</Badge>
+                  <Badge className="bg-[#00FF94]/20 text-[#00FF94]">MARKETS</Badge>
+                  <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">GEOPOLITICS</Badge>
+                  <Badge className="bg-[#FFD700]/20 text-[#FFD700]">CLIMATE</Badge>
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-2 right-2">
+              <Badge variant="outline" className="text-xs text-white/50 border-white/20">
+                <Play className="w-3 h-3 mr-1" /> Promotional Video
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Recent Forecasts */}
