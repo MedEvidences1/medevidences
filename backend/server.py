@@ -2059,7 +2059,7 @@ class JudgmentalForecastEngine:
             }
         }
     
-    async def forecast_disaster(self, disaster_type: str, location: str, timeframe: str = "2025", severity: str = "any") -> dict:
+    async def forecast_disaster(self, disaster_type: str, location: str, timeframe: str = "2026", severity: str = "any") -> dict:
         """
         Specialized judgmental forecasting for disasters.
         Uses multi-factor analysis including:
@@ -2069,6 +2069,16 @@ class JudgmentalForecastEngine:
         - Geological/atmospheric data
         - Expert risk assessments
         """
+        import re
+        
+        # Parse timeframe to extract target year
+        current_year = datetime.now(timezone.utc).year
+        year_matches = re.findall(r'\b(20[2-9]\d)\b', str(timeframe))
+        target_year = int(max(year_matches)) if year_matches else current_year + 1
+        
+        # Ensure we're forecasting for future years (2026+)
+        if target_year <= current_year:
+            target_year = current_year + 1
         
         # Map disaster types to base rates
         disaster_base_rates = {
@@ -2087,6 +2097,11 @@ class JudgmentalForecastEngine:
         
         base_rate = disaster_base_rates.get(disaster_type.lower(), 0.20)
         
+        # Adjust base rate for future years (cumulative probability)
+        years_ahead = target_year - current_year
+        cumulative_factor = 1 + (0.1 * years_ahead)  # Slightly higher probability for longer horizons
+        base_rate = min(base_rate * cumulative_factor, 0.90)
+        
         # Regional risk multipliers
         region_multipliers = {
             "california": {"earthquake": 2.5, "wildfire": 2.0, "drought": 1.8},
@@ -2098,6 +2113,10 @@ class JudgmentalForecastEngine:
             "australia": {"wildfire": 2.5, "drought": 2.0},
             "midwest": {"tornado": 2.5},
             "pacific": {"tsunami": 2.0, "volcano": 2.0},
+            "india": {"flood": 2.0, "heatwave": 2.5, "cyclone": 2.0},
+            "pakistan": {"flood": 2.5, "earthquake": 1.8, "heatwave": 2.0},
+            "usa": {"hurricane": 1.5, "tornado": 2.0, "wildfire": 1.5},
+            "venezuela": {"flood": 1.5, "landslide": 2.0},
         }
         
         # Apply regional multiplier
@@ -2108,8 +2127,8 @@ class JudgmentalForecastEngine:
                 regional_adjustment = multipliers.get(disaster_type.lower(), 1.0)
                 break
         
-        # Seasonal adjustments
-        current_month = datetime.now(timezone.utc).month
+        # Seasonal adjustments (projected for target year)
+        # Use average seasonal factor since we're forecasting future years
         seasonal_factors = {
             "hurricane": {6: 1.2, 7: 1.5, 8: 2.0, 9: 2.5, 10: 2.0, 11: 1.2},
             "wildfire": {6: 1.5, 7: 2.0, 8: 2.5, 9: 2.0, 10: 1.5},
