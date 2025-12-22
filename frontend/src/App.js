@@ -1325,6 +1325,16 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       {forecast && (
         <Card className="terminal-card border-2 border-[#00E5FF]/30">
           <CardContent className="p-6" data-testid="forecast-result">
+            {/* Target Year Banner */}
+            {(forecast.target_year || forecast.forecast_period) && (
+              <div className="mb-4 p-3 bg-[#9D4EDD]/10 border border-[#9D4EDD] rounded-lg text-center">
+                <div className="text-xs text-[#9D4EDD] uppercase tracking-wider mb-1">FORECAST PERIOD</div>
+                <div className="text-2xl font-bold text-[#9D4EDD]">
+                  {forecast.forecast_period || forecast.target_year}
+                </div>
+              </div>
+            )}
+            
             {/* Main Probability */}
             <div className="text-center mb-6">
               <div className="font-mono text-6xl font-bold text-[#00E5FF]">{forecast.probability}%</div>
@@ -1336,6 +1346,11 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
                 {forecast.methodology?.engine && (
                   <Badge variant="outline" className="text-[#FFD700] border-[#FFD700]/30">
                     JUDGMENTAL AI
+                  </Badge>
+                )}
+                {forecast.target_year && (
+                  <Badge variant="outline" className="text-[#9D4EDD] border-[#9D4EDD]/30">
+                    {forecast.target_year}
                   </Badge>
                 )}
               </div>
@@ -1358,6 +1373,8 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
                       <div className="text-[#EDEDED]">{forecast.methodology.event_type?.replace(/_/g, ' ')}</div>
                       <div className="text-[#888]">Base Rate:</div>
                       <div className="text-[#00FF94]">{forecast.methodology.base_rate}%</div>
+                      <div className="text-[#888]">Target Year:</div>
+                      <div className="text-[#9D4EDD] font-bold">{forecast.methodology.target_year || forecast.target_year || "N/A"}</div>
                       <div className="text-[#888]">Time Horizon:</div>
                       <div className="text-[#EDEDED]">{forecast.methodology.time_horizon?.horizon_type || "medium"}</div>
                       <div className="text-[#888]">Engine:</div>
