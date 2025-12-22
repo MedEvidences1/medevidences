@@ -969,10 +969,10 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
       icon: "🚀",
       color: "#9D4EDD",
       examples: [
-        "Will SpaceX Starship reach orbit successfully in 2025?",
-        "Will humans return to the Moon by 2026?",
-        "Will evidence of extraterrestrial life be found by 2030?",
-        "Will space tourism reach 1000 customers by 2026?"
+        "Will Mars be colonized with permanent human settlement by 2050?",
+        "Will humans return to the Moon with permanent base by 2030?",
+        "Will evidence of extraterrestrial life be confirmed by 2050?",
+        "Will space tourism reach 10,000 customers annually by 2035?"
       ],
       description: "Space exploration, satellites, astronomy"
     }
