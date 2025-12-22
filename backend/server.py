@@ -11617,12 +11617,20 @@ async def get_sector_rotation(user: dict = Depends(get_optional_user)):
 async def get_investment_dashboard(user: dict = Depends(get_optional_user)):
     """
     Complete Investment Banking Dashboard
-    All metrics in one call for dashboard display
+    All metrics in one call for dashboard display - OPTIMIZED with parallel processing
     """
-    portfolio = await investment_banker_engine.analyze_portfolio_risk([])
-    ma = await investment_banker_engine.predict_ma_deals()
-    ipo = await investment_banker_engine.predict_ipo_timing()
-    sectors = await investment_banker_engine.analyze_sector_rotation()
+    import asyncio
+    
+    # Run all API calls in parallel for much faster response
+    portfolio_task = investment_banker_engine.analyze_portfolio_risk([])
+    ma_task = investment_banker_engine.predict_ma_deals()
+    ipo_task = investment_banker_engine.predict_ipo_timing()
+    sectors_task = investment_banker_engine.analyze_sector_rotation()
+    
+    # Wait for all to complete in parallel
+    portfolio, ma, ipo, sectors = await asyncio.gather(
+        portfolio_task, ma_task, ipo_task, sectors_task
+    )
     
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
