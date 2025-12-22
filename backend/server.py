@@ -1705,34 +1705,49 @@ class JudgmentalForecastEngine:
         import re
         
         q_lower = question.lower()
+        current_year = datetime.now(timezone.utc).year  # 2025
+        
+        # First, try to extract explicit year mentions (2025, 2026, 2027, etc.)
+        year_pattern = r'\b(20[2-9]\d)\b'  # Match years 2020-2099
+        year_matches = re.findall(year_pattern, q_lower)
+        
+        if year_matches:
+            # Use the latest year mentioned in the question
+            target_year = max(int(y) for y in year_matches)
+            days_from_now = max((target_year - current_year) * 365, 30)  # Minimum 30 days
+            horizon_type = "short" if days_from_now < 180 else "medium" if days_from_now < 365 else "long"
+            return {
+                "horizon_days": days_from_now, 
+                "horizon_type": horizon_type,
+                "target_year": target_year,
+                "explicit_year": True
+            }
         
         # Look for specific time patterns
         patterns = {
             "days": r"(\d+)\s*days?",
             "weeks": r"(\d+)\s*weeks?",
             "months": r"(\d+)\s*months?",
-            "years": r"(\d+)\s*years?|by\s*(\d{4})"
+            "years": r"(\d+)\s*years?"
         }
         
         for unit, pattern in patterns.items():
             match = re.search(pattern, q_lower)
             if match:
-                value = int(match.group(1) or match.group(2))
+                value = int(match.group(1))
                 if unit == "days":
-                    return {"horizon_days": value, "horizon_type": "short"}
+                    return {"horizon_days": value, "horizon_type": "short", "target_year": current_year, "explicit_year": False}
                 elif unit == "weeks":
-                    return {"horizon_days": value * 7, "horizon_type": "short"}
+                    return {"horizon_days": value * 7, "horizon_type": "short", "target_year": current_year, "explicit_year": False}
                 elif unit == "months":
-                    return {"horizon_days": value * 30, "horizon_type": "medium"}
+                    target_year = current_year if value <= 12 else current_year + (value // 12)
+                    return {"horizon_days": value * 30, "horizon_type": "medium", "target_year": target_year, "explicit_year": False}
                 elif unit == "years":
-                    if value > 2024:  # It's a year like 2025
-                        days = (value - 2024) * 365
-                    else:
-                        days = value * 365
-                    return {"horizon_days": days, "horizon_type": "long"}
+                    target_year = current_year + value
+                    return {"horizon_days": value * 365, "horizon_type": "long", "target_year": target_year, "explicit_year": False}
         
-        # Default to medium term (6 months)
-        return {"horizon_days": 180, "horizon_type": "medium"}
+        # Default to current year + 1 for medium term forecasts
+        return {"horizon_days": 365, "horizon_type": "medium", "target_year": current_year + 1, "explicit_year": False}
     
     def _calculate_base_rate_adjustment(self, event_type: str, horizon: dict) -> float:
         """Adjust base rate for time horizon"""
