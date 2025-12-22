@@ -70,6 +70,7 @@ import {
   Trash2,
   Plus,
   Eye,
+  EyeOff,
   MoreVertical,
   Check,
   X,
