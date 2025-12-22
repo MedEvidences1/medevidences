@@ -4447,6 +4447,472 @@ Provide JSON:
                 "mobility_impaired": "Accessible evacuation assistance"
             }
         }
+    
+    # =========================================================================
+    # PHASE 2: Human Signals, Satellite/IoT, Automated Playbooks
+    # =========================================================================
+    
+    async def get_human_signals(self, region: str = "global") -> Dict:
+        """
+        Human Signals Intelligence
+        - Population density & demographics
+        - Mobility patterns (traffic, transit)
+        - Emergency call volumes
+        - Social media sentiment
+        - Evacuation compliance
+        """
+        # Simulated human signals data (would integrate with real sources)
+        regional_pop = {
+            "north_america": {"total": 370000000, "urban": 82, "rural": 18},
+            "europe": {"total": 450000000, "urban": 75, "rural": 25},
+            "asia_pacific": {"total": 4500000000, "urban": 55, "rural": 45},
+            "south_america": {"total": 430000000, "urban": 84, "rural": 16},
+            "middle_east": {"total": 400000000, "urban": 72, "rural": 28},
+            "africa": {"total": 1400000000, "urban": 44, "rural": 56},
+            "global": {"total": 8000000000, "urban": 56, "rural": 44}
+        }
+        
+        pop_data = regional_pop.get(region, regional_pop["global"])
+        
+        return {
+            "population": {
+                "total": pop_data["total"],
+                "urban_percentage": pop_data["urban"],
+                "rural_percentage": pop_data["rural"],
+                "density_hotspots": [
+                    {"location": "Tokyo Metro", "density_per_km2": 6158, "population": 37400000},
+                    {"location": "Delhi NCR", "density_per_km2": 11312, "population": 32941000},
+                    {"location": "Shanghai", "density_per_km2": 3854, "population": 28516000},
+                    {"location": "São Paulo", "density_per_km2": 7216, "population": 22430000},
+                    {"location": "Mexico City", "density_per_km2": 6000, "population": 21782000}
+                ],
+                "vulnerable_populations": {
+                    "elderly_65_plus": int(pop_data["total"] * 0.16),
+                    "children_under_5": int(pop_data["total"] * 0.08),
+                    "disabled": int(pop_data["total"] * 0.15),
+                    "homeless": int(pop_data["total"] * 0.002),
+                    "non_native_speakers": int(pop_data["total"] * 0.12)
+                }
+            },
+            "mobility": {
+                "current_traffic_index": 72,  # 0-100, higher = more congestion
+                "peak_hours": ["07:00-09:00", "17:00-19:00"],
+                "transit_status": {
+                    "subways": "operational",
+                    "buses": "operational",
+                    "trains": "delays_minor",
+                    "airports": "operational"
+                },
+                "evacuation_routes": {
+                    "primary_clear": True,
+                    "secondary_clear": True,
+                    "congestion_points": ["Highway 101 Interchange", "Downtown Bridge"]
+                },
+                "real_time_movement": {
+                    "inbound_city": 45000,  # vehicles/hour
+                    "outbound_city": 38000,
+                    "trend": "normal"
+                }
+            },
+            "emergency_calls": {
+                "911_volume_last_hour": 2847,
+                "911_average_hourly": 2500,
+                "volume_trend": "elevated",
+                "top_call_types": [
+                    {"type": "Medical Emergency", "count": 1200, "percentage": 42},
+                    {"type": "Traffic Accident", "count": 450, "percentage": 16},
+                    {"type": "Fire", "count": 280, "percentage": 10},
+                    {"type": "Weather Related", "count": 350, "percentage": 12},
+                    {"type": "Other", "count": 567, "percentage": 20}
+                ],
+                "response_time_avg_minutes": 8.5,
+                "units_available": {
+                    "ambulances": 85,
+                    "fire_trucks": 120,
+                    "police_units": 340
+                }
+            },
+            "social_signals": {
+                "sentiment_score": 62,  # 0-100, 50 = neutral
+                "trending_topics": ["weather warning", "traffic", "power outage"],
+                "alert_mentions_last_hour": 4520,
+                "misinformation_detected": 3,
+                "verified_reports": 89,
+                "panic_indicator": "low"  # low, moderate, high, critical
+            },
+            "evacuation_status": {
+                "orders_active": False,
+                "zones_under_order": [],
+                "compliance_rate": None,
+                "shelters_open": 12,
+                "shelter_capacity": 15000,
+                "shelter_occupancy": 2300,
+                "special_needs_registered": 1450
+            }
+        }
+    
+    async def get_satellite_iot_data(self, region: str = "global") -> Dict:
+        """
+        Satellite & IoT Sensor Integration
+        - Weather satellites (GOES, Himawari, Meteosat)
+        - Earth observation (Sentinel, Landsat)
+        - IoT sensor networks
+        - Seismic sensors
+        - Flood gauges
+        - Air quality monitors
+        """
+        return {
+            "satellites": {
+                "weather": [
+                    {"name": "GOES-18", "status": "operational", "coverage": "Western Hemisphere", "last_update": "2 min ago"},
+                    {"name": "GOES-16", "status": "operational", "coverage": "Eastern Americas", "last_update": "2 min ago"},
+                    {"name": "Himawari-9", "status": "operational", "coverage": "Asia-Pacific", "last_update": "3 min ago"},
+                    {"name": "Meteosat-11", "status": "operational", "coverage": "Europe/Africa", "last_update": "4 min ago"},
+                    {"name": "INSAT-3D", "status": "operational", "coverage": "Indian Ocean", "last_update": "5 min ago"}
+                ],
+                "earth_observation": [
+                    {"name": "Sentinel-2A", "status": "operational", "type": "Multispectral", "revisit_days": 5},
+                    {"name": "Sentinel-2B", "status": "operational", "type": "Multispectral", "revisit_days": 5},
+                    {"name": "Landsat-9", "status": "operational", "type": "Thermal/Optical", "revisit_days": 16},
+                    {"name": "MODIS Terra", "status": "operational", "type": "Fire Detection", "revisit_days": 1},
+                    {"name": "MODIS Aqua", "status": "operational", "type": "Fire Detection", "revisit_days": 1}
+                ],
+                "imagery_available": {
+                    "latest_visible": "5 minutes ago",
+                    "latest_infrared": "5 minutes ago",
+                    "latest_radar": "10 minutes ago",
+                    "fire_hotspots_detected": 847,
+                    "flood_extent_km2": 12500
+                }
+            },
+            "iot_sensors": {
+                "seismic_network": {
+                    "total_stations": 3500,
+                    "stations_reporting": 3420,
+                    "coverage_countries": 95,
+                    "recent_detections": [
+                        {"magnitude": 4.2, "location": "Indonesia", "depth_km": 35, "time": "15 min ago"},
+                        {"magnitude": 3.8, "location": "Japan", "depth_km": 22, "time": "45 min ago"},
+                        {"magnitude": 5.1, "location": "Chile", "depth_km": 100, "time": "2 hours ago"}
+                    ]
+                },
+                "flood_gauges": {
+                    "total_gauges": 28000,
+                    "gauges_reporting": 26500,
+                    "above_flood_stage": 342,
+                    "critical_alerts": [
+                        {"river": "Mississippi River", "location": "Memphis, TN", "stage_ft": 34.2, "flood_stage_ft": 34.0, "status": "Minor Flood"},
+                        {"river": "Ganges River", "location": "Varanasi", "stage_m": 71.5, "flood_stage_m": 70.0, "status": "Moderate Flood"},
+                        {"river": "Rhine River", "location": "Cologne", "stage_m": 7.8, "flood_stage_m": 8.0, "status": "Near Flood"}
+                    ]
+                },
+                "weather_stations": {
+                    "total_stations": 45000,
+                    "stations_reporting": 43200,
+                    "extreme_readings": [
+                        {"location": "Death Valley, CA", "temp_c": 48, "type": "Extreme Heat"},
+                        {"location": "Oymyakon, Russia", "temp_c": -52, "type": "Extreme Cold"},
+                        {"location": "Mumbai, India", "rain_mm_24h": 280, "type": "Heavy Rain"}
+                    ]
+                },
+                "air_quality": {
+                    "total_monitors": 12000,
+                    "monitors_reporting": 11500,
+                    "unhealthy_zones": 23,
+                    "hazardous_zones": 5,
+                    "worst_aqi": [
+                        {"city": "Delhi", "aqi": 312, "category": "Hazardous"},
+                        {"city": "Lahore", "aqi": 285, "category": "Very Unhealthy"},
+                        {"city": "Dhaka", "aqi": 198, "category": "Unhealthy"}
+                    ]
+                },
+                "wildfire_sensors": {
+                    "total_cameras": 2500,
+                    "ai_detections_today": 47,
+                    "confirmed_fires": 32,
+                    "active_large_fires": 8
+                }
+            },
+            "data_quality": {
+                "overall_coverage": 94,
+                "data_latency_avg_seconds": 45,
+                "sensor_health": "good",
+                "maintenance_alerts": 12
+            }
+        }
+    
+    async def get_automated_playbooks(self) -> Dict:
+        """
+        Automated Response Playbooks
+        - Pre-defined action sequences
+        - Trigger conditions
+        - Pre-approved actions
+        - Decision trees
+        """
+        return {
+            "available_playbooks": [
+                {
+                    "id": "PB-EQ-001",
+                    "name": "Earthquake Response",
+                    "description": "Automated response for seismic events M5.0+",
+                    "trigger": {"type": "earthquake", "magnitude_min": 5.0},
+                    "status": "active",
+                    "last_activated": "2024-12-15",
+                    "phases": [
+                        {"phase": "Detection", "duration": "0-5 min", "actions": ["Verify event", "Alert EOC", "Assess damage sensors"]},
+                        {"phase": "Initial Response", "duration": "5-30 min", "actions": ["Deploy SAR teams", "Open shelters", "Traffic control"]},
+                        {"phase": "Sustained Response", "duration": "30 min - 72 hrs", "actions": ["Medical triage", "Utilities assessment", "Public info"]},
+                        {"phase": "Recovery", "duration": "72 hrs+", "actions": ["Damage assessment", "Debris removal", "Restoration"]}
+                    ]
+                },
+                {
+                    "id": "PB-FL-001",
+                    "name": "Flash Flood Response",
+                    "description": "Rapid response for flash flood warnings",
+                    "trigger": {"type": "flood", "flash_flood": True, "probability_min": 70},
+                    "status": "active",
+                    "last_activated": "2024-12-20",
+                    "phases": [
+                        {"phase": "Warning", "duration": "0-15 min", "actions": ["Issue alerts", "Activate sirens", "Close flood-prone roads"]},
+                        {"phase": "Evacuation", "duration": "15-60 min", "actions": ["Door-to-door alerts", "Open shelters", "Deploy boats"]},
+                        {"phase": "Response", "duration": "During event", "actions": ["Swift water rescue", "Monitor gauges", "Update public"]},
+                        {"phase": "Recovery", "duration": "Post-event", "actions": ["Pump out water", "Assess damage", "Restore services"]}
+                    ]
+                },
+                {
+                    "id": "PB-HU-001",
+                    "name": "Hurricane Response",
+                    "description": "Multi-day hurricane preparation and response",
+                    "trigger": {"type": "hurricane", "category_min": 1, "landfall_hours_max": 72},
+                    "status": "active",
+                    "last_activated": "2024-10-10",
+                    "phases": [
+                        {"phase": "Watch", "duration": "72-48 hrs", "actions": ["Issue watch", "Review plans", "Stage resources"]},
+                        {"phase": "Warning", "duration": "48-24 hrs", "actions": ["Issue warning", "Evacuations", "Board up"]},
+                        {"phase": "Landfall", "duration": "0-12 hrs", "actions": ["Shelter in place", "Monitor", "Prepare response"]},
+                        {"phase": "Response", "duration": "12-72 hrs", "actions": ["SAR", "Clear roads", "Restore power"]},
+                        {"phase": "Recovery", "duration": "Days-weeks", "actions": ["Debris removal", "Assistance centers", "Rebuild"]}
+                    ]
+                },
+                {
+                    "id": "PB-CY-001",
+                    "name": "Cyber Attack Response",
+                    "description": "Critical infrastructure cyber incident response",
+                    "trigger": {"type": "cyber", "severity_min": "high", "target": "critical_infrastructure"},
+                    "status": "active",
+                    "last_activated": "2024-11-28",
+                    "phases": [
+                        {"phase": "Detection", "duration": "0-15 min", "actions": ["Isolate affected systems", "Alert CISA", "Activate SOC"]},
+                        {"phase": "Containment", "duration": "15 min - 4 hrs", "actions": ["Network segmentation", "Backup verification", "Forensics"]},
+                        {"phase": "Eradication", "duration": "4-24 hrs", "actions": ["Remove malware", "Patch vulnerabilities", "Reset credentials"]},
+                        {"phase": "Recovery", "duration": "24-72 hrs", "actions": ["Restore systems", "Monitor for reinfection", "Update defenses"]}
+                    ]
+                },
+                {
+                    "id": "PB-PO-001",
+                    "name": "Power Grid Failure Response",
+                    "description": "Large-scale power outage response",
+                    "trigger": {"type": "power_outage", "customers_affected_min": 100000},
+                    "status": "active",
+                    "last_activated": "2024-12-01",
+                    "phases": [
+                        {"phase": "Assessment", "duration": "0-30 min", "actions": ["Identify cause", "Assess scope", "Notify utilities"]},
+                        {"phase": "Stabilization", "duration": "30 min - 4 hrs", "actions": ["Deploy generators", "Prioritize critical facilities", "Traffic control"]},
+                        {"phase": "Restoration", "duration": "4-24 hrs", "actions": ["Repair infrastructure", "Rolling restoration", "Public updates"]},
+                        {"phase": "Recovery", "duration": "24+ hrs", "actions": ["Full restoration", "After-action review", "Hardening plans"]}
+                    ]
+                },
+                {
+                    "id": "PB-SC-001",
+                    "name": "Supply Chain Disruption Response",
+                    "description": "Critical supply chain disruption mitigation",
+                    "trigger": {"type": "supply_chain", "impact": "critical", "duration_days_min": 7},
+                    "status": "active",
+                    "last_activated": "2024-09-15",
+                    "phases": [
+                        {"phase": "Assessment", "duration": "0-24 hrs", "actions": ["Identify affected supply lines", "Inventory critical supplies", "Contact vendors"]},
+                        {"phase": "Mitigation", "duration": "1-7 days", "actions": ["Activate alternate suppliers", "Redistribute inventory", "Prioritize critical needs"]},
+                        {"phase": "Adaptation", "duration": "1-4 weeks", "actions": ["Establish new routes", "Increase local production", "Stockpile reserves"]},
+                        {"phase": "Recovery", "duration": "Ongoing", "actions": ["Restore normal operations", "Diversify suppliers", "Update resilience plans"]}
+                    ]
+                }
+            ],
+            "pre_approved_actions": {
+                "description": "Actions automatically authorized under specific conditions",
+                "actions": [
+                    {
+                        "action": "Activate Emergency Alert System",
+                        "authority": "Emergency Manager",
+                        "conditions": ["Imminent threat confirmed", "Public safety at risk"],
+                        "automated": True
+                    },
+                    {
+                        "action": "Open Emergency Shelters",
+                        "authority": "Red Cross / Emergency Management",
+                        "conditions": ["Evacuation ordered", "Severe weather warning"],
+                        "automated": True
+                    },
+                    {
+                        "action": "Deploy Swift Water Rescue Teams",
+                        "authority": "Fire Chief",
+                        "conditions": ["Flash flood warning", "Reports of stranded persons"],
+                        "automated": True
+                    },
+                    {
+                        "action": "Shut Down Vulnerable Grid Segments",
+                        "authority": "Grid Operator",
+                        "conditions": ["Wildfire within 1 mile", "Wind speed > 50 mph"],
+                        "automated": True
+                    },
+                    {
+                        "action": "Close Flood-Prone Roads",
+                        "authority": "DOT / Highway Patrol",
+                        "conditions": ["Water on roadway detected", "Flood gauge exceeds threshold"],
+                        "automated": True
+                    },
+                    {
+                        "action": "Isolate Compromised Network Segments",
+                        "authority": "CISO / SOC",
+                        "conditions": ["Active intrusion detected", "Ransomware signature identified"],
+                        "automated": True
+                    }
+                ]
+            },
+            "decision_trees": {
+                "earthquake": {
+                    "M < 4.0": "Monitor only",
+                    "4.0 <= M < 5.0": "Issue advisory, alert responders",
+                    "5.0 <= M < 6.0": "Activate EOC, deploy assessment teams",
+                    "6.0 <= M < 7.0": "Full activation, request mutual aid",
+                    "M >= 7.0": "Catastrophic response, request federal assistance"
+                },
+                "flood": {
+                    "Minor (< 1ft above flood stage)": "Advisory, monitor",
+                    "Moderate (1-3ft)": "Warning, road closures, prepare evacuations",
+                    "Major (3-6ft)": "Mandatory evacuations low-lying areas",
+                    "Record/Catastrophic (> 6ft)": "Full evacuation, emergency response"
+                },
+                "hurricane": {
+                    "Category 1 (74-95 mph)": "Voluntary evacuations coastal areas",
+                    "Category 2 (96-110 mph)": "Mandatory evacuations mobile homes, flood zones",
+                    "Category 3 (111-129 mph)": "Mandatory evacuations coastal counties",
+                    "Category 4 (130-156 mph)": "Mass evacuations, shelters inland",
+                    "Category 5 (> 157 mph)": "Emergency evacuations, expect catastrophic damage"
+                }
+            },
+            "automation_status": {
+                "enabled": True,
+                "last_automated_action": "Close flood road sensors - Highway 45 - 2 hours ago",
+                "actions_taken_24h": 7,
+                "actions_prevented_disasters": 3,
+                "human_override_available": True
+            }
+        }
+    
+    async def get_decision_support(self, disaster_type: str, current_conditions: Dict) -> Dict:
+        """
+        Real-time decision support system
+        Provides recommendations based on current conditions
+        """
+        # Calculate urgency score
+        urgency_score = self._calculate_urgency(disaster_type, current_conditions)
+        
+        # Get recommended actions
+        actions = self._get_recommended_actions(disaster_type, urgency_score)
+        
+        # Get resource requirements
+        resources = self._calculate_resource_requirements(disaster_type, current_conditions)
+        
+        return {
+            "decision_support": {
+                "urgency_score": urgency_score,
+                "urgency_level": "critical" if urgency_score >= 80 else "high" if urgency_score >= 60 else "moderate" if urgency_score >= 40 else "low",
+                "time_to_decision": "0-2 hours" if urgency_score >= 80 else "2-6 hours" if urgency_score >= 60 else "6-24 hours",
+                "recommended_actions": actions,
+                "resource_requirements": resources,
+                "key_indicators": current_conditions.get("indicators", []),
+                "decision_confidence": "high" if urgency_score >= 70 else "medium"
+            },
+            "what_if_scenarios": [
+                {
+                    "scenario": "No action taken",
+                    "outcome": "Potential casualties increase 40%, property damage +$2B",
+                    "probability": 75
+                },
+                {
+                    "scenario": "Partial response (50% resources)",
+                    "outcome": "Moderate casualties, delayed recovery",
+                    "probability": 60
+                },
+                {
+                    "scenario": "Full recommended response",
+                    "outcome": "Minimized casualties, faster recovery",
+                    "probability": 85
+                }
+            ],
+            "historical_comparisons": [
+                {
+                    "event": f"Similar {disaster_type} - 2023",
+                    "outcome": "Successful mitigation with early action",
+                    "lessons": ["Early warning critical", "Pre-positioned resources effective"]
+                }
+            ]
+        }
+    
+    def _calculate_urgency(self, disaster_type: str, conditions: Dict) -> int:
+        """Calculate urgency score 0-100"""
+        base_score = {"earthquake": 90, "flood": 70, "hurricane": 75, "wildfire": 80, "cyber_attack": 65}.get(disaster_type, 50)
+        
+        # Adjust for probability
+        prob = conditions.get("probability", 50)
+        if prob >= 70:
+            base_score += 15
+        elif prob >= 50:
+            base_score += 10
+        
+        return min(100, base_score)
+    
+    def _get_recommended_actions(self, disaster_type: str, urgency: int) -> List[Dict]:
+        """Get recommended actions based on urgency"""
+        actions = []
+        
+        if urgency >= 80:
+            actions = [
+                {"action": "Activate full emergency response", "priority": "critical", "timeline": "Immediate"},
+                {"action": "Issue public evacuation orders", "priority": "critical", "timeline": "0-1 hour"},
+                {"action": "Deploy all available resources", "priority": "critical", "timeline": "0-2 hours"}
+            ]
+        elif urgency >= 60:
+            actions = [
+                {"action": "Activate Emergency Operations Center", "priority": "high", "timeline": "0-2 hours"},
+                {"action": "Place responders on standby", "priority": "high", "timeline": "0-4 hours"},
+                {"action": "Issue public advisory", "priority": "high", "timeline": "0-2 hours"}
+            ]
+        else:
+            actions = [
+                {"action": "Monitor situation", "priority": "medium", "timeline": "Ongoing"},
+                {"action": "Review response plans", "priority": "low", "timeline": "24 hours"}
+            ]
+        
+        return actions
+    
+    def _calculate_resource_requirements(self, disaster_type: str, conditions: Dict) -> Dict:
+        """Calculate required resources"""
+        affected = conditions.get("affected_population", 100000)
+        
+        return {
+            "personnel": {
+                "first_responders": max(100, affected // 1000),
+                "medical": max(50, affected // 2000),
+                "support": max(200, affected // 500)
+            },
+            "equipment": {
+                "vehicles": max(50, affected // 2000),
+                "generators": max(20, affected // 5000),
+                "communication": max(100, affected // 1000)
+            },
+            "estimated_cost": f"${max(1, affected // 100):,}"
+        }
 
 # Initialize the comprehensive disaster engine
 comprehensive_disaster_engine = ComprehensiveDisasterEngine()
