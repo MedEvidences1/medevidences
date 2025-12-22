@@ -9134,6 +9134,69 @@ async def list_judgmental_forecasts(limit: int = 50, user_id: Optional[str] = No
     forecasts = await cursor.to_list(length=limit)
     return {"forecasts": forecasts, "total": len(forecasts)}
 
+# Disaster-specific Judgmental Forecasting
+class DisasterForecastRequest(BaseModel):
+    disaster_type: str = Field(..., description="Type of disaster (earthquake, hurricane, flood, wildfire, etc.)")
+    location: str = Field(..., description="Geographic location for the forecast")
+    timeframe: str = Field(default="2025", description="Target year or date range")
+    severity: str = Field(default="any", description="Severity filter: any, minor, moderate, major, catastrophic")
+
+@api_router.post("/judgmental-forecast/disaster", tags=["Judgmental Forecasting", "Disasters"])
+async def forecast_disaster_judgmental(request: DisasterForecastRequest, user: dict = Depends(get_current_user)):
+    """
+    Generate a judgmental disaster forecast using Plutus's proprietary multi-factor engine.
+    
+    Features:
+    - Historical frequency analysis
+    - Regional risk multipliers
+    - Seasonal adjustment
+    - Climate pattern correlation
+    - Early warning signal integration
+    
+    Returns probability, confidence, factor breakdown, and actionable recommendations.
+    """
+    forecast = await judgmental_forecaster.forecast_disaster(
+        disaster_type=request.disaster_type,
+        location=request.location,
+        timeframe=request.timeframe,
+        severity=request.severity
+    )
+    
+    # Store forecast
+    doc = {
+        "id": f"DJFN-{str(uuid4())[:8]}",
+        "user_id": user.get("id"),
+        "type": "disaster_judgmental",
+        "request": request.model_dump(),
+        "forecast": forecast,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.judgmental_forecasts.insert_one(doc)
+    
+    return forecast
+
+@api_router.get("/judgmental-forecast/disaster/types", tags=["Judgmental Forecasting", "Disasters"])
+async def get_disaster_forecast_types():
+    """Get supported disaster types and their base rates for judgmental forecasting"""
+    disaster_types = {
+        k: v for k, v in judgmental_forecaster.base_rates.items() 
+        if k in ["earthquake_major", "earthquake_minor", "hurricane_major", "hurricane_minor", 
+                 "flood", "wildfire", "tornado", "tsunami", "volcanic_eruption", "drought", 
+                 "landslide", "heatwave", "winter_storm", "pandemic", "space_weather", "climate_event"]
+    }
+    return {
+        "disaster_types": disaster_types,
+        "severity_levels": ["any", "minor", "moderate", "major", "catastrophic"],
+        "high_risk_regions": {
+            "earthquake": ["California", "Japan", "Indonesia", "Chile", "Turkey"],
+            "hurricane": ["Florida", "Caribbean", "Gulf Coast", "Philippines"],
+            "flood": ["Bangladesh", "Netherlands", "Mississippi Delta", "Yangtze Basin"],
+            "wildfire": ["California", "Australia", "Mediterranean", "Amazon"],
+            "tornado": ["Tornado Alley (US)", "Bangladesh", "Argentina"]
+        },
+        "factor_weights": judgmental_forecaster.disaster_factors
+    }
+
 @api_router.get("/judgmental-forecast/{forecast_id}", tags=["Judgmental Forecasting"])
 async def get_judgmental_forecast(forecast_id: str):
     """Get a specific judgmental forecast with full factor analysis"""
