@@ -2043,7 +2043,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#9D4EDD]" />
-                  AI DISASTER PREDICTIONS 2025-2026
+                  AI DISASTER PREDICTIONS 2026-3000
                   <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">MULTI-LLM</Badge>
                 </CardTitle>
                 <Button onClick={loadFuturePredictions} disabled={loadingPredictions} className="bg-[#9D4EDD] text-white hover:bg-[#9D4EDD]/80">
