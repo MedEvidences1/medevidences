@@ -3354,18 +3354,28 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         <div className="space-y-4">
           <Card className="terminal-card border-l-4 border-l-[#00FF94]">
             <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#00FF94]" />
-                HUMAN SIGNALS INTELLIGENCE
-                <Badge className="bg-[#00FF94]/20 text-[#00FF94]">REAL-TIME</Badge>
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#00FF94]" />
+                  HUMAN SIGNALS INTELLIGENCE
+                  <Badge className="bg-[#00FF94]/20 text-[#00FF94]">REAL-TIME</Badge>
+                </CardTitle>
+                <Button onClick={() => { setHumanSignals(null); loadHumanSignals(); }} size="sm" variant="outline" className="text-xs">
+                  <RefreshCw className={`w-3 h-3 mr-1 ${humanSignalsLoading ? "animate-spin" : ""}`} />REFRESH
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-[#888]">Population density, Mobility patterns, Emergency calls, Social signals</p>
             </CardContent>
           </Card>
           
-          {humanSignals && (
+          {humanSignalsLoading ? (
+            <div className="text-center text-[#888] py-8">
+              <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
+              <p>Loading human signals data...</p>
+            </div>
+          ) : humanSignals && (
             <div className="grid md:grid-cols-2 gap-4">
               {/* Population */}
               <Card className="terminal-card">
