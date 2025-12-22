@@ -1,47 +1,29 @@
 # Plutus Predict - Test Results
 
-## Session 3 - December 22, 2025
+## Session 4 - December 22, 2025
 
-### ✅ P0 Issues Fixed & Verified:
-
-#### P0 Issue 1: AI Forecast Year Bug - FIXED ✅
-- **Problem**: System returned 2025 data when user asked for 2026 forecasts
-- **Fix**: Updated `_extract_time_horizon` method to properly extract explicit years
-- **Added**: `target_year` and `forecast_period` fields to forecast responses
-- **Verified**: API test shows "India-Pakistan war 2026" returns `target_year: 2026`
-- **Test Command**:
-```bash
-curl -X POST "$API/api/judgmental-forecast" -d '{"question":"Will there be war between India and Pakistan in 2026?"}'
-# Returns: {"target_year": 2026, "forecast_period": "2026", ...}
-```
-
-#### P0 Issue 2: M&A Deals Drill-Down - FIXED ✅
-- **Problem**: Clicking country deal counts did nothing
-- **Fix**: Added `selectedCountry` state and click handlers to country cards
-- **Features**:
-  - Clickable country cards with visual feedback (green highlight)
-  - "✓ Selected" indicator on selected country
-  - "✕ Clear Filter" button to reset
-  - Deal list filters to show only selected country's deals
-- **Verified**: Screenshot shows India (5 deals) selected with filter applied
-
-#### P1 Issue 4: IB Suite Performance - IMPROVED ✅
-- **Problem**: 30+ seconds load time
-- **Fix**: Parallelized API calls with `asyncio.gather`
-- **Result**: Reduced to ~9-15 seconds
-- **Additional**: Fixed loading state to not block content when partial data available
-
-### 🐛 Bug Fix:
-- **NameError**: Fixed `current_month` undefined in `forecast_disaster` method
+### Current Testing Scope:
+1. **Dashboard Future Forecasts (2026-3000)** - Verify predictions from all 10 categories are displayed
+2. **Disaster Module Phase 2** - Verify Human Signals, Satellites/IoT, and Playbooks tabs
 
 ### Test Credentials:
-- Email: admin@plutuspredict.com
-- Password: admin123
+- **Owner Admin:**
+  - Email: parimal@plutuspredict.com
+  - Password: Brickell123$
+  - Note: Requires email verification code
 
-### Remaining P0 Issue:
-- P0 Issue 3: AI Forecasts Lack Depth (OSINT integration) - In Progress
+### API Endpoints to Test:
+- `/api/events/predictions?timeframe=2026-3000` - Future predictions
+- `/api/disasters/comprehensive/human-signals` - Human signals data
+- `/api/disasters/comprehensive/satellite-iot` - Satellite/IoT data
+- `/api/disasters/comprehensive/playbooks` - Automated playbooks
 
-### P1-P3 Issues (Pending):
-- P1 Issue 5: Incomplete UI for IB Suite
-- P1 Issue 6: Events Forecasting Redesign  
-- P2-P3: Dashboard categories, multi-language, Tech Vision Live, refactoring
+### User Feedback to Incorporate:
+- Dashboard should show future forecasts (2026-3000) instead of old 2025 earthquake forecasts
+- All 10 AI forecast categories should be visible in the hero section
+
+### Previous Issues Fixed:
+- ✅ Duplicate lucide-react icon import (Activity imported twice)
+- ✅ Dashboard now fetches from `/api/events/predictions?timeframe=2026-3000`
+- ✅ Hero section shows all 10 categories
+
