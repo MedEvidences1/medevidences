@@ -9385,6 +9385,346 @@ async def get_me(user: dict = Depends(get_current_user)):
     return {k: v for k, v in user.items() if k != "password_hash"}
 
 # =============================================================================
+# API ENDPOINTS - ADMIN AUTHENTICATION (Email Verification)
+# =============================================================================
+
+@api_router.post("/auth/admin/login-request", tags=["Admin Authentication"])
+async def admin_login_request(request: AdminLoginRequest):
+    """
+    Step 1: Admin login request - validates credentials and sends verification code
+    For Owner Admin and Enterprise Admin roles
+    """
+    db_user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    if not db_user:
+        raise HTTPException(401, "Invalid credentials")
+    
+    if db_user["password_hash"] != hash_password(request.password):
+        raise HTTPException(401, "Invalid credentials")
+    
+    # Check if user requires email verification
+    user_role = db_user.get("role", "user")
+    if user_role not in ADMIN_ROLES_REQUIRING_VERIFICATION:
+        # Regular users - proceed with normal login
+        token = create_session(db_user["id"])
+        await db.sessions.insert_one({"token": token, "user_id": db_user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
+        return {
+            "requires_verification": False,
+            "user_id": db_user["id"], 
+            "token": token, 
+            "name": db_user["name"], 
+            "role": user_role, 
+            "plan": db_user.get("plan", "free")
+        }
+    
+    # Admin users - send verification code
+    admin_type = "Owner Admin" if user_role == "owner" else "Enterprise Admin"
+    code = admin_verification_service.generate_verification_code(request.email)
+    
+    # Send verification email
+    email_result = await admin_verification_service.send_verification_email(request.email, code, admin_type)
+    
+    return {
+        "requires_verification": True,
+        "message": f"Verification code sent to {request.email}",
+        "email_sent": email_result.get("success", False),
+        "simulated": email_result.get("simulated", False),
+        "admin_type": admin_type,
+        # For testing/demo - include code if email is simulated
+        "verification_code": code if email_result.get("simulated") else None
+    }
+
+@api_router.post("/auth/admin/verify", tags=["Admin Authentication"])
+async def admin_verify_login(request: AdminVerifyRequest):
+    """
+    Step 2: Verify admin login with email code
+    """
+    # Verify the code
+    if not admin_verification_service.verify_code(request.email, request.verification_code):
+        raise HTTPException(401, "Invalid or expired verification code")
+    
+    # Get user and create session
+    db_user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    if not db_user:
+        raise HTTPException(401, "User not found")
+    
+    token = create_session(db_user["id"])
+    await db.sessions.insert_one({
+        "token": token, 
+        "user_id": db_user["id"], 
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "verified_login": True
+    })
+    
+    # Update last login
+    await db.users.update_one(
+        {"id": db_user["id"]},
+        {"$set": {"last_login": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {
+        "user_id": db_user["id"], 
+        "token": token, 
+        "name": db_user["name"], 
+        "role": db_user["role"], 
+        "plan": db_user.get("plan", "enterprise"),
+        "company_id": db_user.get("company_id"),
+        "verified": True
+    }
+
+@api_router.post("/auth/change-password", tags=["Admin Authentication"])
+async def change_password(request: ChangePasswordRequest, user: dict = Depends(get_current_user)):
+    """Change password for logged in user"""
+    # Verify current password
+    if user["password_hash"] != hash_password(request.current_password):
+        raise HTTPException(401, "Current password is incorrect")
+    
+    # Validate new password
+    if len(request.new_password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+    
+    # Update password
+    new_hash = hash_password(request.new_password)
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "password_hash": new_hash,
+            "password_changed_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Invalidate all existing sessions for security
+    await db.sessions.delete_many({"user_id": user["id"]})
+    
+    # Create new session
+    token = create_session(user["id"])
+    await db.sessions.insert_one({"token": token, "user_id": user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
+    
+    return {
+        "success": True,
+        "message": "Password changed successfully",
+        "token": token  # New token after password change
+    }
+
+# =============================================================================
+# API ENDPOINTS - ENTERPRISE ADMIN & EMPLOYEE MANAGEMENT
+# =============================================================================
+
+@api_router.post("/auth/enterprise/register", tags=["Enterprise"])
+async def register_enterprise(request: EnterpriseRegisterRequest):
+    """
+    Register a new enterprise company with admin
+    Creates company and enterprise_admin user with 5-minute trial
+    """
+    # Check if email exists
+    existing = await db.users.find_one({"email": request.admin_email})
+    if existing:
+        raise HTTPException(400, "Email already registered")
+    
+    # Create company
+    company_id = str(uuid.uuid4())
+    company_doc = {
+        "id": company_id,
+        "name": request.company_name,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "trial_started_at": datetime.now(timezone.utc).isoformat(),
+        "trial_expires_at": (datetime.now(timezone.utc) + timedelta(seconds=ENTERPRISE_TRIAL_DURATION_SECONDS)).isoformat(),
+        "subscription_status": "trial",  # trial, active, expired
+        "plan": "enterprise",
+        "employee_count": 0,
+        "max_employees": 100
+    }
+    await db.companies.insert_one(company_doc)
+    
+    # Create enterprise admin user
+    admin_id = str(uuid.uuid4())
+    admin_doc = {
+        "id": admin_id,
+        "email": request.admin_email,
+        "password_hash": hash_password(request.admin_password),
+        "name": request.admin_name,
+        "role": "enterprise_admin",
+        "company_id": company_id,
+        "plan": "enterprise",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "is_active": True
+    }
+    await db.users.insert_one(admin_doc)
+    
+    logger.info(f"Enterprise registered: {request.company_name} - Admin: {request.admin_email}")
+    
+    return {
+        "success": True,
+        "company_id": company_id,
+        "admin_id": admin_id,
+        "message": f"Enterprise '{request.company_name}' registered successfully",
+        "trial_duration_minutes": ENTERPRISE_TRIAL_DURATION_SECONDS // 60,
+        "trial_expires_at": company_doc["trial_expires_at"]
+    }
+
+@api_router.get("/enterprise/trial-status", tags=["Enterprise"])
+async def get_trial_status(user: dict = Depends(get_current_user)):
+    """Check enterprise trial status"""
+    company_id = user.get("company_id")
+    if not company_id:
+        return {"has_trial": False, "message": "Not an enterprise user"}
+    
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0})
+    if not company:
+        raise HTTPException(404, "Company not found")
+    
+    trial_expires = datetime.fromisoformat(company["trial_expires_at"].replace('Z', '+00:00'))
+    now = datetime.now(timezone.utc)
+    
+    is_expired = now > trial_expires
+    remaining_seconds = max(0, (trial_expires - now).total_seconds()) if not is_expired else 0
+    
+    return {
+        "company_id": company_id,
+        "company_name": company["name"],
+        "subscription_status": company["subscription_status"],
+        "trial_started_at": company["trial_started_at"],
+        "trial_expires_at": company["trial_expires_at"],
+        "is_trial_expired": is_expired,
+        "remaining_seconds": int(remaining_seconds),
+        "remaining_minutes": round(remaining_seconds / 60, 1),
+        "requires_payment": is_expired and company["subscription_status"] == "trial"
+    }
+
+@api_router.post("/enterprise/employees", tags=["Enterprise"])
+async def create_enterprise_employee(request: EnterpriseEmployeeCreate, user: dict = Depends(get_current_user)):
+    """Create an employee account (Enterprise Admin only)"""
+    if user.get("role") != "enterprise_admin":
+        raise HTTPException(403, "Only enterprise admins can create employees")
+    
+    company_id = user.get("company_id")
+    if not company_id:
+        raise HTTPException(400, "No company associated with your account")
+    
+    # Check if email exists
+    existing = await db.users.find_one({"email": request.email})
+    if existing:
+        raise HTTPException(400, "Email already registered")
+    
+    # Check employee limit
+    company = await db.companies.find_one({"id": company_id}, {"_id": 0})
+    if company and company.get("employee_count", 0) >= company.get("max_employees", 100):
+        raise HTTPException(400, "Employee limit reached")
+    
+    # Create employee
+    employee_id = str(uuid.uuid4())
+    employee_doc = {
+        "id": employee_id,
+        "email": request.email,
+        "password_hash": hash_password(request.password),
+        "name": request.name,
+        "role": request.role,
+        "company_id": company_id,
+        "created_by": user["id"],
+        "plan": "enterprise",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "is_active": True
+    }
+    await db.users.insert_one(employee_doc)
+    
+    # Update employee count
+    await db.companies.update_one(
+        {"id": company_id},
+        {"$inc": {"employee_count": 1}}
+    )
+    
+    return {
+        "success": True,
+        "employee_id": employee_id,
+        "email": request.email,
+        "name": request.name,
+        "role": request.role
+    }
+
+@api_router.get("/enterprise/employees", tags=["Enterprise"])
+async def list_enterprise_employees(user: dict = Depends(get_current_user)):
+    """List all employees in the company (Enterprise Admin only)"""
+    if user.get("role") not in ["enterprise_admin", "owner", "super_admin"]:
+        raise HTTPException(403, "Not authorized")
+    
+    company_id = user.get("company_id")
+    if not company_id and user.get("role") == "enterprise_admin":
+        raise HTTPException(400, "No company associated with your account")
+    
+    # If owner/super_admin, can see all companies
+    query = {"company_id": company_id} if company_id else {"company_id": {"$exists": True}}
+    
+    employees = await db.users.find(query, {"_id": 0, "password_hash": 0}).to_list(1000)
+    
+    return {
+        "employees": employees,
+        "total": len(employees)
+    }
+
+@api_router.put("/enterprise/employees/{employee_id}", tags=["Enterprise"])
+async def update_enterprise_employee(employee_id: str, request: EnterpriseEmployeeUpdate, user: dict = Depends(get_current_user)):
+    """Update an employee (Enterprise Admin only)"""
+    if user.get("role") not in ["enterprise_admin", "owner", "super_admin"]:
+        raise HTTPException(403, "Not authorized")
+    
+    company_id = user.get("company_id")
+    
+    # Find employee
+    employee = await db.users.find_one({"id": employee_id}, {"_id": 0})
+    if not employee:
+        raise HTTPException(404, "Employee not found")
+    
+    # Verify same company
+    if company_id and employee.get("company_id") != company_id:
+        raise HTTPException(403, "Cannot modify employees from other companies")
+    
+    # Build update
+    update_data = {}
+    if request.name is not None:
+        update_data["name"] = request.name
+    if request.role is not None:
+        update_data["role"] = request.role
+    if request.is_active is not None:
+        update_data["is_active"] = request.is_active
+    
+    if update_data:
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.users.update_one({"id": employee_id}, {"$set": update_data})
+    
+    return {"success": True, "message": "Employee updated"}
+
+@api_router.delete("/enterprise/employees/{employee_id}", tags=["Enterprise"])
+async def delete_enterprise_employee(employee_id: str, user: dict = Depends(get_current_user)):
+    """Delete an employee (Enterprise Admin only)"""
+    if user.get("role") not in ["enterprise_admin", "owner", "super_admin"]:
+        raise HTTPException(403, "Not authorized")
+    
+    company_id = user.get("company_id")
+    
+    # Find employee
+    employee = await db.users.find_one({"id": employee_id}, {"_id": 0})
+    if not employee:
+        raise HTTPException(404, "Employee not found")
+    
+    # Verify same company
+    if company_id and employee.get("company_id") != company_id:
+        raise HTTPException(403, "Cannot delete employees from other companies")
+    
+    # Cannot delete enterprise_admin
+    if employee.get("role") == "enterprise_admin":
+        raise HTTPException(400, "Cannot delete enterprise admin")
+    
+    await db.users.delete_one({"id": employee_id})
+    
+    # Update employee count
+    if employee.get("company_id"):
+        await db.companies.update_one(
+            {"id": employee["company_id"]},
+            {"$inc": {"employee_count": -1}}
+        )
+    
+    return {"success": True, "message": "Employee deleted"}
+
+# =============================================================================
 # API ENDPOINTS - FORECASTING
 # =============================================================================
 
