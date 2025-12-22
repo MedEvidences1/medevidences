@@ -1556,7 +1556,8 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes, compRes, infraRes, scRes, cyberRes, humanRes, satRes, playRes] = await Promise.all([
+      // Load Phase 1 data
+      const [eqRes, wxRes, gdRes, summaryRes, agencyRes, sensorRes, econRes, remTypesRes, compRes, infraRes, scRes, cyberRes] = await Promise.all([
         axios.get(`${API}/disasters/earthquakes?min_magnitude=4.0&limit=20`),
         axios.get(`${API}/disasters/weather-alerts`),
         axios.get(`${API}/disasters/global`),
@@ -1565,15 +1566,10 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         axios.get(`${API}/disasters/sensors`),
         axios.get(`${API}/disasters/economic-impact`),
         axios.get(`${API}/disasters/remediation/disaster-types`),
-        // Phase 1 comprehensive endpoints
         axios.get(`${API}/disasters/comprehensive`),
         axios.get(`${API}/disasters/comprehensive/infrastructure`),
         axios.get(`${API}/disasters/comprehensive/supply-chain`),
         axios.get(`${API}/disasters/comprehensive/cyber`),
-        // Phase 2 endpoints
-        axios.get(`${API}/disasters/comprehensive/human-signals`),
-        axios.get(`${API}/disasters/comprehensive/satellite-iot`),
-        axios.get(`${API}/disasters/comprehensive/playbooks`),
       ]);
       setEarthquakes(eqRes.data.earthquakes || []);
       setWeatherAlerts(wxRes.data.alerts || []);
@@ -1583,6 +1579,32 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       setSensors(sensorRes.data);
       setEconomicImpact(econRes.data);
       setRemediationTypes(remTypesRes.data);
+      setComprehensiveData(compRes.data);
+      setInfrastructureStatus(infraRes.data);
+      setSupplyChainStatus(scRes.data);
+      setCyberStatus(cyberRes.data);
+    } catch (e) {
+      console.error("Phase 1 data load error:", e);
+    }
+    
+    // Load Phase 2 data independently to ensure partial success
+    try {
+      const humanRes = await axios.get(`${API}/disasters/comprehensive/human-signals`);
+      setHumanSignals(humanRes.data);
+    } catch (e) { console.error("Human signals error:", e); }
+    
+    try {
+      const satRes = await axios.get(`${API}/disasters/comprehensive/satellite-iot`);
+      setSatelliteIotData(satRes.data);
+    } catch (e) { console.error("Satellite IoT error:", e); }
+    
+    try {
+      const playRes = await axios.get(`${API}/disasters/comprehensive/playbooks`);
+      setPlaybooks(playRes.data);
+    } catch (e) { console.error("Playbooks error:", e); }
+    
+    setLoading(false);
+  }, []);
       // Phase 1 data
       setComprehensiveData(compRes.data);
       setInfrastructureStatus(infraRes.data);
