@@ -12042,7 +12042,7 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) resetForm(); onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) { resetForm(); onClose(); } }}>
       <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] max-w-md" data-testid="auth-modal">
         <DialogHeader>
           <DialogTitle className="text-lg">
