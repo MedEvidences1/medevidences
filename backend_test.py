@@ -1025,13 +1025,20 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
-        # CURRENT REVIEW REQUEST - TDIS Portal Features (TOP PRIORITY)
+        # CURRENT REVIEW REQUEST - Specific Features (TOP PRIORITY)
+        print("\n🎯 Testing CURRENT REVIEW REQUEST - Specific Features:")
+        self.test_disasters_satellite_iot()  # REVIEW REQUEST: SATELLITES/IOT tab loads data without manual refresh
+        self.test_disasters_playbooks()  # REVIEW REQUEST: PLAYBOOKS tab loads data without manual refresh
+        self.test_disasters_aviation_turbulence_tab()  # REVIEW REQUEST: AVIATION TURBULENCE tab loads data and shows flight info
+        self.test_ib_suite_executive_summary()  # REVIEW REQUEST: IB Suite Executive Summary (Risk Score, Market Outlook)
+        self.test_aviation_turbulence_api()  # REVIEW REQUEST: Aviation Turbulence API endpoint
+        
+        # CURRENT REVIEW REQUEST - TDIS Portal Features (SECONDARY)
         print("\n🎯 Testing CURRENT REVIEW REQUEST - TDIS Portal Features:")
         self.test_tdis_dashboard()  # TDIS Portal Dashboard with OPERATIONAL status
         self.test_tdis_alerts()  # TDIS Portal Alerts with summary counts
         self.test_tdis_regions()  # TDIS Portal Regions with 10 global regions
         self.test_tdis_layers()  # TDIS Portal Data Layers with interactive toggles
-        self.test_ib_suite_executive_summary()  # IB Suite Executive Summary Market Outlook
         
         # PHASE 2 FEATURES - Priority tests from current review request
         print("\n🎯 Testing PHASE 2 Features (Current Priority):")
