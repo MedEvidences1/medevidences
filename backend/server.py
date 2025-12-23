@@ -16759,6 +16759,194 @@ async def get_disaster_economic_impact():
     }
 
 # =============================================================================
+# API ENDPOINTS - ALERT CONFIGURATION SYSTEM (Phase 3)
+# =============================================================================
+
+class AlertConfiguration(BaseModel):
+    type: str  # earthquake, weather, disaster, risk_threshold, infrastructure, cyber
+    threshold: float
+    regions: List[str] = ["global"]
+    notification_methods: List[str] = ["in_app", "browser"]
+    escalation_enabled: bool = False
+    escalation_level: int = 1
+    active: bool = True
+
+class AlertAcknowledge(BaseModel):
+    alert_id: str
+    notes: Optional[str] = None
+
+# In-memory storage for alerts (in production, use MongoDB)
+alert_configurations = {}
+active_alerts = {}
+alert_history = []
+
+@api_router.get("/alerts/configurations", tags=["Alert System"])
+async def get_alert_configurations(authorization: str = Header(None)):
+    """Get user's alert configurations"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    user_alerts = alert_configurations.get(user_id, [])
+    return {"alerts": user_alerts, "total": len(user_alerts)}
+
+@api_router.post("/alerts/configurations", tags=["Alert System"])
+async def create_alert_configuration(config: AlertConfiguration, authorization: str = Header(None)):
+    """Create a new alert configuration"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    alert_id = str(uuid4())
+    alert_data = {
+        "id": alert_id,
+        **config.dict(),
+        "user_id": user_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    if user_id not in alert_configurations:
+        alert_configurations[user_id] = []
+    alert_configurations[user_id].append(alert_data)
+    
+    # Store in MongoDB for persistence
+    await db.alert_configurations.insert_one({**alert_data, "_id": alert_id})
+    
+    return {"id": alert_id, "message": "Alert configuration created", "alert": alert_data}
+
+@api_router.patch("/alerts/configurations/{alert_id}", tags=["Alert System"])
+async def update_alert_configuration(alert_id: str, updates: dict, authorization: str = Header(None)):
+    """Update an alert configuration"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    if user_id in alert_configurations:
+        for alert in alert_configurations[user_id]:
+            if alert["id"] == alert_id:
+                alert.update(updates)
+                await db.alert_configurations.update_one({"id": alert_id}, {"$set": updates})
+                return {"message": "Alert updated", "alert": alert}
+    
+    raise HTTPException(404, "Alert configuration not found")
+
+@api_router.delete("/alerts/configurations/{alert_id}", tags=["Alert System"])
+async def delete_alert_configuration(alert_id: str, authorization: str = Header(None)):
+    """Delete an alert configuration"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    if user_id in alert_configurations:
+        alert_configurations[user_id] = [a for a in alert_configurations[user_id] if a["id"] != alert_id]
+        await db.alert_configurations.delete_one({"id": alert_id})
+        return {"message": "Alert deleted"}
+    
+    raise HTTPException(404, "Alert configuration not found")
+
+@api_router.get("/alerts/active", tags=["Alert System"])
+async def get_active_alerts(authorization: str = Header(None)):
+    """Get currently active (triggered) alerts"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    user_alerts = active_alerts.get(user_id, [])
+    
+    # Generate some real-time alerts based on current data
+    live_alerts = []
+    
+    # Check earthquake thresholds
+    try:
+        eq_data = await disaster_engine.predict_earthquake()
+        if eq_data.get("probability", 0) > 0.6:
+            live_alerts.append({
+                "id": f"eq-{datetime.now().timestamp()}",
+                "type": "earthquake",
+                "message": f"Elevated earthquake risk detected ({eq_data.get('probability', 0)*100:.0f}%)",
+                "severity": "high" if eq_data.get("probability", 0) > 0.8 else "medium",
+                "triggered_at": datetime.now(timezone.utc).isoformat(),
+                "acknowledged": False,
+                "data": eq_data
+            })
+    except:
+        pass
+    
+    return {"alerts": user_alerts + live_alerts, "total": len(user_alerts) + len(live_alerts)}
+
+@api_router.post("/alerts/acknowledge/{alert_id}", tags=["Alert System"])
+async def acknowledge_alert(alert_id: str, authorization: str = Header(None)):
+    """Acknowledge an active alert"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    # Store acknowledgment
+    ack_record = {
+        "alert_id": alert_id,
+        "user_id": user_id,
+        "acknowledged_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.alert_acknowledgments.insert_one(ack_record)
+    
+    if user_id in active_alerts:
+        for alert in active_alerts[user_id]:
+            if alert["id"] == alert_id:
+                alert["acknowledged"] = True
+                alert["acknowledged_at"] = ack_record["acknowledged_at"]
+                return {"message": "Alert acknowledged", "alert": alert}
+    
+    return {"message": "Alert acknowledged", "alert_id": alert_id}
+
+@api_router.get("/alerts/history", tags=["Alert System"])
+async def get_alert_history(limit: int = 50, authorization: str = Header(None)):
+    """Get alert history"""
+    user_id = "default"
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        session = await db.sessions.find_one({"token": token})
+        if session:
+            user_id = session.get("user_id", "default")
+    
+    history = await db.alert_acknowledgments.find(
+        {"user_id": user_id}, 
+        {"_id": 0}
+    ).sort("acknowledged_at", -1).limit(limit).to_list(limit)
+    
+    return {"history": history, "total": len(history)}
+
+@api_router.post("/alerts/test", tags=["Alert System"])
+async def test_alert_notification(alert_type: str = "earthquake", authorization: str = Header(None)):
+    """Send a test alert notification"""
+    return {
+        "message": "Test alert sent",
+        "type": alert_type,
+        "notification": {
+            "title": f"Test {alert_type.title()} Alert",
+            "body": "This is a test notification from Plutus Predict Alert System",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    }
+
+# =============================================================================
 # API ENDPOINTS - REMEDIATION INTELLIGENCE SYSTEM
 # =============================================================================
 
