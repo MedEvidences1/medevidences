@@ -12023,9 +12023,14 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
         window.location.reload();
       }
     } catch (e) {
-      // Fallback to regular login endpoint
-      const success = isLogin ? await login(email, password) : await register(name, email, password);
-      if (success) onClose();
+      // Check if this is an admin email - don't fallback for admins
+      if (email === "parimal@plutuspredict.com" || e.response?.status === 401) {
+        toast.error(e.response?.data?.detail || "Admin login failed - please try again");
+      } else {
+        // Fallback to regular login endpoint for non-admin users
+        const success = isLogin ? await login(email, password) : await register(name, email, password);
+        if (success) onClose();
+      }
     }
     setLoading(false);
   };
