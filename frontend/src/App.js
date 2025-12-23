@@ -12121,6 +12121,13 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
           ) : requiresVerification ? (
             // Verification code input
             <>
+              {demoCode && (
+                <div className="p-4 bg-[#00FF94]/10 border-2 border-[#00FF94] rounded-lg text-center animate-pulse">
+                  <p className="text-xs text-[#888] mb-1">DEMO MODE - Your verification code:</p>
+                  <p className="text-3xl font-bold text-[#00FF94] font-mono tracking-widest">{demoCode}</p>
+                  <p className="text-xs text-[#888] mt-1">Copy this code and enter it below</p>
+                </div>
+              )}
               <div className="p-3 bg-[#9D4EDD]/10 border border-[#9D4EDD] rounded text-center">
                 <p className="text-sm text-[#9D4EDD]">Code expires in 15 minutes</p>
               </div>
