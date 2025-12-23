@@ -83,9 +83,44 @@ APP_SECRET_KEY = os.environ.get('APP_SECRET_KEY', secrets.token_hex(32))
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'alerts@plutuspredict.com')
 
+# Twilio SMS Configuration
+TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
+OWNER_MOBILE_NUMBER = os.environ.get('OWNER_MOBILE_NUMBER', '')
+
 # Initialize Resend
 if RESEND_API_KEY and RESEND_API_KEY != 're_test_placeholder':
     resend.api_key = RESEND_API_KEY
+
+# Initialize Twilio
+twilio_client = None
+if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+    try:
+        twilio_client = TwilioClient(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        logger.info("Twilio SMS client initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Twilio client: {e}")
+
+
+async def send_sms_verification(phone_number: str, code: str) -> dict:
+    """Send verification code via SMS using Twilio"""
+    if not twilio_client:
+        logger.warning("Twilio not configured - SMS simulation mode")
+        return {"success": True, "simulated": True, "message": "SMS simulated (Twilio not configured)"}
+    
+    try:
+        message = twilio_client.messages.create(
+            body=f"Your Plutus Predict verification code is: {code}. This code expires in 15 minutes.",
+            from_=TWILIO_PHONE_NUMBER,
+            to=phone_number
+        )
+        logger.info(f"SMS sent successfully to {phone_number[-4:]}, SID: {message.sid}")
+        return {"success": True, "simulated": False, "message_sid": message.sid}
+    except Exception as e:
+        logger.error(f"Failed to send SMS: {e}")
+        return {"success": False, "error": str(e), "simulated": True}
+
 
 # Create the main app
 app = FastAPI(
