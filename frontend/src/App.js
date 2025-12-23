@@ -1040,62 +1040,74 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
 
   return (
     <div className="space-y-8" data-testid="forecast-view">
-      {/* Hero Header - Control Room Style */}
-      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] border border-[#1F1F1F] p-8">
-        {/* Grid background */}
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'linear-gradient(#1F1F1F 1px, transparent 1px), linear-gradient(90deg, #1F1F1F 1px, transparent 1px)', backgroundSize: '20px 20px'}} />
+      {/* Hero Header - Professional Mantic-Style */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] border border-[#1F1F1F]">
+        {/* Animated Grid Background */}
+        <div className="absolute inset-0 opacity-[0.07]" style={{
+          backgroundImage: 'linear-gradient(#00E5FF 1px, transparent 1px), linear-gradient(90deg, #00E5FF 1px, transparent 1px)', 
+          backgroundSize: '40px 40px'
+        }} />
         
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded bg-[#00E5FF]/10 flex items-center justify-center border border-[#00E5FF]/30">
-                <Brain className="w-6 h-6 text-[#00E5FF]" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white" style={{fontFamily: 'JetBrains Mono, monospace'}}>
-                  PLUTUS_EVENTS_FORECASTING
-                </h1>
-                <p className="text-sm text-[#888]">Prediction Intelligence Platform • 2026-3000</p>
-              </div>
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#00E5FF]/5 via-transparent to-[#9D4EDD]/5" />
+        
+        <div className="relative z-10 p-8 md:p-12">
+          {/* Top Badge Row */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Badge className="bg-[#00E5FF]/10 text-[#00E5FF] border border-[#00E5FF]/30 px-4 py-1.5 text-xs font-mono">
+              <span className="w-2 h-2 bg-[#00E5FF] rounded-full mr-2 animate-pulse" />LIVE INTELLIGENCE
+            </Badge>
+            <Badge className="bg-[#00FF94]/10 text-[#00FF94] border border-[#00FF94]/30 px-4 py-1.5 text-xs font-mono">GPT-4o + CLAUDE + GEMINI</Badge>
+            <Badge className="bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 px-4 py-1.5 text-xs font-mono">1M+ OSINT SOURCES</Badge>
+          </div>
+          
+          {/* Main Title */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="flex-1">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4" style={{fontFamily: 'JetBrains Mono, monospace'}}>
+                EVENTS_FORECASTING
+              </h1>
+              <p className="text-base md:text-lg text-[#888] max-w-2xl leading-relaxed">
+                Enterprise-grade prediction intelligence platform powered by multi-LLM ensemble analysis 
+                and real-time OSINT aggregation across <span className="text-[#00FF94]">10 prediction categories</span>.
+              </p>
             </div>
             
-            <div className="space-y-2">
-              <p className="text-sm text-[#00FF94] flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#00FF94] rounded-full animate-pulse" />
-                1M+ OSINT Sources • Multi-LLM Ensemble • Auto-Updates Every 5 Min
-              </p>
-              <p className="text-xs text-[#888] max-w-xl">
-                Real-time intelligence aggregation from news, social media, government data, financial feeds, satellite imagery, and academic research across 10 prediction categories.
-              </p>
+            {/* Live Status Indicator */}
+            <div className="flex items-center gap-3 p-4 bg-[#0A0A0A]/80 rounded-lg border border-[#1F1F1F]">
+              <div className="relative">
+                <div className="w-3 h-3 bg-[#00FF94] rounded-full animate-pulse" />
+                <div className="absolute inset-0 w-3 h-3 bg-[#00FF94] rounded-full animate-ping opacity-75" />
+              </div>
+              <div>
+                <div className="text-xs text-[#888]">STATUS</div>
+                <div className="text-sm font-bold text-[#00FF94] font-mono">OPERATIONAL</div>
+              </div>
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-2">
-            <Badge className="bg-[#00E5FF]/20 text-[#00E5FF] border border-[#00E5FF]/30 px-3 py-1">
-              <span className="w-2 h-2 bg-[#00E5FF] rounded-full mr-2 animate-pulse" />LIVE
-            </Badge>
-            <Badge className="bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/30 px-3 py-1">JUDGMENTAL AI</Badge>
-            <Badge className="bg-[#FFD700]/20 text-[#FFD700] border border-[#FFD700]/30 px-3 py-1">1M+ OSINT</Badge>
-          </div>
-        </div>
-        
-        {/* Stats Bar */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-[#1F1F1F]">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#00E5FF]" style={{fontFamily: 'JetBrains Mono, monospace'}}>10</div>
-            <div className="text-xs text-[#888]">CATEGORIES</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#00FF94]" style={{fontFamily: 'JetBrains Mono, monospace'}}>1M+</div>
-            <div className="text-xs text-[#888]">OSINT SOURCES</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#FFD700]" style={{fontFamily: 'JetBrains Mono, monospace'}}>3</div>
-            <div className="text-xs text-[#888]">LLM ENSEMBLE</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#9D4EDD]" style={{fontFamily: 'JetBrains Mono, monospace'}}>5min</div>
-            <div className="text-xs text-[#888]">AUTO-UPDATE</div>
+          {/* Stats Grid - Professional Layout */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-10 pt-8 border-t border-[#1F1F1F]/50">
+            <div className="p-4 bg-[#0A0A0A]/50 rounded-lg border border-[#1F1F1F]/50 hover:border-[#00E5FF]/30 transition-colors">
+              <div className="text-3xl font-bold text-[#00E5FF] font-mono">10</div>
+              <div className="text-xs text-[#888] mt-1 uppercase tracking-wide">Categories</div>
+            </div>
+            <div className="p-4 bg-[#0A0A0A]/50 rounded-lg border border-[#1F1F1F]/50 hover:border-[#00FF94]/30 transition-colors">
+              <div className="text-3xl font-bold text-[#00FF94] font-mono">1M+</div>
+              <div className="text-xs text-[#888] mt-1 uppercase tracking-wide">OSINT Sources</div>
+            </div>
+            <div className="p-4 bg-[#0A0A0A]/50 rounded-lg border border-[#1F1F1F]/50 hover:border-[#FFD700]/30 transition-colors">
+              <div className="text-3xl font-bold text-[#FFD700] font-mono">3</div>
+              <div className="text-xs text-[#888] mt-1 uppercase tracking-wide">LLM Ensemble</div>
+            </div>
+            <div className="p-4 bg-[#0A0A0A]/50 rounded-lg border border-[#1F1F1F]/50 hover:border-[#9D4EDD]/30 transition-colors">
+              <div className="text-3xl font-bold text-[#9D4EDD] font-mono">5min</div>
+              <div className="text-xs text-[#888] mt-1 uppercase tracking-wide">Auto-Refresh</div>
+            </div>
+            <div className="p-4 bg-[#0A0A0A]/50 rounded-lg border border-[#1F1F1F]/50 hover:border-[#FF3333]/30 transition-colors">
+              <div className="text-3xl font-bold text-[#FF3333] font-mono">2026-3000</div>
+              <div className="text-xs text-[#888] mt-1 uppercase tracking-wide">Forecast Range</div>
+            </div>
           </div>
         </div>
       </div>
