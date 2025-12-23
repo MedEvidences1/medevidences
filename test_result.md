@@ -53,3 +53,22 @@
 - React StrictMode causes double API calls in development
 - IB Suite parallel loading removed (tabs now load on-demand)
 
+
+### Codebase Refactoring Progress:
+
+1. **Created `/app/backend/core/` module:**
+   - `database.py` - MongoDB connection
+   - `config.py` - API keys and configuration
+   - `auth.py` - Authentication utilities
+   - `__init__.py` - Module exports
+
+2. **Created `/app/backend/routes/auth.py`:**
+   - Extracted authentication routes (register, login, logout, me, trial-status, change-password)
+   - Template for other route modules
+   - Uses core module imports
+
+3. **Next steps for refactoring:**
+   - Create routes for: disasters, investment, forecasting, astrology
+   - Move engine classes to `/app/backend/engines/`
+   - Update server.py to use new route modules
+
