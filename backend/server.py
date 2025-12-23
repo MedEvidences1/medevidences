@@ -18842,7 +18842,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_origins=[
         "http://localhost:3000",
-        "https://plutus-predict.preview.emergentagent.com",
+        "https://disaster-ai-3.preview.emergentagent.com",
         "https://emergentagent.com",
     ],
     allow_methods=["*"],
