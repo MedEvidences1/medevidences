@@ -16158,6 +16158,270 @@ async def get_turbulence_categories():
     }
 
 # =============================================================================
+# API ENDPOINTS - UNIFIED ATMOSPHERIC RISK ENGINE (Drones, Space, Military, High-Alt)
+# =============================================================================
+
+@api_router.get("/risk/drone/forecast/{drone_id}", tags=["Drone Risk Engine"])
+async def drone_risk_forecast(drone_id: str, drone_type: str = "COMMERCIAL_SMALL", 
+                               lat: float = 37.7749, lon: float = -122.4194, 
+                               altitude_ft: int = 200, horizon_minutes: int = 10):
+    """
+    Drone-specific atmospheric risk forecast.
+    
+    Drone Types: RECREATIONAL, COMMERCIAL_SMALL, COMMERCIAL_MEDIUM, COMMERCIAL_LARGE, CARGO_DRONE, HAPS
+    """
+    position = {"lat": lat, "lon": lon, "altitude_ft": altitude_ft}
+    return await unified_risk_engine.drone_risk_forecast(drone_id, drone_type, position, horizon_minutes)
+
+@api_router.get("/risk/drone/categories", tags=["Drone Risk Engine"])
+async def get_drone_categories():
+    """Get drone category specifications and risk factors"""
+    return {
+        "categories": unified_risk_engine.DRONE_CATEGORIES,
+        "risk_factors": unified_risk_engine.DRONE_RISK_FACTORS,
+        "remediation_options": unified_risk_engine.DRONE_REMEDIATION_OPTIONS
+    }
+
+@api_router.get("/risk/drone/fleet-status", tags=["Drone Risk Engine"])
+async def get_drone_fleet_status(region: str = "global"):
+    """Get risk status for all active drones"""
+    # Simulate fleet data
+    fleet = []
+    for i in range(5):
+        drone_id = f"DRONE-{1000+i}"
+        forecast = await unified_risk_engine.drone_risk_forecast(
+            drone_id, 
+            random.choice(list(unified_risk_engine.DRONE_CATEGORIES.keys())),
+            {"lat": 37.7 + random.uniform(-0.5, 0.5), "lon": -122.4 + random.uniform(-0.5, 0.5), "altitude_ft": random.randint(100, 400)}
+        )
+        fleet.append({
+            "drone_id": drone_id,
+            "type": forecast["drone_type"],
+            "risk_level": forecast["risk_assessment"]["risk_level"],
+            "recommendation": forecast["risk_assessment"]["flight_recommendation"],
+            "position": forecast["position"]
+        })
+    return {
+        "region": region,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "active_drones": len(fleet),
+        "fleet_status": fleet,
+        "summary": {
+            "critical": sum(1 for d in fleet if d["risk_level"] == "CRITICAL"),
+            "high": sum(1 for d in fleet if d["risk_level"] == "HIGH"),
+            "elevated": sum(1 for d in fleet if d["risk_level"] == "ELEVATED"),
+            "low": sum(1 for d in fleet if d["risk_level"] == "LOW")
+        }
+    }
+
+@api_router.get("/risk/space-launch/assessment/{launch_id}", tags=["Space Launch Risk Engine"])
+async def space_launch_risk_assessment(launch_id: str, vehicle_type: str = "MEDIUM_LIFT",
+                                        t_minus_minutes: int = 60):
+    """
+    Space Launch Weather and Atmospheric Risk Assessment.
+    
+    Vehicle Types: SMALL_LIFT, MEDIUM_LIFT, HEAVY_LIFT, SUPER_HEAVY, REUSABLE_FIRST_STAGE, CREWED
+    
+    Based on Range Weather Operations and Lightning Launch Commit Criteria (LLCC).
+    """
+    return await unified_risk_engine.space_launch_risk_assessment(launch_id, vehicle_type, None, t_minus_minutes)
+
+@api_router.get("/risk/space-launch/criteria", tags=["Space Launch Risk Engine"])
+async def get_launch_weather_criteria():
+    """Get space launch weather commit criteria"""
+    return {
+        "vehicle_types": unified_risk_engine.LAUNCH_VEHICLE_TYPES,
+        "weather_criteria": unified_risk_engine.LAUNCH_WEATHER_CRITERIA,
+        "remediation_options": unified_risk_engine.SPACE_LAUNCH_REMEDIATION
+    }
+
+@api_router.get("/risk/space-launch/upcoming", tags=["Space Launch Risk Engine"])
+async def get_upcoming_launches():
+    """Get weather assessment for upcoming launches"""
+    launches = [
+        {"id": "STARLINK-123", "vehicle": "REUSABLE_FIRST_STAGE", "site": "KSC LC-39A", "t_minus_hr": 4},
+        {"id": "CREW-10", "vehicle": "CREWED", "site": "KSC LC-39A", "t_minus_hr": 24},
+        {"id": "GPS-III-07", "vehicle": "MEDIUM_LIFT", "site": "CCSFS SLC-40", "t_minus_hr": 48}
+    ]
+    
+    assessments = []
+    for launch in launches:
+        assessment = await unified_risk_engine.space_launch_risk_assessment(
+            launch["id"], launch["vehicle"], 
+            {"name": launch["site"], "lat": 28.6, "lon": -80.6},
+            launch["t_minus_hr"] * 60
+        )
+        assessments.append({
+            "launch_id": launch["id"],
+            "vehicle": launch["vehicle"],
+            "site": launch["site"],
+            "t_minus_hours": launch["t_minus_hr"],
+            "status": assessment["launch_decision"]["status"],
+            "probability": assessment["launch_decision"]["probability_of_launch_percent"],
+            "key_concerns": assessment["violations"][:2] if assessment["violations"] else []
+        })
+    
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "upcoming_launches": assessments
+    }
+
+@api_router.get("/risk/military/mission/{mission_id}", tags=["Military Aviation Risk Engine"])
+async def military_mission_risk(mission_id: str, aircraft_type: str = "FIGHTER",
+                                 mission_type: str = "TRAINING"):
+    """
+    Military Aviation Atmospheric Risk Assessment.
+    
+    Aircraft Types: FIGHTER, BOMBER, TRANSPORT, TANKER, HELICOPTER, UAV_TACTICAL, UAV_HALE, TILTROTOR
+    Mission Types: TRAINING, EXERCISE, OPERATIONAL, COMBAT, SAR, MEDEVAC
+    """
+    return await unified_risk_engine.military_mission_risk_assessment(mission_id, aircraft_type, mission_type)
+
+@api_router.get("/risk/military/categories", tags=["Military Aviation Risk Engine"])
+async def get_military_categories():
+    """Get military aircraft and mission type specifications"""
+    return {
+        "aircraft_types": unified_risk_engine.MILITARY_AIRCRAFT_TYPES,
+        "mission_types": unified_risk_engine.MILITARY_MISSION_TYPES,
+        "remediation_options": unified_risk_engine.MILITARY_REMEDIATION
+    }
+
+@api_router.get("/risk/military/readiness", tags=["Military Aviation Risk Engine"])
+async def get_military_readiness(base: str = "Edwards AFB"):
+    """Get weather readiness status for military operations"""
+    # Simulate multiple aircraft readiness
+    aircraft_status = []
+    for ac_type in ["FIGHTER", "BOMBER", "TANKER", "UAV_HALE"]:
+        assessment = await unified_risk_engine.military_mission_risk_assessment(
+            f"CHECK-{ac_type[:3]}", ac_type, "TRAINING"
+        )
+        aircraft_status.append({
+            "aircraft_type": ac_type,
+            "mission_ready": assessment["risk_assessment"]["mission_status"] == "GO",
+            "status": assessment["risk_assessment"]["mission_status"],
+            "risk_score": assessment["risk_assessment"]["max_route_risk"]
+        })
+    
+    return {
+        "base": base,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "overall_readiness": "GREEN" if all(a["mission_ready"] for a in aircraft_status) else "YELLOW" if any(a["mission_ready"] for a in aircraft_status) else "RED",
+        "aircraft_status": aircraft_status,
+        "weather_summary": {
+            "ceiling_ft": random.choice([5000, 10000, 15000, 25000]),
+            "visibility_sm": random.uniform(5, 10),
+            "wind_kts": random.randint(5, 25),
+            "precipitation": random.choice([None, "light_rain", None, None])
+        }
+    }
+
+@api_router.get("/risk/high-altitude/logistics/{flight_id}", tags=["High Altitude Logistics Risk Engine"])
+async def high_altitude_logistics_risk(flight_id: str, vehicle_type: str = "CARGO_DRONE_INTERCITY",
+                                        origin_lat: float = 34.0522, origin_lon: float = -118.2437,
+                                        dest_lat: float = 37.7749, dest_lon: float = -122.4194):
+    """
+    High Altitude Logistics Risk Assessment.
+    
+    Vehicle Types: CARGO_DRONE_REGIONAL, CARGO_DRONE_INTERCITY, STRATOSPHERIC_CARGO, AIRSHIP_HEAVY, HAPS_PLATFORM, HYBRID_VTOL_CARGO
+    
+    Optimizes for jet stream utilization and CAT avoidance.
+    """
+    origin = {"name": "Origin Hub", "lat": origin_lat, "lon": origin_lon}
+    destination = {"name": "Destination Hub", "lat": dest_lat, "lon": dest_lon}
+    return await unified_risk_engine.high_altitude_logistics_risk(flight_id, vehicle_type, origin, destination)
+
+@api_router.get("/risk/high-altitude/categories", tags=["High Altitude Logistics Risk Engine"])
+async def get_high_altitude_categories():
+    """Get high altitude logistics vehicle specifications"""
+    return {
+        "vehicle_types": unified_risk_engine.HIGH_ALT_VEHICLE_TYPES,
+        "risk_factors": unified_risk_engine.HIGH_ALT_LOGISTICS_FACTORS,
+        "remediation_options": unified_risk_engine.HIGH_ALT_REMEDIATION
+    }
+
+@api_router.get("/risk/high-altitude/network-status", tags=["High Altitude Logistics Risk Engine"])
+async def get_high_altitude_network_status():
+    """Get status of high altitude logistics network"""
+    routes = [
+        {"origin": "Los Angeles", "dest": "San Francisco", "vehicle": "CARGO_DRONE_INTERCITY"},
+        {"origin": "New York", "dest": "Boston", "vehicle": "CARGO_DRONE_REGIONAL"},
+        {"origin": "Seattle", "dest": "Anchorage", "vehicle": "STRATOSPHERIC_CARGO"},
+        {"origin": "Tokyo", "dest": "Seoul", "vehicle": "CARGO_DRONE_INTERCITY"}
+    ]
+    
+    route_status = []
+    for route in routes:
+        assessment = await unified_risk_engine.high_altitude_logistics_risk(
+            f"HAL-{random.randint(1000,9999)}", route["vehicle"],
+            {"name": route["origin"], "lat": random.uniform(30, 50), "lon": random.uniform(-130, 140)},
+            {"name": route["dest"], "lat": random.uniform(30, 50), "lon": random.uniform(-130, 140)}
+        )
+        route_status.append({
+            "route": f"{route['origin']} → {route['dest']}",
+            "vehicle": route["vehicle"],
+            "risk_level": assessment["risk_assessment"]["risk_level"],
+            "eta_hours": assessment["delivery_forecast"]["eta_hours"],
+            "efficiency": assessment["operational_impacts"]["energy_efficiency_percent"]
+        })
+    
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "network_status": "OPERATIONAL",
+        "active_routes": len(routes),
+        "routes": route_status,
+        "global_conditions": {
+            "jet_stream_favorable_corridors": random.randint(2, 5),
+            "cat_warnings_active": random.randint(0, 3),
+            "volcanic_ash_advisories": 0
+        }
+    }
+
+@api_router.get("/risk/unified/summary", tags=["Unified Risk Engine"])
+async def get_unified_risk_summary():
+    """Get summary of all atmospheric risk domains"""
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "engine_version": "2.0",
+        "domains": {
+            "aviation": {
+                "status": "OPERATIONAL",
+                "active_aircraft": len(aviation_turbulence_system.active_aircraft),
+                "endpoint": "/api/aviation/turbulence/*"
+            },
+            "drones": {
+                "status": "OPERATIONAL",
+                "categories": list(unified_risk_engine.DRONE_CATEGORIES.keys()),
+                "endpoint": "/api/risk/drone/*"
+            },
+            "space_launch": {
+                "status": "OPERATIONAL",
+                "vehicle_types": list(unified_risk_engine.LAUNCH_VEHICLE_TYPES.keys()),
+                "endpoint": "/api/risk/space-launch/*"
+            },
+            "military": {
+                "status": "OPERATIONAL",
+                "aircraft_types": list(unified_risk_engine.MILITARY_AIRCRAFT_TYPES.keys()),
+                "endpoint": "/api/risk/military/*"
+            },
+            "high_altitude_logistics": {
+                "status": "OPERATIONAL",
+                "vehicle_types": list(unified_risk_engine.HIGH_ALT_VEHICLE_TYPES.keys()),
+                "endpoint": "/api/risk/high-altitude/*"
+            }
+        },
+        "shared_capabilities": [
+            "AI motion data assimilation",
+            "Vertical acceleration analysis",
+            "Wind shear gradient detection",
+            "Jet stream microstructure analysis",
+            "PIREPs/SIGMETs as signals",
+            "Short-horizon prediction (seconds to minutes)",
+            "Continuous per-vehicle recalibration",
+            "Dynamic risk modeling"
+        ]
+    }
+
+# =============================================================================
 # API ENDPOINTS - LIVE DISASTERS & AI FUTURE PREDICTIONS
 # =============================================================================
 
