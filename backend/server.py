@@ -15241,6 +15241,121 @@ async def get_remediation_plan(disaster_type: str = "earthquake", region: str = 
     }
 
 # =============================================================================
+# API ENDPOINTS - AVIATION TURBULENCE INTELLIGENCE
+# =============================================================================
+
+@api_router.post("/aviation/turbulence/connect/{aircraft_id}", tags=["Aviation Turbulence"])
+async def connect_aircraft_sensors(aircraft_id: str, sensor_config: dict = None):
+    """
+    Connect to real-time aircraft sensor data streams.
+    Establishes connection to ADS-B, accelerometers, air data, and more.
+    """
+    result = await aviation_turbulence_system.connect_aircraft_sensors(aircraft_id, sensor_config)
+    return result
+
+@api_router.get("/aviation/turbulence/forecast/{aircraft_id}", tags=["Aviation Turbulence"])
+async def get_turbulence_forecast(aircraft_id: str, horizon_minutes: int = 7):
+    """
+    Forecast short-horizon turbulence probability for an aircraft.
+    Returns risk bands in time + altitude + trajectory space.
+    
+    Example output: "This aircraft has 22% probability of moderate-severe 
+    turbulence in the next 7 minutes at its current climb profile."
+    """
+    forecast = await aviation_turbulence_system.forecast_turbulence_probability(aircraft_id, horizon_minutes)
+    return forecast
+
+@api_router.get("/aviation/turbulence/next-risk/{aircraft_id}", tags=["Aviation Turbulence"])
+async def get_next_aircraft_risk(aircraft_id: str):
+    """
+    Answer: What's the next risk this aircraft will face?
+    Provides real-time, aircraft-specific atmospheric risk intelligence.
+    """
+    return await aviation_turbulence_system.get_next_risk(aircraft_id)
+
+@api_router.get("/aviation/turbulence/dynamic-model/{aircraft_id}", tags=["Aviation Turbulence"])
+async def get_dynamic_risk_model(aircraft_id: str):
+    """
+    Get comprehensive dynamic risk model for an aircraft.
+    Combines sensor data, satellite profiling, PIREPs, and AI analysis.
+    """
+    return await aviation_turbulence_system.get_dynamic_risk_model(aircraft_id)
+
+@api_router.get("/aviation/turbulence/motion-analysis/{aircraft_id}", tags=["Aviation Turbulence"])
+async def get_motion_analysis(aircraft_id: str):
+    """
+    AI assimilation of aircraft motion data for turbulence detection.
+    Analyzes: vertical acceleration, wind shear gradients, jet stream microstructure.
+    """
+    return await aviation_turbulence_system.assimilate_motion_data(aircraft_id)
+
+@api_router.get("/aviation/turbulence/satellite-data/{aircraft_id}", tags=["Aviation Turbulence"])
+async def get_satellite_wind_profiling(aircraft_id: str):
+    """
+    Get satellite and wind profiling data for aircraft position.
+    Sources: COSMIC-2 GNSS-RO, Aeolus LIDAR, NOAA wind profilers.
+    """
+    return await aviation_turbulence_system.integrate_satellite_wind_profiling(aircraft_id)
+
+@api_router.post("/aviation/turbulence/pirep", tags=["Aviation Turbulence"])
+async def process_pirep_signal(pirep_data: dict = None):
+    """
+    Process PIREP as a signal (not just a report).
+    AI interprets pilot reports for spatial-temporal turbulence patterns.
+    """
+    return await aviation_turbulence_system.process_pirep_signals(pirep_data)
+
+@api_router.post("/aviation/turbulence/calibrate/{aircraft_id}", tags=["Aviation Turbulence"])
+async def calibrate_aircraft(aircraft_id: str, actual_encounter: dict = None):
+    """
+    Continuous recalibration per aircraft based on actual encounters.
+    Improves prediction accuracy over time.
+    """
+    return await aviation_turbulence_system.continuous_recalibration(aircraft_id, actual_encounter)
+
+@api_router.get("/aviation/turbulence/remediation-options", tags=["Aviation Turbulence"])
+async def get_turbulence_remediation_options():
+    """
+    Get all remediation options for aviation turbulence events.
+    """
+    options = aviation_turbulence_system.REMEDIATION_OPTIONS.get("aviation_turbulence", [])
+    return {
+        "disaster_type": "aviation_turbulence",
+        "options": options,
+        "total_options": len(options)
+    }
+
+@api_router.post("/aviation/turbulence/roi-calculation", tags=["Aviation Turbulence"])
+async def calculate_turbulence_roi(option_id: str, affected_flights: int = 1, passengers_per_flight: int = 150):
+    """
+    Calculate ROI for a turbulence remediation action.
+    Returns cost/benefit analysis including injury prevention, liability, and brand value.
+    """
+    return await aviation_turbulence_system.calculate_roi(option_id, affected_flights, passengers_per_flight)
+
+@api_router.get("/aviation/turbulence/active-aircraft", tags=["Aviation Turbulence"])
+async def get_active_aircraft():
+    """
+    Get all aircraft currently being monitored by the turbulence system.
+    """
+    return {
+        "active_aircraft_count": len(aviation_turbulence_system.active_aircraft),
+        "aircraft_ids": list(aviation_turbulence_system.active_aircraft.keys()),
+        "total_predictions": len(aviation_turbulence_system.turbulence_predictions),
+        "recent_pireps": len(aviation_turbulence_system.pirep_signals)
+    }
+
+@api_router.get("/aviation/turbulence/categories", tags=["Aviation Turbulence"])
+async def get_turbulence_categories():
+    """
+    Get turbulence severity categories (ICAO standard).
+    """
+    return {
+        "categories": aviation_turbulence_system.TURBULENCE_CATEGORIES,
+        "sources": aviation_turbulence_system.TURBULENCE_SOURCES
+    }
+
+# =============================================================================
 # API ENDPOINTS - LIVE DISASTERS & AI FUTURE PREDICTIONS
 # =============================================================================
 
