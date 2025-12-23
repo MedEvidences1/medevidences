@@ -894,7 +894,83 @@ class PlutusAPITester:
             self.log_result("TDIS Portal Data Layers", False, f"Exception: {str(e)}")
             return False
 
-    def test_ib_suite_executive_summary(self):
+    def test_aviation_turbulence_api(self):
+        """Test REVIEW REQUEST: Aviation Turbulence API - /api/aviation/turbulence/forecast/{flight_id} returns data"""
+        try:
+            # Test with a sample flight ID
+            flight_id = "AA123"
+            response = requests.get(f"{self.api_url}/aviation/turbulence/forecast/{flight_id}", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Aviation Turbulence API", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Flight ID: {data.get('flight_id', 'N/A')}")
+                print(f"   Turbulence forecast: {'✅' if 'turbulence_forecast' in data else '❌'}")
+                print(f"   Route analysis: {'✅' if 'route_analysis' in data else '❌'}")
+                print(f"   Weather conditions: {'✅' if 'weather_conditions' in data else '❌'}")
+                
+                # Check turbulence forecast data
+                if 'turbulence_forecast' in data:
+                    forecast = data['turbulence_forecast']
+                    print(f"   Overall risk level: {forecast.get('overall_risk_level', 'N/A')}")
+                    print(f"   Forecast segments: {len(forecast.get('segments', []))}")
+                
+                # Check route analysis
+                if 'route_analysis' in data:
+                    route = data['route_analysis']
+                    print(f"   Route distance: {route.get('total_distance_km', 'N/A')} km")
+                    print(f"   Flight duration: {route.get('estimated_duration_hours', 'N/A')} hours")
+                
+                required_fields = ['turbulence_forecast', 'route_analysis', 'weather_conditions']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 2:
+                    print(f"   ✅ Aviation Turbulence API working ({found_fields}/3 sections)")
+                else:
+                    print(f"   ⚠️  Limited aviation data ({found_fields}/3 sections)")
+            return success
+        except Exception as e:
+            self.log_result("Aviation Turbulence API", False, f"Exception: {str(e)}")
+            return False
+
+    def test_disasters_aviation_turbulence_tab(self):
+        """Test REVIEW REQUEST: Disasters AVIATION TURBULENCE tab loads data and shows flight info"""
+        try:
+            response = requests.get(f"{self.api_url}/disasters/comprehensive/aviation-turbulence", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Disasters AVIATION TURBULENCE Tab", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Current conditions: {'✅' if 'current_conditions' in data else '❌'}")
+                print(f"   Active flights: {'✅' if 'active_flights' in data else '❌'}")
+                print(f"   Turbulence alerts: {'✅' if 'turbulence_alerts' in data else '❌'}")
+                print(f"   Weather patterns: {'✅' if 'weather_patterns' in data else '❌'}")
+                
+                # Check flight info specifically
+                if 'active_flights' in data:
+                    flights = data['active_flights']
+                    print(f"   Active flights tracked: {len(flights)}")
+                    if flights:
+                        sample_flight = flights[0]
+                        print(f"   Sample flight: {sample_flight.get('flight_id', 'N/A')} - {sample_flight.get('route', 'N/A')}")
+                        print(f"   Turbulence level: {sample_flight.get('turbulence_level', 'N/A')}")
+                
+                # Check turbulence alerts
+                if 'turbulence_alerts' in data:
+                    alerts = data['turbulence_alerts']
+                    print(f"   Turbulence alerts: {len(alerts)}")
+                
+                required_fields = ['current_conditions', 'active_flights', 'turbulence_alerts', 'weather_patterns']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ Aviation Turbulence tab working ({found_fields}/4 sections) - Shows flight info")
+                else:
+                    print(f"   ⚠️  Limited aviation turbulence data ({found_fields}/4 sections)")
+            return success
+        except Exception as e:
+            self.log_result("Disasters AVIATION TURBULENCE Tab", False, f"Exception: {str(e)}")
+            return False
         """Test IB Suite Executive Summary - should show Market Outlook panel"""
         try:
             response = requests.get(f"{self.api_url}/investment/executive-summary", timeout=15)
