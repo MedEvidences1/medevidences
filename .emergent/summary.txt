@@ -6,197 +6,224 @@ The user wants to build Plutus Predict, a comprehensive AI Forecasting & Disaste
 - **Core Features:**
     - **AI Forecasting Engine:** An ensemble model using multiple LLMs for 10 categories, with data from 2026-3000 and auto-updating OSINT integration (every 5 minutes).
     - **OSINT Integration:** Aggregate data from over 1 million sources for all forecasting modules.
-    - **Disaster Prediction Engine:** A vastly expanded, enterprise-grade engine covering global events, infrastructure, supply chains, cyber threats, and human signals. It includes impact analysis, automated remediation playbooks, and advanced modeling (ML, physics-based, graph models).
+    - **Disaster Prediction Engine:** An enterprise-grade engine covering global events, infrastructure, supply chains, cyber threats, and human signals. It includes impact analysis, automated remediation playbooks, and advanced modeling (ML, physics-based, graph models).
     - **Remediation Intelligence System:** An 11-point system for post-incident analysis, including ROI, what-if simulations, and stakeholder coordination.
-    - **Vedic Astrology Integration:** Integrate curated insights, with a user option to reconcile them with disaster forecasts.
-    - **User Authentication & Subscriptions:** A secure admin authentication system with email verification. A global 5-minute trial for all users, followed by a paywall.
+    - **Vedic Astrology Integration:** Integrate curated insights, with a user option to reconcile them with disaster forecasts, and auto-update daily.
+    - **User Authentication & Subscriptions:** A secure admin authentication system with email verification, password reset, and an extended 60-minute trial for all users.
     - **Investment Banker Suite:** A dedicated module for M&A, IPO, and portfolio risk analysis.
     - **Admin Panels:** Separate panels for the platform Owner and for Enterprise customers.
     - **Multi-language Support:** English, Spanish, Arabic, French, Indonesian, and Swahili.
     - **Conversational AI:** An interactive chat interface for platform-specific queries.
     - **Public Validation:** A tournament system to validate prediction accuracy.
     - **UI Redesign:** Redesign the Events Forecasting UI to be a high-quality, professional interface, inspired by mantic.com.
+    - **Dr. Ankit Shah Integration:** Auto-retrieval of video transcripts and online postings for the forecasting section.
+    - **Aviation Turbulence System:** A real-time, aircraft-specific atmospheric risk intelligence system.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a large, monolithic full-stack system with a FastAPI backend and React frontend.
-- **Disaster Module:** Phase 2 (Human Signals, Satellites/IoT, Playbooks) has been implemented, but the new tabs exhibit intermittent data loading issues, often requiring a manual refresh to display content.
-- **Dashboard:** The main dashboard has been fixed to display future forecasts (2026-3000) for all 10 event categories, replacing the outdated 2025 earthquake data.
-- **Events Forecasting:** The module has been enhanced to use Judgmental Forecasting for all 10 categories and includes UI text emphasizing the use of 1M+ OSINT sources with frequent auto-updates. All 2025 references have been removed. A user-discretionary option to reconcile disaster forecasts with Vedic Astrology has been added.
-- **Remediation Intelligence:** The backend classes and API endpoints for a new, comprehensive 11-point Remediation Intelligence System have been created and integrated as a new Intelligence tab in the Disasters module. The UI is built but data loading is slow.
-- **Deployment Readiness:** Several backend startup issues (, improper environment variable handling) have been fixed to improve deployment stability.
+The application is a large, monolithic full-stack system with a FastAPI backend (>16,000 lines) and React frontend (>12,000 lines). The agent implemented several major features requested by the user:
+- **Authentication:** The trial period was extended to 60 minutes. A Forgot Password flow was added for enterprise users. The login modal now clarifies Owner Admin credentials.
+- **Disaster Module:**
+    - A comprehensive **Aviation Turbulence System** was created with a backend engine, API endpoints, and a new frontend tab. It simulates real-time, aircraft-specific risk forecasting.
+    - Remediation options were added for **Drought, Cyclone, and Blizzard/Snow Storms**, with full ROI analysis capabilities.
+    - **Desert Storms** were added as a new disaster category with global coverage.
+- **Backend Cron Jobs:** New scheduled jobs were added to:
+    - Auto-reconcile Astrology predictions with disasters daily at 5 AM EST.
+    - Auto-retrieve content from Dr. Ankit Shah.
+- **Performance:** The  endpoint was optimized with a caching layer, reducing subsequent load times from ~20s to <0.1s.
+- **TDIS Portal:** A new TDIS_PORTAL tab, backend API, and frontend component were created to display global threat intelligence data.
+- **OSINT Enhancement:** The backend prompt for the  was enhanced to generate more detailed rationales.
 
 **Last working item**:
-- **Last item agent was working:** The agent was in the middle of a major redesign of the Events Forecasting UI, inspired by the user's reference (mantic.com) and guided by a new  file. The agent had created the new component structure and was implementing the new category card design.
-- **Status:** IN PROGRESS
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** Frontend testing agent to verify the new UI/UX after completion.
+- **Last item agent was working:** The agent finished implementing the new Aviation Turbulence System, including the backend engine, API endpoints for real-time data simulation and ROI, and a new AVIATION TURBULENCE tab in the Disasters module UI.
+- **Status:** USER VERIFICATION PENDING
+- **Agent Testing Done:** Y
+- **Which testing method agent to use?** Frontend testing agent to conduct a thorough review of the new AVIATION TURBULENCE tab, its data display, and interactions.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
 -   **Issue 1: Intermittent Data Loading in Disasters Module (P0)**
--   **Issue 2: AI Forecasts Lack Substantive OSINT Depth (P1)**
--   **Issue 3: Incomplete UI for IB Suite (Executive Summary & Portfolio Risk) (P1)**
--   **Issue 4: Missing Tech Vision Live Functionality (P2)**
--   **Issue 5: Incomplete Multi-Language Support on Frontend (P2)**
+-   **Issue 2: Full Codebase Refactoring (P0, CRITICAL)**
+-   **Issue 3: Incomplete UI for IB Suite (P1)**
+-   **Issue 4: AI Forecasts Lack Substantive OSINT Depth (P1)**
+-   **Issue 5: Missing Tech Vision Live Functionality (P2)**
+-   **Issue 6: Incomplete Multi-Language Support on Frontend (P2)**
 
 Issues Detail:
 -   **Issue 1: Intermittent Data Loading in Disasters Module (P0)**
-    -   **Description:** The Satellites/IoT and Playbooks tabs in the Disasters module often fail to display data on initial load and require a manual REFRESH click. The frontend testing agent also reported this.
-    -   **Attempted fixes:** The agent refactored the data fetching logic in the  to load data for each tab independently, removing a  that was suspected of timing out. However, the issue persists, indicating a likely race condition or a problem with how the component state is updated upon asynchronous data arrival. Loading states were added for better UX.
+    -   **Description:** A recurring issue where the Satellites/IoT and Playbooks tabs in the Disasters module often fail to load data without a manual refresh. The testing agent has consistently reported this.
+    -   **Attempted fixes:** The agent has made multiple attempts to fix this. The latest fix involved refactoring the data fetching logic to trigger on tab activation using  and removing early return checks in  functions. However, this specific fix has not been re-verified by the testing agent.
     -   **Next debug checklist:**
-        1.  In , review the  hooks within the .
-        2.  Ensure state updates (, ) are correctly triggering re-renders.
-        3.  Consider moving the data fetching logic for each tab into its own child component to isolate state and effects.
-        4.  Investigate potential browser-side request cancellations or timeouts, as the backend APIs were confirmed to be working via .
-    -   **Why fix this issue and what will be achieved with the fix?** Ensures a reliable and smooth user experience for the core Disaster Management feature.
+        1.  Use the frontend testing agent to specifically test the Satellites/IoT and Playbooks tabs to confirm if the latest fix was successful.
+        2.  If the issue persists, review the network tab in browser developer tools for failed or cancelled requests when switching tabs.
+        3.  Consider abstracting each tab's content and data fetching logic into its own child component to fully isolate state and lifecycle effects.
+    -   **Why fix this issue and what will be achieved with the fix?** Ensures a reliable and smooth user experience for a core feature.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** Frontend.
     -   **Blocked on other issue:** None
 
--   **Issue 2: AI Forecasts Lack Substantive OSINT Depth (P1)**
-    -   **Description:** While the UI has been updated to reflect OSINT integration, the actual content generated by the AI forecasting engine still needs to be enhanced to provide substantive, multi-year forecasts powered by the 1M+ sources.
-    -   **Attempted fixes:** Backend cron job was added previously, but the content richness is not yet achieved.
+-   **Issue 2: Full Codebase Refactoring (P0, CRITICAL)**
+    -   **Description:** The application's  and  files are dangerously large monoliths, making the system fragile, slow to work with, and difficult to maintain. The user has explicitly requested this be addressed.
+    -   **Attempted fixes:** The agent created a directory structure (, ) but did not migrate any of the existing monolithic code into the new files. The monoliths have only grown larger during this session.
     -   **Next debug checklist:**
-        1.  Review and enhance the prompts in  in  to generate more detailed, long-range forecasts.
-        2.  Verify the  cron job is effectively enriching the data.
-    -   **Why fix this issue and what will be achieved with the fix?** Fulfills a core product requirement for deep, OSINT-powered forecasting.
+        1.  Start by extracting the easiest, self-contained components from  (e.g., , ).
+        2.  Create a  directory in the backend (e.g., , ).
+        3.  Move related API endpoints from  into these new route files and include them in the main FastAPI app using .
+        4.  Move the large engine classes (, , etc.) from  into the  directory.
+    -   **Why fix this issue and what will be achieved with the fix?** Drastically improves maintainability, stability, and developer velocity. It is essential for the long-term viability of the project.
     -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
+    -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on other issue:** None
 
--   **Issue 3: Incomplete UI for IB Suite (Executive Summary & Portfolio Risk) (P1)**
-    -   **Description:** The Executive Summary and Portfolio Risk tabs in the Investment Banker Suite are functionally bare.
-    -   **Status:** NOT STARTED
+-   **Issue 3: Incomplete UI for IB Suite (P1)**
+    -   **Description:** The Executive Summary and Portfolio Risk tabs need to be functionally built out. The testing agent reported that the Market Outlook and Key Actions sections were not visible.
+    -   **Attempted fixes:** The agent added a dedicated  endpoint to provide the necessary data. However, the frontend component was not significantly updated to consume and display this data in a rich format.
+    -   **Next debug checklist:**
+        1.  In , find the  component.
+        2.  Implement  to fetch data from the new  endpoint.
+        3.  Build out the UI for the Market Outlook and Key Actions sections using Shadcn components and Recharts to visualize the fetched data.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Frontend.
 
--   **Issue 4: Missing Tech Vision Live Functionality (P2)**
-    -   **Description:** User mentioned a tech vision live button that doesn't work. The agent could not locate it.
+-   **Issue 4: AI Forecasts Lack Substantive OSINT Depth (P1)**
+    -   **Description:** While the backend prompt was improved, the AI-generated content for forecasts still needs to be significantly enhanced to provide substantive, multi-year analysis that truly reflects the aggregation of 1M+ OSINT sources.
+    -   **Attempted fixes:** The agent enhanced the  method in .
+    -   **Next debug checklist:**
+        1.  Further enhance the system prompt in  to explicitly request long-range (e.g., 5, 10, 20-year) trend analysis, confidence scores, and citation of key data points.
+        2.  Integrate the  from the new cron job into the context provided to the LLM for forecasting.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Backend.
+
+-   **Issue 5: Missing Tech Vision Live Functionality (P2)**
+    -   **Description:** User mentioned a tech vision live button that doesn't work. The agent has been unable to locate it or get clarification.
     -   **Status:** BLOCKED (needs user input).
 
--   **Issue 5: Incomplete Multi-Language Support on Frontend (P2)**
-    -   **Description:** Many UI strings in  remain hardcoded and need to be replaced with the  translation function.
+-   **Issue 6: Incomplete Multi-Language Support on Frontend (P2)**
+    -   **Description:** Many UI strings in  remain hardcoded instead of using the  translation function.
     -   **Status:** NOT STARTED
 
 **In progress Task List**:
 -   **Task 1: Complete Events Forecasting UI Redesign (P0)**
-    -   **Where to resume:** In , continue implementing the new design for the  component (renamed to Events Forecasting). The agent has updated the header and category card structure. The next steps are to refine the layout, style the result display, and ensure it aligns with .
-    -   **What will be achieved with this?** A modern, professional, and more intuitive UI for the core forecasting feature, as requested by the user.
-    -   **Status:** IN PROGRESS
+    -   **Where to resume:** This task was the top priority from the *previous* handoff but was completely skipped in this session. The UI for Events Forecasting ( component in ) needs a complete redesign based on  to match the professional look of mantic.com.
+    -   **What will be achieved with this?** A modern, professional, and more intuitive UI for a core feature, as requested by the user.
+    -   **Status:** NOT STARTED
     -   **Should Test frontend/backend/both after fix?** Frontend.
+    -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks:**
-    - **Codebase Refactoring (P0, User Priority):** Dedicate a session to migrating components and logic out of the monolithic  and  files. The user explicitly requested this as the next priority after the UI redesign.
-    - **Stripe Integration (P1):** Implement the full payment workflow for subscriptions.
+    - **Stripe Integration (P1):** Implement the full payment and subscription workflow.
     - **Disaster Module Phase 3 (P1):** Implement interactive maps, alerting/escalation, and role-based access control.
 
 - **Future Tasks:**
     - Implement Public Tournament Validation System.
-    - Integrate TDIS Portal Features (interactive maps, data layers).
-    - Enhance 3D/Holographic Visualizations.
+    - Enhance 3D/Holographic Visualizations beyond the current CSS simulation.
 
 **Completed work in this session**
-- **Disaster Module Phase 2 (DONE):** Implemented and verified the Human Signals, Satellites/IoT, and Playbooks tabs. Fixed an initial icon import bug.
-- **Dashboard Forecast Fix (DONE):** Updated the main dashboard to fetch and display future forecasts (2026-3000) for all 10 event categories from the  endpoint.
-- **Deployment Readiness Fixes (DONE):** Made the backend more robust for deployment by adding graceful handling for missing , adding try-except blocks in the startup event, and fixing a  related to the logger.
-- **Remediation Intelligence System - Phase 1 (DONE):** Created backend classes () and multiple API endpoints (e.g., ) to support the new 11-point system. Integrated a new Intelligence tab into the Disasters module UI.
-- **Events Forecasting Overhaul (DONE):**
-    - Renamed AI Forecasting to Events Forecasting throughout the UI.
-    - Updated the UI to emphasize the 1M+ OSINT sources and automatic updates.
-    - Extended the  to support all 10 event categories via a new  endpoint and updated the frontend to use it.
-    - Removed all hardcoded 2025 year references, replacing them with a 2026-3000 timeframe.
-- **Astrology Reconciliation Feature (DONE):** Added a Reconcile with Vedic Astrology toggle to the Judgmental Disaster Forecasting UI and connected it to a new backend endpoint.
+- **Authentication Flow Enhanced (DONE):** Extended trial to 60 mins, added Forgot Password for enterprise users, and clarified Owner Admin login info.
+- **Aviation Turbulence System (DONE):** Implemented a full-featured system with a backend engine, real-time simulation APIs, ROI calculations, and a new frontend tab.
+- **Disaster Module Expansion (DONE):** Added Drought, Cyclone, Blizzard, and Desert Storms with comprehensive remediation plans and ROI analysis. Expanded global disaster coverage.
+- **Backend Automation (DONE):** Added cron jobs for daily astrology reconciliation and retrieval of Dr. Ankit Shah content.
+- **Performance Optimization (DONE):** Implemented caching for the  endpoint, drastically improving load times on subsequent requests.
+- **TDIS Portal (DONE):** Created a new backend API and frontend component for the Threat Detection & Intelligence Sharing portal.
+- **IB Suite Backend (DONE):** Added a dedicated  endpoint.
+- **UI Fixes (DONE):** Corrected the visibility of the login button in the main navigation header.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Monolithic Codebase (CRITICAL)**
-    -   **Debug checklist:** Plan a phased refactoring. Start by moving UI components from  into . For the backend, create a  directory and move endpoint logic from  into feature-specific files (e.g., , ).
-    -   **Why to solve this issue and what will be achieved with this?** The monolithic files are dangerously large and complex, making the application unstable and difficult to maintain. Refactoring is essential for project survival.
+    -   **Debug checklist:** See All Pending/In progress Issue list -> Issue 2: Full Codebase Refactoring.
+    -   **Why to solve this issue and what will be achieved with this?** The monolithic files (, ) are dangerously large, making the application unstable and difficult to maintain. Refactoring is essential for project survival and was explicitly requested by the user but not performed.
     -   **Should Test frontend/backend/both after fix:** Both.
     -   **Is recurring issue?** Y
 
 **Known issue recurrence from previous fork**
-- **Monolithic Codebase:** The issue of  and  being massive monoliths persists and has worsened with the addition of new features. The user has now prioritized refactoring.
+- **Data Loading in Disasters Module:** This issue persists across forks and multiple fix attempts. It points to a deeper problem in the component's state management.
+- **Monolithic Codebase:** This problem has been present since the beginning and has become critically worse in this session, as the agent added thousands more lines of code to the monolithic files instead of refactoring as requested.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Backend:** FastAPI, Pydantic, MongoDB (Motor), , .
-- **Frontend:** React, TailwindCSS, Shadcn UI, , Recharts, .
+- **Backend:** FastAPI, Pydantic, MongoDB (Motor),  (for cron jobs), .
+- **Frontend:** React, TailwindCSS, Shadcn UI, Recharts, , .
 - **Architecture:** Severe **Monolithic** architecture in urgent need of refactoring.
 
 **key DB schema**
-- No new collections were added in this session. Existing collections were heavily utilized.
+- No new collections were added. New data for Aviation, TDIS, and enhanced disasters is stored in existing collections like , , and .
 
 **changes in tech stack**
 - None.
 
 **All files of reference**
-- : The monolithic backend, significantly expanded with Remediation Intelligence, updated Judgmental Forecasting, and deployment readiness fixes.
-- : The monolithic frontend, significantly expanded with the new Intelligence tab, Astrology Reconciliation UI, and updated Events Forecasting module.
-- : New file providing design specifications for the UI redesign.
+- : The monolithic backend, which grew significantly with the addition of the Aviation Turbulence System, new cron jobs, new disaster types, and new API endpoints.
+- : The monolithic frontend, which grew with the addition of the TDIS and Aviation Turbulence UIs, and the forgot password flow.
 
 **Areas that need refactoring**:
-- ** &  (CRITICAL EMERGENCY):** This is the highest technical priority. The user has explicitly requested this as the next major task. The constant addition of large features is making the monoliths unsustainable. A phased refactoring plan is essential.
+- ** &  (CRITICAL EMERGENCY):** This is the highest technical priority. The user explicitly requested this as a major task, but the agent added more features instead, worsening the problem. The next agent MUST prioritize this to ensure project stability.
 
 **key api endpoints**
-- : (New) Get remediation options for a scenario.
-- : (New) Get ROI analysis for remediation actions.
-- : (New) Run a what-if simulation.
-- : (New) Get population data for a scenario.
-- : (New) Estimate potential losses.
-- : (New) Generate a judgmental forecast for a specific category.
-- : (New) Get astrology reconciliation for a disaster forecast.
-- : (Updated) Now used by the main dashboard to show future forecasts.
+- : (New) Get real-time turbulence forecast for a specific flight.
+- : (New) Calculate ROI for aviation turbulence remediation actions.
+- : (New) Get the status of the TDIS system.
+- : (New) Initiate password reset for a user.
+- : (New) Complete the password reset with a token.
+- : (New) Get market outlook and summary data for the IB Suite.
+- : (Updated) Now includes new disaster types like , , .
+- : (Updated) Now includes a caching mechanism for faster responses.
 
 **Critical Info for New Agent**
-- **User Priorities are Key:** The user has clearly stated the next two priorities: **1) Events Forecasting UI Redesign** (in progress), and **2) Codebase Refactoring**. You must complete the redesign and then immediately propose a plan for refactoring.
-- **Data Loading Race Condition:** The Disasters module has a persistent data loading issue on the Satellites/IoT and Playbooks tabs. The previous agent's fix (removing ) was insufficient. This needs a more robust solution, possibly by isolating state into smaller components. Be prepared to debug this intermittent problem.
-- **Monolith Danger:** Do not add any more major features to  or  without a strong pushback and a plan for refactoring. The project's stability is at severe risk.
+- **PRIORITIZE REFACTORING:** The user has repeatedly asked for the codebase to be refactored out of the giant  and  files. The previous agent acknowledged this but then added several major features, making the monoliths even larger and more fragile. You must prioritize this refactoring task above new feature requests to ensure the project's stability. Propose a clear, phased refactoring plan to the user immediately.
+- **VERIFY THE DATA LOADING FIX:** The Disasters module has a persistent, intermittent data loading bug. The last agent applied a fix, but it was not verified by the testing agent. Your first step should be to run the frontend testing agent to confirm if this long-standing issue is finally resolved.
+- **SKIPPED TASK:** The Events Forecasting UI Redesign was a top priority from the last handoff but was completely ignored. Keep this on the task list as it's a direct user request.
 
 **documents and test_reports created in this job**
 - 
 - 
 
 **Last 10 User Messages and any pending HUMAN messages**
-- 10. 1) redesign 2) refactoring code base
-- 9. Excellent! The UI now shows... (Agent summary followed by user request)
-- 8. Continue. And make sure all events forecasting 10 categories , have adopted judgmental forecasting .
-- 7. Make sure to term Plutus predict as Events forecasting not simply forecasting .2) 1m + OSINT sources + other sources and llms are utilized to retrieve information automatically, daily , every 5 minutes, 3) Disasters forecasts can be reconciled with astrology at users discretion.
-- 6. In AI forecast i still see 2025 forecasts in preview, I already told you to cover 2026 to 3000
-- 5. The UI is showing correctly with all the components... (Agent summary followed by user confirmation prompt)
-- 4. Yes but what about remediation intelligence, I pointed out . (11 detailed points for Remediation Intelligence)
-- 3. 1) existing module 2) both 3)real time collaboration 4) all users with trial restrictions for admin / owner and enterprise users
-- 2. Got it! I'll implement the **Remediation Intelligence System** with... (Agent plan confirmation)
-- 1. Phase 2 pl complete , events forecasting ui redesign priority , and still in dashboard it displays only earthquake forecasts of 2025! In events forecast there are 10 categories and displays it . 2025 forecasted earthquake events no value now it s now 2026 to year 3000 forecasts
+- 10. Create aviation Turbulence system... (detailed 10-point plan).
+- 9. Have you added flood predictions, and drought predictions, tornado, Hurricane, cyclone predictions, snow storms in disaster and live and must have remediation for all with ROI for all?
+- 8. 1) login icon now not visible... 2) in astrology you have added load predictions, can you set up daily auto retrieval... 3) Dr Ankit shah... Pl set up auto retrieval... 4) Flood and other disasters only usa you are showing live, you need to show live of all countries... 5) have you included desert storms also...
+- 7. All changes tested and working!
+- 6. Pl extend trial period from 5 mintues for all customers to 60 minutes 2) Owner admin what's username and password... 3) For enterprise admin and customers password change should be allowed...
+- 5. All fixes are working. Let me provide a summary...
+- 4. 1 ) fix minor issues
+- 3. Any thing pending now?
+- 2. Pl complete 3 pending items
+- 1. Both APIs are working. Now let me provide a summary of what we've accomplished...
 
 **Project Health Check:**
-- **Broken:** The Satellites/IoT and Playbooks tabs in the Disasters module are intermittently broken, failing to display data without a manual refresh.
-- **Performance Issue:** Several API endpoints that rely on LLM calls (, judgmental forecasts) are inherently slow (20-30s), impacting user experience. The data loading for the Disasters module is also slow due to the large number of API calls.
-- **Technical Debt:** **CRITICAL**. The codebase is extremely fragile due to the monolithic structure. Refactoring is the top technical priority.
-- **Mocked:** Vedic Astrology, Metal Prices, and some data sources within the Remediation Intelligence System use placeholder/mocked logic.
+- **Broken:** The Satellites/IoT and Playbooks tabs in the Disasters module are likely still intermittently broken. This needs immediate verification.
+- **Performance Issue:** The  initial call is slow (15-20s), but this is now mitigated by a caching layer for subsequent calls, which is a significant improvement.
+- **Technical Debt:** **EXTREME**. The monolithic codebase is the single greatest risk to the project. It has grown significantly worse during this session, despite the user's request to refactor. This must be the top priority.
+- **Mocked:** Vedic Astrology, Metal Prices, and the new Aviation Turbulence System all use placeholder/simulated data sources. Dr. Ankit Shah integration is mocked via LLM generation.
 
 **3rd Party Integrations**
 - **OpenAI (GPT-4o), Anthropic (Claude), Google (Gemini):** Text Generation via Emergent LLM Key.
 - **OpenAI (Sora 2):** Video Generation via Emergent LLM Key.
-- **Resend:** Used for sending admin email verification codes.
+- **Resend:** Used for sending admin email verification and password reset codes.
 - **Stripe:** Payments (Partially integrated, requires full workflow implementation).
 - **Public Data APIs:** GDACS, USGS, NOAA, MeteoAlarm.
+- **APScheduler:** Used for running backend cron jobs.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES, used to validate Phase 2. The agent reported the data loading issues in the Satellites/IoT and Playbooks tabs which the main agent then attempted to fix.
+- **Testing agent used after significant changes:** YES, the testing agent was used and its final report () identified several pending issues, including the TDIS status field and the missing IB executive summary.
 - **Troubleshoot agent used after agent stuck in loop:** NO
 - **Test files created:** None
-- **Known regressions:** The data loading issue in the Disasters module can be considered a regression or an unresolved bug from the new implementation.
+- **Known regressions:** The data loading issue in the Disasters module is a persistent bug that may not have been fully resolved.
 
 **Credentials to test flow:**
 - **Owner Admin:**
-  - **Email:** 
-  - **Password:** 
-  - **Note:** Login requires a verification code sent via email (simulated in the console/toast).
-- **Regular/Enterprise User:** Register a new user. They will be on a 5-minute trial.
+    - **Email:** 
+    - **Password:** 
+    - **Note:** Login requires a verification code sent via email (simulated in a toast/console). The agent has clarified that the owner uses the same login form as other users.
+- **Regular/Enterprise User:** Register a new user. They will be on a 60-minute trial. A Forgot Password flow is now available for them.
 
 **What agent forgot to execute**
-- The agent has not fully resolved the data loading race condition in the Disasters module tabs, despite multiple attempts. The issue persists.</analysis>
+- **Codebase Refactoring:** This was the most critical failure. The user requested it, the agent planned for it, created empty directories, and then proceeded to add thousands of lines of code to the monoliths, completely ignoring the core request and worsening the technical debt.
+- **Events Forecasting UI Redesign:** This was a top priority task carried over from the previous handoff that was completely skipped.</analysis>
