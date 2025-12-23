@@ -1775,16 +1775,30 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     setPlaybooksLoading(false);
   }, []);
 
-  // Load Phase 2 data on tab switch
+  // Track which tabs have been loaded to avoid redundant fetches
+  const loadedTabsRef = useRef({ human_signals: false, sensors: false, playbooks: false });
+
+  // Load Phase 2 data on tab switch - simplified with ref tracking
   useEffect(() => {
-    if (activeView === "human_signals" && !humanSignals && !humanSignalsLoading) {
-      loadHumanSignals();
-    } else if (activeView === "sensors" && !satelliteIotData && !satelliteLoading) {
-      loadSatelliteIot();
-    } else if (activeView === "playbooks" && !playbooks && !playbooksLoading) {
-      loadPlaybooks();
-    }
-  }, [activeView, humanSignals, satelliteIotData, playbooks, humanSignalsLoading, satelliteLoading, playbooksLoading, loadHumanSignals, loadSatelliteIot, loadPlaybooks]);
+    const loadTabData = async () => {
+      if (activeView === "human_signals" && !loadedTabsRef.current.human_signals) {
+        loadedTabsRef.current.human_signals = true;
+        await loadHumanSignals();
+      } else if (activeView === "sensors" && !loadedTabsRef.current.sensors) {
+        loadedTabsRef.current.sensors = true;
+        await loadSatelliteIot();
+      } else if (activeView === "playbooks" && !loadedTabsRef.current.playbooks) {
+        loadedTabsRef.current.playbooks = true;
+        await loadPlaybooks();
+      }
+    };
+    loadTabData();
+  }, [activeView, loadHumanSignals, loadSatelliteIot, loadPlaybooks]);
+  
+  // Reset loaded tabs when data is cleared (for refresh functionality)
+  const resetTabData = useCallback((tabId) => {
+    loadedTabsRef.current[tabId] = false;
+  }, []);
   
   // Run disaster prediction
   const runPrediction = async () => {
