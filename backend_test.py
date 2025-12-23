@@ -1015,6 +1015,308 @@ class PlutusAPITester:
             self.log_result("IB Suite Executive Summary", False, f"Exception: {str(e)}")
             return False
 
+    # =============================================================================
+    # UNIFIED ATMOSPHERIC RISK ENGINE TESTS - NEW REVIEW REQUEST
+    # =============================================================================
+
+    def test_drone_risk_forecast(self):
+        """Test REVIEW REQUEST: Drone Risk Engine - /api/risk/drone/forecast/{drone_id}"""
+        try:
+            drone_id = "DRONE-TEST-001"
+            response = requests.get(f"{self.api_url}/risk/drone/forecast/{drone_id}?drone_type=COMMERCIAL_SMALL&lat=37.7749&lon=-122.4194&altitude_ft=200&horizon_minutes=10", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Drone Risk Forecast", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Drone ID: {data.get('drone_id', 'N/A')}")
+                print(f"   Drone type: {data.get('drone_type', 'N/A')}")
+                print(f"   Risk assessment: {'✅' if 'risk_assessment' in data else '❌'}")
+                print(f"   Weather conditions: {'✅' if 'weather_conditions' in data else '❌'}")
+                print(f"   Recommendations: {'✅' if 'recommendations' in data else '❌'}")
+                
+                if 'risk_assessment' in data:
+                    risk = data['risk_assessment']
+                    print(f"   Risk level: {risk.get('risk_level', 'N/A')}")
+                    print(f"   Risk score: {risk.get('risk_score', 'N/A')}")
+                
+                required_fields = ['drone_id', 'drone_type', 'risk_assessment', 'weather_conditions']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ Drone Risk Forecast working ({found_fields}/4 fields)")
+                else:
+                    print(f"   ⚠️  Limited drone forecast data ({found_fields}/4 fields)")
+            return success
+        except Exception as e:
+            self.log_result("Drone Risk Forecast", False, f"Exception: {str(e)}")
+            return False
+
+    def test_drone_categories(self):
+        """Test REVIEW REQUEST: Drone Risk Engine - /api/risk/drone/categories"""
+        try:
+            response = requests.get(f"{self.api_url}/risk/drone/categories", timeout=10)
+            success = response.status_code == 200
+            self.log_result("Drone Categories", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Categories: {'✅' if 'categories' in data else '❌'}")
+                print(f"   Risk factors: {'✅' if 'risk_factors' in data else '❌'}")
+                print(f"   Remediation options: {'✅' if 'remediation_options' in data else '❌'}")
+                
+                if 'categories' in data:
+                    categories = data['categories']
+                    print(f"   Drone categories: {len(categories)}")
+                    expected_categories = ['RECREATIONAL', 'COMMERCIAL_SMALL', 'COMMERCIAL_MEDIUM', 'COMMERCIAL_LARGE', 'CARGO_DRONE']
+                    found_categories = [cat for cat in expected_categories if cat in categories]
+                    print(f"   Expected categories found: {len(found_categories)}/{len(expected_categories)}")
+                
+                required_fields = ['categories', 'risk_factors', 'remediation_options']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 2:
+                    print(f"   ✅ Drone Categories working ({found_fields}/3 sections)")
+                else:
+                    print(f"   ⚠️  Limited drone categories data ({found_fields}/3 sections)")
+            return success
+        except Exception as e:
+            self.log_result("Drone Categories", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_launch_assessment(self):
+        """Test REVIEW REQUEST: Space Launch Risk Engine - /api/risk/space-launch/assessment/{launch_id}"""
+        try:
+            launch_id = "STARLINK-TEST-001"
+            response = requests.get(f"{self.api_url}/risk/space-launch/assessment/{launch_id}?vehicle_type=MEDIUM_LIFT&t_minus_minutes=60", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Launch Assessment", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Launch ID: {data.get('launch_id', 'N/A')}")
+                print(f"   Vehicle type: {data.get('vehicle_type', 'N/A')}")
+                print(f"   Weather assessment: {'✅' if 'weather_assessment' in data else '❌'}")
+                print(f"   Go/No-Go decision: {'✅' if 'go_no_go_decision' in data else '❌'}")
+                
+                if 'go_no_go_decision' in data:
+                    decision = data['go_no_go_decision']
+                    print(f"   Launch status: {decision.get('status', 'N/A')}")
+                    print(f"   Confidence: {decision.get('confidence', 'N/A')}")
+                
+                if 'weather_assessment' in data:
+                    weather = data['weather_assessment']
+                    print(f"   Weather criteria met: {weather.get('criteria_met', 'N/A')}")
+                
+                required_fields = ['launch_id', 'vehicle_type', 'weather_assessment', 'go_no_go_decision']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ Space Launch Assessment working ({found_fields}/4 fields)")
+                else:
+                    print(f"   ⚠️  Limited space launch data ({found_fields}/4 fields)")
+            return success
+        except Exception as e:
+            self.log_result("Space Launch Assessment", False, f"Exception: {str(e)}")
+            return False
+
+    def test_space_launch_upcoming(self):
+        """Test REVIEW REQUEST: Space Launch Risk Engine - /api/risk/space-launch/upcoming"""
+        try:
+            response = requests.get(f"{self.api_url}/risk/space-launch/upcoming", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Space Launch Upcoming", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Upcoming launches: {'✅' if 'upcoming_launches' in data else '❌'}")
+                
+                if 'upcoming_launches' in data:
+                    launches = data['upcoming_launches']
+                    print(f"   Launch count: {len(launches)}")
+                    if launches:
+                        sample_launch = launches[0]
+                        print(f"   Sample launch: {sample_launch.get('launch_id', 'N/A')}")
+                        print(f"   Vehicle: {sample_launch.get('vehicle_type', 'N/A')}")
+                        print(f"   Status: {sample_launch.get('status', 'N/A')}")
+                
+                if len(data.get('upcoming_launches', [])) >= 2:
+                    print(f"   ✅ Space Launch Upcoming working (2+ launches)")
+                else:
+                    print(f"   ⚠️  Limited upcoming launches data")
+            return success
+        except Exception as e:
+            self.log_result("Space Launch Upcoming", False, f"Exception: {str(e)}")
+            return False
+
+    def test_military_mission_risk(self):
+        """Test REVIEW REQUEST: Military Aviation Risk Engine - /api/risk/military/mission/{mission_id}"""
+        try:
+            mission_id = "MISSION-TEST-001"
+            response = requests.get(f"{self.api_url}/risk/military/mission/{mission_id}?aircraft_type=FIGHTER&mission_type=TRAINING", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Military Mission Risk", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Mission ID: {data.get('mission_id', 'N/A')}")
+                print(f"   Aircraft type: {data.get('aircraft_type', 'N/A')}")
+                print(f"   Mission type: {data.get('mission_type', 'N/A')}")
+                print(f"   Risk assessment: {'✅' if 'risk_assessment' in data else '❌'}")
+                
+                if 'risk_assessment' in data:
+                    risk = data['risk_assessment']
+                    print(f"   Mission status: {risk.get('mission_status', 'N/A')}")
+                    print(f"   Risk level: {risk.get('risk_level', 'N/A')}")
+                
+                required_fields = ['mission_id', 'aircraft_type', 'mission_type', 'risk_assessment']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ Military Mission Risk working ({found_fields}/4 fields)")
+                else:
+                    print(f"   ⚠️  Limited military mission data ({found_fields}/4 fields)")
+            return success
+        except Exception as e:
+            self.log_result("Military Mission Risk", False, f"Exception: {str(e)}")
+            return False
+
+    def test_military_readiness(self):
+        """Test REVIEW REQUEST: Military Aviation Risk Engine - /api/risk/military/readiness"""
+        try:
+            response = requests.get(f"{self.api_url}/risk/military/readiness?base=Edwards AFB", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Military Readiness", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Base: {data.get('base', 'N/A')}")
+                print(f"   Aircraft status: {'✅' if 'aircraft_status' in data else '❌'}")
+                print(f"   Overall readiness: {'✅' if 'overall_readiness' in data else '❌'}")
+                
+                if 'aircraft_status' in data:
+                    aircraft = data['aircraft_status']
+                    print(f"   Aircraft types: {len(aircraft)}")
+                    ready_count = sum(1 for ac in aircraft if ac.get('mission_ready', False))
+                    print(f"   Mission ready: {ready_count}/{len(aircraft)}")
+                
+                if 'overall_readiness' in data:
+                    readiness = data['overall_readiness']
+                    print(f"   Readiness level: {readiness.get('level', 'N/A')}")
+                
+                required_fields = ['base', 'aircraft_status', 'overall_readiness']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 2:
+                    print(f"   ✅ Military Readiness working ({found_fields}/3 sections)")
+                else:
+                    print(f"   ⚠️  Limited military readiness data ({found_fields}/3 sections)")
+            return success
+        except Exception as e:
+            self.log_result("Military Readiness", False, f"Exception: {str(e)}")
+            return False
+
+    def test_high_altitude_logistics(self):
+        """Test REVIEW REQUEST: High Altitude Logistics - /api/risk/high-altitude/logistics/{flight_id}"""
+        try:
+            flight_id = "CARGO-TEST-001"
+            response = requests.get(f"{self.api_url}/risk/high-altitude/logistics/{flight_id}?vehicle_type=CARGO_DRONE_INTERCITY&origin_lat=34.0522&origin_lon=-118.2437&dest_lat=37.7749&dest_lon=-122.4194", timeout=15)
+            success = response.status_code == 200
+            self.log_result("High Altitude Logistics", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Flight ID: {data.get('flight_id', 'N/A')}")
+                print(f"   Vehicle type: {data.get('vehicle_type', 'N/A')}")
+                print(f"   Route analysis: {'✅' if 'route_analysis' in data else '❌'}")
+                print(f"   Risk assessment: {'✅' if 'risk_assessment' in data else '❌'}")
+                
+                if 'route_analysis' in data:
+                    route = data['route_analysis']
+                    print(f"   Distance: {route.get('distance_km', 'N/A')} km")
+                    print(f"   Duration: {route.get('estimated_duration_hours', 'N/A')} hours")
+                
+                if 'risk_assessment' in data:
+                    risk = data['risk_assessment']
+                    print(f"   Delivery forecast: {risk.get('delivery_forecast', 'N/A')}")
+                
+                required_fields = ['flight_id', 'vehicle_type', 'route_analysis', 'risk_assessment']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 3:
+                    print(f"   ✅ High Altitude Logistics working ({found_fields}/4 fields)")
+                else:
+                    print(f"   ⚠️  Limited high altitude logistics data ({found_fields}/4 fields)")
+            return success
+        except Exception as e:
+            self.log_result("High Altitude Logistics", False, f"Exception: {str(e)}")
+            return False
+
+    def test_high_altitude_network_status(self):
+        """Test REVIEW REQUEST: High Altitude Logistics - /api/risk/high-altitude/network-status"""
+        try:
+            response = requests.get(f"{self.api_url}/risk/high-altitude/network-status", timeout=15)
+            success = response.status_code == 200
+            self.log_result("High Altitude Network Status", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Network overview: {'✅' if 'network_overview' in data else '❌'}")
+                print(f"   Active routes: {'✅' if 'active_routes' in data else '❌'}")
+                
+                if 'active_routes' in data:
+                    routes = data['active_routes']
+                    print(f"   Route count: {len(routes)}")
+                    if routes:
+                        sample_route = routes[0]
+                        print(f"   Sample route: {sample_route.get('origin', 'N/A')} → {sample_route.get('destination', 'N/A')}")
+                        print(f"   Status: {sample_route.get('status', 'N/A')}")
+                
+                if 'network_overview' in data:
+                    overview = data['network_overview']
+                    print(f"   Network status: {overview.get('status', 'N/A')}")
+                
+                required_fields = ['network_overview', 'active_routes']
+                found_fields = sum(1 for field in required_fields if field in data)
+                if found_fields >= 1:
+                    print(f"   ✅ High Altitude Network Status working ({found_fields}/2 sections)")
+                else:
+                    print(f"   ⚠️  Limited network status data ({found_fields}/2 sections)")
+            return success
+        except Exception as e:
+            self.log_result("High Altitude Network Status", False, f"Exception: {str(e)}")
+            return False
+
+    def test_unified_risk_summary(self):
+        """Test REVIEW REQUEST: Unified Risk Engine - /api/risk/unified/summary"""
+        try:
+            response = requests.get(f"{self.api_url}/risk/unified/summary", timeout=15)
+            success = response.status_code == 200
+            self.log_result("Unified Risk Summary", success, 
+                          f"Status: {response.status_code}", 200, response.status_code)
+            if success:
+                data = response.json()
+                print(f"   Engine version: {data.get('engine_version', 'N/A')}")
+                print(f"   Domains: {'✅' if 'domains' in data else '❌'}")
+                
+                if 'domains' in data:
+                    domains = data['domains']
+                    expected_domains = ['aviation', 'drones', 'space_launch', 'military', 'high_altitude_logistics']
+                    found_domains = [domain for domain in expected_domains if domain in domains]
+                    print(f"   Domain coverage: {len(found_domains)}/{len(expected_domains)}")
+                    
+                    # Check each domain status
+                    for domain in found_domains:
+                        domain_data = domains[domain]
+                        status = domain_data.get('status', 'UNKNOWN')
+                        print(f"   - {domain}: {status}")
+                    
+                    operational_domains = [d for d in found_domains if domains[d].get('status') == 'OPERATIONAL']
+                    if len(operational_domains) >= 4:
+                        print(f"   ✅ Unified Risk Summary working (4+ domains operational)")
+                    else:
+                        print(f"   ⚠️  Limited operational domains ({len(operational_domains)}/5)")
+                else:
+                    print(f"   ❌ No domains data found")
+            return success
+        except Exception as e:
+            self.log_result("Unified Risk Summary", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🚀 Starting Plutus Predict API Tests")
