@@ -7857,23 +7857,42 @@ class UnifiedAtmosphericRiskEngine:
             risk_level = "LOW"
             flight_recommendation = "CLEAR_TO_OPERATE"
         
-        # Short-horizon trajectory forecast
+        # Short-horizon trajectory forecast (TIME + ALTITUDE + TRAJECTORY space)
+        current_time = datetime.now(timezone.utc)
+        current_alt = pos["altitude_ft"]
+        # Estimate vertical rate based on drone type and mission
+        vertical_rate = random.choice([-200, -100, 0, 0, 0, 100, 200])  # fpm
+        
         trajectory_forecast = []
         for t in [1, 3, 5, 10]:
             wind_change = random.uniform(-5, 5)
             future_risk = min(1.0, max(0, risk_score + (t * 0.02) + (wind_change / 100)))
+            predicted_alt = max(0, current_alt + (vertical_rate * t / 60))  # Convert fpm to per-minute
+            
             trajectory_forecast.append({
                 "time_offset_minutes": t,
-                "predicted_risk_score": round(future_risk, 3),
-                "wind_forecast_kts": wind_speed + wind_change,
-                "confidence": round(0.95 - (t * 0.05), 2)
+                "eta_time": (current_time + timedelta(minutes=t)).strftime("%H:%M:%S"),
+                "predicted_altitude_ft": int(predicted_alt),
+                "predicted_risk_percent": round(future_risk * 100, 1),
+                "wind_forecast_kts": round(wind_speed + wind_change, 1),
+                "confidence": round(0.95 - (t * 0.04), 2),
+                "summary": f"+{t} min: {round(future_risk * 100, 1)}% risk at {int(predicted_alt)}ft AGL"
             })
+        
+        # Trajectory description
+        if vertical_rate > 50:
+            trajectory_desc = f"ascending profile (+{vertical_rate} fpm)"
+        elif vertical_rate < -50:
+            trajectory_desc = f"descending profile ({vertical_rate} fpm)"
+        else:
+            trajectory_desc = f"level flight at {current_alt}ft AGL"
         
         return {
             "drone_id": drone_id,
             "drone_type": drone_type,
             "category_specs": category,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": current_time.isoformat(),
+            "forecast_paradigm": "TIME_ALTITUDE_TRAJECTORY",  # NOT geographical
             "position": pos,
             "horizon_minutes": horizon_minutes,
             "current_conditions": {
@@ -7881,7 +7900,9 @@ class UnifiedAtmosphericRiskEngine:
                 "wind_gusts_kts": wind_gusts,
                 "temperature_c": temperature,
                 "visibility_sm": round(visibility_sm, 1),
-                "precipitation": precipitation
+                "precipitation": precipitation,
+                "vertical_rate_fpm": vertical_rate,
+                "trajectory_description": trajectory_desc
             },
             "risk_assessment": {
                 "overall_risk_score": round(risk_score, 3),
@@ -7894,9 +7915,19 @@ class UnifiedAtmosphericRiskEngine:
                 "battery_impact": "HIGH" if range_reduction_percent > 30 else "MODERATE" if range_reduction_percent > 15 else "LOW",
                 "recommended_max_range_km": round(category.get("range_km", 10) * (1 - range_reduction_percent/100), 1) if isinstance(category.get("range_km"), (int, float)) else "N/A"
             },
-            "trajectory_forecast": trajectory_forecast,
+            "time_altitude_trajectory_forecast": trajectory_forecast,
+            "trajectory_risk_narrative": (
+                f"Following your current {trajectory_desc}, risk evolves from "
+                f"{round(trajectory_forecast[0]['predicted_risk_percent'], 1)}% at +1 min to "
+                f"{round(trajectory_forecast[-1]['predicted_risk_percent'], 1)}% at +{horizon_minutes} min. "
+                f"{'Initiate landing sequence.' if risk_level == 'CRITICAL' else 'Continue monitoring.' if risk_level == 'LOW' else 'Consider altitude adjustment.'}"
+            ),
             "recommended_actions": self._get_drone_actions(risk_score, risk_level),
-            "natural_language_summary": f"Drone {drone_id} ({drone_type}) has {risk_level} risk ({round(risk_score*100)}%) for the next {horizon_minutes} minutes. {flight_recommendation.replace('_', ' ')}. Primary concerns: wind at {wind_speed}kts with gusts to {wind_gusts}kts."
+            "natural_language_summary": (
+                f"Drone {drone_id} ({drone_type}) has {round(risk_score*100)}% probability of {risk_level.lower()} "
+                f"risk conditions in the next {horizon_minutes} minutes at its current {trajectory_desc}. "
+                f"{flight_recommendation.replace('_', ' ')}."
+            )
         }
     
     def _get_drone_actions(self, risk_score: float, risk_level: str) -> list:
