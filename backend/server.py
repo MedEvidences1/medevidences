@@ -11010,12 +11010,20 @@ class CronJobManager:
             name="Daily OSINT Collection"
         )
         
-        # Daily astrology fetch at 3 AM UTC
+        # Daily astrology fetch and cosmic reconciliation at 5 AM EST (10 AM UTC)
         self.scheduler.add_job(
-            self.daily_astrology_fetch,
-            CronTrigger(hour=3, minute=0),
-            id="daily_astrology",
-            name="Daily Astrology Fetch"
+            self.daily_astrology_with_reconciliation,
+            CronTrigger(hour=10, minute=0),
+            id="daily_astrology_reconciliation",
+            name="Daily Astrology Fetch & Cosmic Reconciliation (5 AM EST)"
+        )
+        
+        # Dr. Ankit Shah content retrieval for forecasting (daily at 6 AM EST / 11 AM UTC)
+        self.scheduler.add_job(
+            self.fetch_ankit_shah_forecasts,
+            CronTrigger(hour=11, minute=0),
+            id="ankit_shah_forecasts",
+            name="Dr. Ankit Shah Forecast Content Retrieval"
         )
         
         # Hourly disaster data refresh
