@@ -1327,7 +1327,19 @@ class PlutusAPITester:
         self.test_health_check()
         login_success = self.test_login()
         
-        # CURRENT REVIEW REQUEST - Specific Features (TOP PRIORITY)
+        # CURRENT REVIEW REQUEST - UNIFIED ATMOSPHERIC RISK ENGINE (TOP PRIORITY)
+        print("\n🎯 Testing CURRENT REVIEW REQUEST - Unified Atmospheric Risk Engine:")
+        self.test_drone_risk_forecast()  # REVIEW REQUEST: Drone Risk Engine - /api/risk/drone/forecast/{drone_id}
+        self.test_drone_categories()  # REVIEW REQUEST: Drone Risk Engine - /api/risk/drone/categories
+        self.test_space_launch_assessment()  # REVIEW REQUEST: Space Launch Risk Engine - /api/risk/space-launch/assessment/{launch_id}
+        self.test_space_launch_upcoming()  # REVIEW REQUEST: Space Launch Risk Engine - /api/risk/space-launch/upcoming
+        self.test_military_mission_risk()  # REVIEW REQUEST: Military Aviation Risk Engine - /api/risk/military/mission/{mission_id}
+        self.test_military_readiness()  # REVIEW REQUEST: Military Aviation Risk Engine - /api/risk/military/readiness
+        self.test_high_altitude_logistics()  # REVIEW REQUEST: High Altitude Logistics - /api/risk/high-altitude/logistics/{flight_id}
+        self.test_high_altitude_network_status()  # REVIEW REQUEST: High Altitude Logistics - /api/risk/high-altitude/network-status
+        self.test_unified_risk_summary()  # REVIEW REQUEST: Unified Risk Engine - /api/risk/unified/summary
+        
+        # CURRENT REVIEW REQUEST - Specific Features (SECONDARY PRIORITY)
         print("\n🎯 Testing CURRENT REVIEW REQUEST - Specific Features:")
         self.test_disasters_satellite_iot()  # REVIEW REQUEST: SATELLITES/IOT tab loads data without manual refresh
         self.test_disasters_playbooks()  # REVIEW REQUEST: PLAYBOOKS tab loads data without manual refresh
