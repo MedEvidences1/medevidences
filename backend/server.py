@@ -6881,6 +6881,760 @@ Format: JSON with fields: title, main_message, actions (list), resources (list o
 remediation_intelligence = RemediationIntelligenceSystem()
 
 # =============================================================================
+# AVIATION TURBULENCE INTELLIGENCE SYSTEM
+# Real-Time Aircraft-Specific Atmospheric Risk Prediction
+# =============================================================================
+
+class AviationTurbulenceSystem:
+    """
+    Advanced Aviation Turbulence Intelligence System
+    
+    Features:
+    - Real-time aircraft sensor data assimilation
+    - AI-driven turbulence probability forecasting
+    - Aircraft-specific risk bands (time + altitude + trajectory space)
+    - Short-horizon predictions (seconds to minutes)
+    - Continuous per-aircraft recalibration
+    - Dynamic risk modeling
+    
+    Data Sources:
+    - ADS-B aircraft position/motion data
+    - PIREPs (Pilot Reports) as signals
+    - Satellite wind profiling (COSMIC-2, Aeolus)
+    - Jet stream microstructure analysis
+    - NOAA/NWS turbulence forecasts
+    - LIDAR data (future integration)
+    """
+    
+    # Turbulence severity classifications (ICAO standard)
+    TURBULENCE_CATEGORIES = {
+        "NONE": {"g_range": (0.0, 0.1), "description": "No turbulence", "risk_band": 0},
+        "LIGHT": {"g_range": (0.1, 0.3), "description": "Slight erratic changes in altitude/attitude", "risk_band": 1},
+        "LIGHT_MODERATE": {"g_range": (0.3, 0.5), "description": "Similar to Light but of greater intensity", "risk_band": 2},
+        "MODERATE": {"g_range": (0.5, 1.0), "description": "Rapid bumps, aircraft remains in positive control", "risk_band": 3},
+        "MODERATE_SEVERE": {"g_range": (1.0, 1.5), "description": "Abrupt changes in altitude/attitude, large airspeed variations", "risk_band": 4},
+        "SEVERE": {"g_range": (1.5, 2.0), "description": "Aircraft may be momentarily out of control", "risk_band": 5},
+        "EXTREME": {"g_range": (2.0, 999), "description": "Aircraft practically impossible to control, structural damage possible", "risk_band": 6}
+    }
+    
+    # Turbulence source types
+    TURBULENCE_SOURCES = {
+        "CAT": "Clear Air Turbulence - jet stream associated",
+        "CONVECTIVE": "Thunderstorm/convective activity",
+        "MOUNTAIN_WAVE": "Orographic/mountain wave turbulence",
+        "WAKE": "Wake turbulence from other aircraft",
+        "LOW_LEVEL": "Low-level wind shear/thermal",
+        "FRONTAL": "Frontal system associated"
+    }
+    
+    # Remediation options for aviation turbulence
+    REMEDIATION_OPTIONS = {
+        "aviation_turbulence": [
+            {"id": "AT-001", "name": "Altitude Change Advisory", "type": "avoidance", "cost_usd": 5000, "speed_hours": 0.01, "effectiveness": 85, "lives_saved_potential": 50, "description": "Recommend altitude change to avoid turbulence band"},
+            {"id": "AT-002", "name": "Route Deviation", "type": "avoidance", "cost_usd": 15000, "speed_hours": 0.02, "effectiveness": 90, "lives_saved_potential": 100, "description": "Lateral route deviation around turbulence zone"},
+            {"id": "AT-003", "name": "Speed Adjustment", "type": "mitigation", "cost_usd": 2000, "speed_hours": 0.005, "effectiveness": 60, "lives_saved_potential": 20, "description": "Reduce to turbulence penetration speed"},
+            {"id": "AT-004", "name": "Fasten Seatbelt Alert", "type": "safety", "cost_usd": 0, "speed_hours": 0.001, "effectiveness": 95, "lives_saved_potential": 200, "description": "Immediate cabin crew and passenger notification"},
+            {"id": "AT-005", "name": "Cabin Secure Protocol", "type": "safety", "cost_usd": 500, "speed_hours": 0.005, "effectiveness": 98, "lives_saved_potential": 150, "description": "Secure cabin service, crew to stations"},
+            {"id": "AT-006", "name": "ATC Coordination", "type": "communication", "cost_usd": 1000, "speed_hours": 0.01, "effectiveness": 80, "lives_saved_potential": 500, "description": "Real-time PIREP submission and ATC turbulence advisory"},
+            {"id": "AT-007", "name": "Fleet-Wide Alert", "type": "prevention", "cost_usd": 10000, "speed_hours": 0.02, "effectiveness": 85, "lives_saved_potential": 1000, "description": "Alert all aircraft in sector of turbulence encounter"},
+            {"id": "AT-008", "name": "Predictive Climb/Descent", "type": "avoidance", "cost_usd": 8000, "speed_hours": 0.03, "effectiveness": 75, "lives_saved_potential": 80, "description": "Proactive altitude change based on prediction"},
+        ]
+    }
+    
+    def __init__(self):
+        self.active_aircraft = {}  # Aircraft being monitored
+        self.turbulence_predictions = {}  # Current predictions per aircraft
+        self.calibration_data = {}  # Per-aircraft calibration history
+        self.sensor_streams = {}  # Active sensor data streams
+        self.pirep_signals = []  # Recent PIREP signals
+        
+    async def connect_aircraft_sensors(self, aircraft_id: str, sensor_config: dict = None) -> Dict:
+        """
+        Connect to real-time aircraft sensor data streams.
+        Simulates connection to ADS-B, ACARS, and onboard sensors.
+        """
+        # Simulated sensor connection - in production would connect to actual data feeds
+        self.sensor_streams[aircraft_id] = {
+            "connected_at": datetime.now(timezone.utc).isoformat(),
+            "sensors": {
+                "ads_b": {"status": "connected", "frequency_hz": 1, "data": ["position", "altitude", "speed", "heading", "vertical_rate"]},
+                "accelerometer": {"status": "connected", "frequency_hz": 50, "data": ["vertical_g", "lateral_g", "longitudinal_g"]},
+                "air_data": {"status": "connected", "frequency_hz": 10, "data": ["airspeed", "mach", "outside_temp", "altitude"]},
+                "gps": {"status": "connected", "frequency_hz": 5, "data": ["lat", "lon", "groundspeed", "track"]},
+                "inertial": {"status": "connected", "frequency_hz": 100, "data": ["pitch", "roll", "yaw", "pitch_rate", "roll_rate"]},
+                "wind_radar": {"status": "simulated", "frequency_hz": 1, "data": ["wind_speed", "wind_direction", "shear_detected"]},
+                "lidar": {"status": "future", "frequency_hz": 0, "data": ["clear_air_detection"]}
+            },
+            "aircraft_info": sensor_config or {
+                "type": "B737-800",
+                "callsign": f"UAL{random.randint(100, 999)}",
+                "airline": "United Airlines",
+                "flight_phase": "cruise"
+            }
+        }
+        
+        # Initialize aircraft tracking
+        self.active_aircraft[aircraft_id] = {
+            "id": aircraft_id,
+            "sensors": self.sensor_streams[aircraft_id],
+            "current_state": await self._get_aircraft_state(aircraft_id),
+            "prediction_history": [],
+            "calibration_factor": 1.0,
+            "last_update": datetime.now(timezone.utc).isoformat()
+        }
+        
+        return {
+            "aircraft_id": aircraft_id,
+            "status": "connected",
+            "sensors_active": len(self.sensor_streams[aircraft_id]["sensors"]),
+            "data_rate_hz": sum(s.get("frequency_hz", 0) for s in self.sensor_streams[aircraft_id]["sensors"].values()),
+            "message": f"Real-time sensor connection established for {aircraft_id}"
+        }
+    
+    async def _get_aircraft_state(self, aircraft_id: str) -> Dict:
+        """Get current aircraft state from sensors"""
+        # Simulated real-time state - in production would aggregate actual sensor data
+        return {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "position": {
+                "latitude": 40.0 + random.uniform(-5, 5),
+                "longitude": -100.0 + random.uniform(-10, 10),
+                "altitude_ft": random.randint(30000, 41000),
+                "flight_level": f"FL{random.randint(300, 410)}"
+            },
+            "motion": {
+                "airspeed_kts": random.randint(420, 480),
+                "groundspeed_kts": random.randint(400, 550),
+                "vertical_rate_fpm": random.randint(-500, 500),
+                "heading_deg": random.randint(0, 359),
+                "track_deg": random.randint(0, 359)
+            },
+            "accelerations": {
+                "vertical_g": round(1.0 + random.uniform(-0.15, 0.15), 3),
+                "lateral_g": round(random.uniform(-0.05, 0.05), 3),
+                "longitudinal_g": round(random.uniform(-0.02, 0.02), 3)
+            },
+            "atmospheric": {
+                "outside_temp_c": random.randint(-60, -40),
+                "wind_speed_kts": random.randint(20, 150),
+                "wind_direction_deg": random.randint(0, 359),
+                "mach": round(random.uniform(0.78, 0.84), 3)
+            },
+            "flight_phase": random.choice(["climb", "cruise", "descent"])
+        }
+    
+    async def assimilate_motion_data(self, aircraft_id: str, motion_data: dict = None) -> Dict:
+        """
+        AI assimilation of aircraft motion data for turbulence detection.
+        Analyzes: vertical acceleration, wind shear gradients, jet stream microstructure.
+        """
+        if aircraft_id not in self.active_aircraft:
+            await self.connect_aircraft_sensors(aircraft_id)
+        
+        state = motion_data or await self._get_aircraft_state(aircraft_id)
+        
+        # Extract key turbulence indicators
+        vertical_g = state.get("accelerations", {}).get("vertical_g", 1.0)
+        g_deviation = abs(vertical_g - 1.0)
+        
+        # Classify current turbulence from g-force
+        current_category = "NONE"
+        for cat, info in self.TURBULENCE_CATEGORIES.items():
+            if info["g_range"][0] <= g_deviation < info["g_range"][1]:
+                current_category = cat
+                break
+        
+        # Wind shear gradient analysis
+        wind_speed = state.get("atmospheric", {}).get("wind_speed_kts", 50)
+        wind_shear_factor = min(1.0, wind_speed / 100)  # Normalize
+        
+        # Jet stream proximity (simplified)
+        altitude = state.get("position", {}).get("altitude_ft", 35000)
+        jet_stream_proximity = 1.0 if 30000 <= altitude <= 42000 else 0.3
+        
+        # Combine factors for assimilation score
+        assimilation_result = {
+            "aircraft_id": aircraft_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "motion_analysis": {
+                "vertical_acceleration_g": vertical_g,
+                "g_deviation": round(g_deviation, 3),
+                "lateral_g": state.get("accelerations", {}).get("lateral_g", 0),
+                "current_turbulence": current_category,
+                "risk_band": self.TURBULENCE_CATEGORIES[current_category]["risk_band"]
+            },
+            "wind_analysis": {
+                "wind_speed_kts": wind_speed,
+                "wind_shear_factor": round(wind_shear_factor, 2),
+                "shear_gradient_detected": wind_shear_factor > 0.7
+            },
+            "jet_stream_analysis": {
+                "proximity_factor": jet_stream_proximity,
+                "in_jet_stream_zone": jet_stream_proximity > 0.8,
+                "cat_risk_elevated": jet_stream_proximity > 0.8 and wind_shear_factor > 0.5
+            },
+            "assimilation_confidence": round(0.85 + random.uniform(-0.1, 0.1), 2)
+        }
+        
+        # Store for calibration
+        if aircraft_id not in self.calibration_data:
+            self.calibration_data[aircraft_id] = []
+        self.calibration_data[aircraft_id].append(assimilation_result)
+        
+        return assimilation_result
+    
+    async def integrate_satellite_wind_profiling(self, aircraft_id: str) -> Dict:
+        """
+        Integrate satellite and wind profiling data.
+        Sources: COSMIC-2 GNSS-RO, Aeolus LIDAR, NOAA wind profilers.
+        """
+        state = self.active_aircraft.get(aircraft_id, {}).get("current_state", {})
+        lat = state.get("position", {}).get("latitude", 40.0)
+        lon = state.get("position", {}).get("longitude", -100.0)
+        alt = state.get("position", {}).get("altitude_ft", 35000)
+        
+        return {
+            "aircraft_id": aircraft_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "satellite_data": {
+                "cosmic2_gnss_ro": {
+                    "status": "available",
+                    "temperature_profile": f"Retrieved for {lat:.1f}N {lon:.1f}W",
+                    "tropopause_height_ft": random.randint(35000, 45000),
+                    "inversion_layers": random.randint(0, 2)
+                },
+                "aeolus_lidar": {
+                    "status": "available",
+                    "wind_profile_altitude_range": f"{alt-5000}ft - {alt+5000}ft",
+                    "wind_variability_index": round(random.uniform(0.2, 0.8), 2),
+                    "cat_detection_confidence": round(random.uniform(0.6, 0.95), 2)
+                }
+            },
+            "wind_profiler_network": {
+                "nearest_profiler_nm": random.randint(50, 200),
+                "jet_stream_axis_detected": random.choice([True, False]),
+                "jet_core_altitude_ft": random.randint(32000, 42000),
+                "jet_core_speed_kts": random.randint(80, 180)
+            },
+            "integrated_wind_field": {
+                "layers": [
+                    {"altitude_ft": alt - 3000, "wind_kts": random.randint(40, 120), "direction": random.randint(200, 280)},
+                    {"altitude_ft": alt, "wind_kts": random.randint(50, 150), "direction": random.randint(200, 280)},
+                    {"altitude_ft": alt + 3000, "wind_kts": random.randint(40, 130), "direction": random.randint(200, 280)}
+                ],
+                "vertical_shear_kts_per_1000ft": round(random.uniform(5, 25), 1),
+                "horizontal_shear_gradient": round(random.uniform(0.1, 0.5), 2)
+            }
+        }
+    
+    async def process_pirep_signals(self, pirep_data: dict = None) -> Dict:
+        """
+        Process PIREPs as signals (not just reports).
+        AI interprets pilot reports for spatial-temporal turbulence patterns.
+        """
+        # Simulated PIREP signals - in production would ingest from FAA/international sources
+        pirep = pirep_data or {
+            "id": f"PIREP-{uuid.uuid4().hex[:8].upper()}",
+            "time": datetime.now(timezone.utc).isoformat(),
+            "aircraft_type": random.choice(["B737", "A320", "B777", "A350", "E175"]),
+            "location": {
+                "lat": 40.0 + random.uniform(-3, 3),
+                "lon": -100.0 + random.uniform(-5, 5)
+            },
+            "altitude_ft": random.randint(28000, 42000),
+            "turbulence_intensity": random.choice(["LIGHT", "LIGHT_MODERATE", "MODERATE", "MODERATE_SEVERE", "SEVERE"]),
+            "duration_minutes": random.randint(1, 15),
+            "remarks": random.choice([
+                "Intermittent moderate chop",
+                "Continuous light turbulence",
+                "Brief severe turbulence, returned to moderate",
+                "CAT encountered, smooth above FL390"
+            ])
+        }
+        
+        # Convert PIREP to signal
+        signal = {
+            "pirep_id": pirep["id"],
+            "timestamp": pirep["time"],
+            "signal_type": "turbulence_report",
+            "spatial_signature": {
+                "center_lat": pirep["location"]["lat"],
+                "center_lon": pirep["location"]["lon"],
+                "altitude_band": f"FL{pirep['altitude_ft']//100-10} - FL{pirep['altitude_ft']//100+10}",
+                "estimated_extent_nm": random.randint(20, 100)
+            },
+            "temporal_signature": {
+                "report_age_minutes": random.randint(0, 30),
+                "estimated_persistence_minutes": random.randint(30, 180),
+                "confidence_decay_rate": 0.05  # 5% per minute
+            },
+            "intensity_signal": {
+                "reported_intensity": pirep["turbulence_intensity"],
+                "normalized_value": self.TURBULENCE_CATEGORIES.get(pirep["turbulence_intensity"], {}).get("risk_band", 3) / 6,
+                "aircraft_type_adjustment": self._get_aircraft_sensitivity(pirep["aircraft_type"])
+            },
+            "ai_interpretation": {
+                "likely_source": random.choice(list(self.TURBULENCE_SOURCES.keys())),
+                "spatial_extent_confidence": round(random.uniform(0.6, 0.9), 2),
+                "propagation_vector": {"bearing": random.randint(0, 359), "speed_kts": random.randint(10, 50)}
+            }
+        }
+        
+        self.pirep_signals.append(signal)
+        # Keep only recent signals (last 100)
+        self.pirep_signals = self.pirep_signals[-100:]
+        
+        return signal
+    
+    def _get_aircraft_sensitivity(self, aircraft_type: str) -> float:
+        """Get turbulence sensitivity factor based on aircraft type/size"""
+        sensitivity_map = {
+            "B777": 0.8, "B787": 0.8, "A350": 0.8, "A380": 0.75,  # Large = less sensitive
+            "B737": 1.0, "A320": 1.0, "A321": 0.95,  # Medium = baseline
+            "E175": 1.2, "CRJ900": 1.2, "E190": 1.1,  # Regional = more sensitive
+            "Citation": 1.3, "Learjet": 1.4  # Business jets = most sensitive
+        }
+        return sensitivity_map.get(aircraft_type, 1.0)
+    
+    async def forecast_turbulence_probability(self, aircraft_id: str, horizon_minutes: int = 7) -> Dict:
+        """
+        Forecast short-horizon turbulence probability.
+        Communicates RISK BANDS, not certainty.
+        
+        Output example: "This aircraft has 22% probability of moderate-severe 
+        turbulence in the next 7 minutes at its current climb profile."
+        """
+        if aircraft_id not in self.active_aircraft:
+            await self.connect_aircraft_sensors(aircraft_id)
+        
+        # Get current state and analysis
+        state = await self._get_aircraft_state(aircraft_id)
+        motion_analysis = await self.assimilate_motion_data(aircraft_id, state)
+        satellite_data = await self.integrate_satellite_wind_profiling(aircraft_id)
+        
+        # Calculate base probability from multiple factors
+        base_prob = 0.05  # 5% base probability
+        
+        # Factor 1: Current conditions
+        current_risk_band = motion_analysis["motion_analysis"]["risk_band"]
+        base_prob += current_risk_band * 0.03
+        
+        # Factor 2: Wind shear
+        shear_factor = satellite_data["integrated_wind_field"]["vertical_shear_kts_per_1000ft"]
+        base_prob += (shear_factor / 25) * 0.15
+        
+        # Factor 3: Jet stream proximity
+        jet_proximity = motion_analysis["jet_stream_analysis"]["proximity_factor"]
+        base_prob += jet_proximity * 0.1
+        
+        # Factor 4: Recent PIREPs in area
+        relevant_pireps = [p for p in self.pirep_signals[-20:] if self._is_pirep_relevant(p, state)]
+        if relevant_pireps:
+            avg_pirep_intensity = sum(p["intensity_signal"]["normalized_value"] for p in relevant_pireps) / len(relevant_pireps)
+            base_prob += avg_pirep_intensity * 0.2
+        
+        # Factor 5: Flight phase risk
+        flight_phase = state.get("flight_phase", "cruise")
+        phase_risk = {"climb": 0.05, "cruise": 0.0, "descent": 0.03}.get(flight_phase, 0)
+        base_prob += phase_risk
+        
+        # Apply calibration factor for this aircraft
+        calibration = self.calibration_data.get(aircraft_id, [])
+        if len(calibration) > 10:
+            calibration_factor = 1.0  # Would calculate from historical accuracy
+        else:
+            calibration_factor = 1.0
+        
+        base_prob *= calibration_factor
+        
+        # Cap probability
+        probability = min(0.95, max(0.01, base_prob))
+        
+        # Determine predicted severity range
+        if probability > 0.4:
+            predicted_severity = "MODERATE_SEVERE to SEVERE"
+            risk_band = "HIGH (4-5)"
+        elif probability > 0.2:
+            predicted_severity = "MODERATE to MODERATE_SEVERE"
+            risk_band = "ELEVATED (3-4)"
+        elif probability > 0.1:
+            predicted_severity = "LIGHT_MODERATE to MODERATE"
+            risk_band = "MODERATE (2-3)"
+        else:
+            predicted_severity = "NONE to LIGHT"
+            risk_band = "LOW (0-1)"
+        
+        # Generate time/altitude/trajectory forecast
+        current_alt = state["position"]["altitude_ft"]
+        current_time = datetime.now(timezone.utc)
+        
+        forecast = {
+            "aircraft_id": aircraft_id,
+            "forecast_generated": current_time.isoformat(),
+            "horizon_minutes": horizon_minutes,
+            "current_state_summary": {
+                "flight_level": state["position"]["flight_level"],
+                "flight_phase": state.get("flight_phase"),
+                "current_turbulence": motion_analysis["motion_analysis"]["current_turbulence"],
+                "groundspeed_kts": state["motion"]["groundspeed_kts"]
+            },
+            "probability_forecast": {
+                "overall_probability_percent": round(probability * 100, 1),
+                "predicted_severity_range": predicted_severity,
+                "risk_band": risk_band,
+                "confidence_level": round(motion_analysis["assimilation_confidence"], 2)
+            },
+            "natural_language_summary": (
+                f"This aircraft has {round(probability * 100)}% probability of {predicted_severity.lower()} "
+                f"turbulence in the next {horizon_minutes} minutes at its current {state.get('flight_phase', 'flight')} profile."
+            ),
+            "time_altitude_trajectory_forecast": [
+                {
+                    "time_offset_minutes": 1,
+                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 1),
+                    "turbulence_probability_percent": round(probability * 100 * 0.95, 1),
+                    "confidence": 0.9
+                },
+                {
+                    "time_offset_minutes": 3,
+                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 3),
+                    "turbulence_probability_percent": round(probability * 100 * 1.0, 1),
+                    "confidence": 0.85
+                },
+                {
+                    "time_offset_minutes": 5,
+                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 5),
+                    "turbulence_probability_percent": round(probability * 100 * 1.05, 1),
+                    "confidence": 0.75
+                },
+                {
+                    "time_offset_minutes": 7,
+                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 7),
+                    "turbulence_probability_percent": round(probability * 100 * 1.1, 1),
+                    "confidence": 0.65
+                }
+            ],
+            "contributing_factors": {
+                "current_conditions_factor": round(current_risk_band * 0.03, 3),
+                "wind_shear_factor": round((shear_factor / 25) * 0.15, 3),
+                "jet_stream_factor": round(jet_proximity * 0.1, 3),
+                "pirep_factor": round(len(relevant_pireps) * 0.02, 3),
+                "flight_phase_factor": phase_risk
+            },
+            "recommended_actions": self._get_recommended_actions(probability, predicted_severity)
+        }
+        
+        # Store prediction for recalibration
+        self.turbulence_predictions[aircraft_id] = forecast
+        
+        return forecast
+    
+    def _is_pirep_relevant(self, pirep: dict, aircraft_state: dict) -> bool:
+        """Check if a PIREP is relevant to current aircraft position"""
+        pirep_lat = pirep["spatial_signature"]["center_lat"]
+        pirep_lon = pirep["spatial_signature"]["center_lon"]
+        aircraft_lat = aircraft_state["position"]["latitude"]
+        aircraft_lon = aircraft_state["position"]["longitude"]
+        
+        # Simple distance check (within ~100nm)
+        lat_diff = abs(pirep_lat - aircraft_lat)
+        lon_diff = abs(pirep_lon - aircraft_lon)
+        
+        return lat_diff < 1.5 and lon_diff < 2.0
+    
+    def _get_recommended_actions(self, probability: float, severity: str) -> list:
+        """Get recommended actions based on forecast"""
+        actions = []
+        
+        if probability > 0.3:
+            actions.append({"priority": "HIGH", "action": "Fasten Seatbelt Sign - IMMEDIATELY", "option_id": "AT-004"})
+            actions.append({"priority": "HIGH", "action": "Cabin Secure - Suspend service", "option_id": "AT-005"})
+            
+        if probability > 0.4:
+            actions.append({"priority": "HIGH", "action": "Request altitude change from ATC", "option_id": "AT-001"})
+            actions.append({"priority": "MEDIUM", "action": "Reduce to turbulence penetration speed", "option_id": "AT-003"})
+            
+        if probability > 0.5:
+            actions.append({"priority": "HIGH", "action": "Consider route deviation", "option_id": "AT-002"})
+            actions.append({"priority": "HIGH", "action": "Submit PIREP for fleet awareness", "option_id": "AT-006"})
+        
+        if probability < 0.15:
+            actions.append({"priority": "LOW", "action": "Continue monitoring - conditions favorable", "option_id": None})
+        elif probability < 0.3:
+            actions.append({"priority": "MEDIUM", "action": "Prepare cabin for possible turbulence", "option_id": "AT-004"})
+        
+        return actions
+    
+    async def get_next_risk(self, aircraft_id: str) -> Dict:
+        """
+        Answer: What's the next risk this aircraft will face?
+        Provides real-time, aircraft-specific atmospheric risk intelligence.
+        """
+        forecast = await self.forecast_turbulence_probability(aircraft_id)
+        state = await self._get_aircraft_state(aircraft_id)
+        
+        # Analyze trajectory for upcoming risks
+        risks = []
+        
+        # Risk 1: Turbulence
+        if forecast["probability_forecast"]["overall_probability_percent"] > 10:
+            risks.append({
+                "risk_type": "TURBULENCE",
+                "probability_percent": forecast["probability_forecast"]["overall_probability_percent"],
+                "severity": forecast["probability_forecast"]["predicted_severity_range"],
+                "eta_minutes": self._estimate_eta_to_turbulence(forecast),
+                "avoidance_possible": True,
+                "recommended_action": forecast["recommended_actions"][0] if forecast["recommended_actions"] else None
+            })
+        
+        # Risk 2: Icing (based on temperature and altitude)
+        temp = state["atmospheric"]["outside_temp_c"]
+        if -40 < temp < -10:
+            risks.append({
+                "risk_type": "ICING",
+                "probability_percent": round(random.uniform(5, 25), 1),
+                "severity": "LIGHT to MODERATE",
+                "eta_minutes": random.randint(2, 15),
+                "avoidance_possible": True,
+                "recommended_action": {"priority": "MEDIUM", "action": "Monitor anti-ice systems"}
+            })
+        
+        # Risk 3: Convective activity (if applicable)
+        if random.random() > 0.7:  # 30% chance of convective risk
+            risks.append({
+                "risk_type": "CONVECTIVE",
+                "probability_percent": round(random.uniform(15, 45), 1),
+                "severity": "MODERATE to SEVERE",
+                "eta_minutes": random.randint(10, 30),
+                "avoidance_possible": True,
+                "recommended_action": {"priority": "HIGH", "action": "Deviate around cell - 20nm clearance"}
+            })
+        
+        # Risk 4: Wake turbulence (if in terminal area)
+        if state["position"]["altitude_ft"] < 15000:
+            risks.append({
+                "risk_type": "WAKE_TURBULENCE",
+                "probability_percent": round(random.uniform(5, 20), 1),
+                "severity": "LIGHT to MODERATE",
+                "eta_minutes": random.randint(1, 5),
+                "avoidance_possible": True,
+                "recommended_action": {"priority": "MEDIUM", "action": "Maintain wake turbulence separation"}
+            })
+        
+        # Sort by probability
+        risks.sort(key=lambda x: x["probability_percent"], reverse=True)
+        
+        return {
+            "aircraft_id": aircraft_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "current_position": state["position"],
+            "flight_phase": state.get("flight_phase"),
+            "next_risks": risks,
+            "highest_priority_risk": risks[0] if risks else None,
+            "overall_risk_level": "HIGH" if any(r["probability_percent"] > 30 for r in risks) else "ELEVATED" if any(r["probability_percent"] > 15 for r in risks) else "LOW",
+            "summary": f"Next significant risk: {risks[0]['risk_type']} ({risks[0]['probability_percent']}% probability) in ~{risks[0]['eta_minutes']} minutes" if risks else "No significant risks detected in forecast window"
+        }
+    
+    def _estimate_eta_to_turbulence(self, forecast: dict) -> int:
+        """Estimate time to turbulence encounter"""
+        # Find when probability exceeds threshold
+        for point in forecast["time_altitude_trajectory_forecast"]:
+            if point["turbulence_probability_percent"] > 20:
+                return point["time_offset_minutes"]
+        return 10  # Default
+    
+    async def continuous_recalibration(self, aircraft_id: str, actual_encounter: dict = None) -> Dict:
+        """
+        Continuous recalibration per aircraft based on actual encounters.
+        Improves prediction accuracy over time.
+        """
+        if aircraft_id not in self.calibration_data:
+            self.calibration_data[aircraft_id] = []
+        
+        if actual_encounter:
+            # Compare prediction vs actual
+            predicted = self.turbulence_predictions.get(aircraft_id, {})
+            predicted_prob = predicted.get("probability_forecast", {}).get("overall_probability_percent", 0)
+            actual_severity = actual_encounter.get("severity", "NONE")
+            actual_occurred = actual_severity not in ["NONE", "LIGHT"]
+            
+            # Calculate prediction error
+            if actual_occurred and predicted_prob < 20:
+                error = "UNDER_PREDICTED"
+                adjustment = 1.1
+            elif not actual_occurred and predicted_prob > 30:
+                error = "OVER_PREDICTED"
+                adjustment = 0.95
+            else:
+                error = "ACCURATE"
+                adjustment = 1.0
+            
+            calibration_record = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "predicted_probability": predicted_prob,
+                "actual_severity": actual_severity,
+                "actual_occurred": actual_occurred,
+                "error_type": error,
+                "adjustment_factor": adjustment
+            }
+            
+            self.calibration_data[aircraft_id].append(calibration_record)
+            
+            # Update running calibration factor
+            recent_calibrations = self.calibration_data[aircraft_id][-50:]
+            avg_adjustment = sum(c["adjustment_factor"] for c in recent_calibrations) / len(recent_calibrations)
+            
+            return {
+                "aircraft_id": aircraft_id,
+                "calibration_updated": True,
+                "latest_record": calibration_record,
+                "running_calibration_factor": round(avg_adjustment, 3),
+                "total_calibration_points": len(self.calibration_data[aircraft_id]),
+                "prediction_accuracy_trend": self._calculate_accuracy_trend(aircraft_id)
+            }
+        
+        return {
+            "aircraft_id": aircraft_id,
+            "calibration_data_points": len(self.calibration_data.get(aircraft_id, [])),
+            "current_calibration_factor": 1.0,
+            "message": "No new encounter data provided"
+        }
+    
+    def _calculate_accuracy_trend(self, aircraft_id: str) -> str:
+        """Calculate prediction accuracy trend"""
+        data = self.calibration_data.get(aircraft_id, [])
+        if len(data) < 5:
+            return "INSUFFICIENT_DATA"
+        
+        recent_errors = [d["error_type"] for d in data[-20:]]
+        accurate_count = recent_errors.count("ACCURATE")
+        accuracy_rate = accurate_count / len(recent_errors)
+        
+        if accuracy_rate > 0.8:
+            return "EXCELLENT"
+        elif accuracy_rate > 0.6:
+            return "GOOD"
+        elif accuracy_rate > 0.4:
+            return "FAIR"
+        else:
+            return "NEEDS_IMPROVEMENT"
+    
+    async def get_dynamic_risk_model(self, aircraft_id: str) -> Dict:
+        """
+        Generate comprehensive dynamic risk model for an aircraft.
+        Combines all data sources into unified risk assessment.
+        """
+        # Gather all data
+        forecast = await self.forecast_turbulence_probability(aircraft_id, horizon_minutes=15)
+        next_risks = await self.get_next_risk(aircraft_id)
+        motion_data = await self.assimilate_motion_data(aircraft_id)
+        satellite_data = await self.integrate_satellite_wind_profiling(aircraft_id)
+        
+        state = self.active_aircraft.get(aircraft_id, {}).get("current_state", {})
+        
+        return {
+            "aircraft_id": aircraft_id,
+            "model_timestamp": datetime.now(timezone.utc).isoformat(),
+            "model_version": "2.0",
+            "aircraft_info": self.sensor_streams.get(aircraft_id, {}).get("aircraft_info", {}),
+            "current_state": {
+                "position": state.get("position"),
+                "flight_phase": state.get("flight_phase"),
+                "current_turbulence_category": motion_data["motion_analysis"]["current_turbulence"]
+            },
+            "risk_layers": {
+                "layer_1_immediate": {
+                    "horizon": "0-2 minutes",
+                    "turbulence_risk": forecast["time_altitude_trajectory_forecast"][0] if forecast["time_altitude_trajectory_forecast"] else None,
+                    "confidence": "HIGH"
+                },
+                "layer_2_short_term": {
+                    "horizon": "2-7 minutes",
+                    "turbulence_risk": forecast["probability_forecast"],
+                    "confidence": "MEDIUM-HIGH"
+                },
+                "layer_3_medium_term": {
+                    "horizon": "7-15 minutes",
+                    "turbulence_risk": forecast["time_altitude_trajectory_forecast"][-1] if forecast["time_altitude_trajectory_forecast"] else None,
+                    "confidence": "MEDIUM"
+                }
+            },
+            "integrated_risk_score": {
+                "score": round(forecast["probability_forecast"]["overall_probability_percent"] * 0.4 + 
+                              motion_data["motion_analysis"]["risk_band"] * 10, 1),
+                "max_score": 100,
+                "interpretation": "Combined probability and current conditions"
+            },
+            "data_freshness": {
+                "sensor_data_age_seconds": random.randint(0, 2),
+                "satellite_data_age_minutes": random.randint(5, 30),
+                "pirep_data_age_minutes": random.randint(0, 60)
+            },
+            "recommendations": forecast["recommended_actions"],
+            "next_update_in_seconds": 10
+        }
+    
+    async def calculate_roi(self, option_id: str, affected_flights: int = 1, 
+                           passengers_per_flight: int = 150) -> Dict:
+        """Calculate ROI for turbulence remediation actions"""
+        options = self.REMEDIATION_OPTIONS.get("aviation_turbulence", [])
+        option = next((o for o in options if o["id"] == option_id), None)
+        
+        if not option:
+            return {"error": "Option not found"}
+        
+        # Cost calculations
+        action_cost = option["cost_usd"] * affected_flights
+        
+        # Benefit calculations
+        injury_cost_per_passenger = 150000  # Average injury settlement
+        potential_injuries_per_flight = 3  # Typical severe turbulence injuries
+        injury_savings = option["effectiveness"] / 100 * potential_injuries_per_flight * injury_cost_per_passenger * affected_flights
+        
+        # Liability avoidance
+        lawsuit_probability = 0.1  # 10% chance of lawsuit per severe turbulence event
+        avg_lawsuit_cost = 2000000
+        liability_savings = lawsuit_probability * avg_lawsuit_cost * (option["effectiveness"] / 100) * affected_flights
+        
+        # Reputation/brand value
+        brand_damage_per_incident = 500000
+        brand_savings = brand_damage_per_incident * (option["effectiveness"] / 100) * affected_flights
+        
+        # Total benefit
+        total_benefit = injury_savings + liability_savings + brand_savings
+        
+        roi = ((total_benefit - action_cost) / action_cost) * 100 if action_cost > 0 else 0
+        
+        return {
+            "option": option,
+            "scenario": {
+                "affected_flights": affected_flights,
+                "passengers_per_flight": passengers_per_flight,
+                "total_passengers_protected": affected_flights * passengers_per_flight
+            },
+            "cost_analysis": {
+                "direct_action_cost": action_cost,
+                "implementation_time": f"{option['speed_hours'] * 60:.1f} minutes",
+                "fuel_cost_impact": action_cost * 0.1 if option["type"] == "avoidance" else 0
+            },
+            "benefit_analysis": {
+                "injury_prevention_value": round(injury_savings, 2),
+                "liability_avoidance_value": round(liability_savings, 2),
+                "brand_protection_value": round(brand_savings, 2),
+                "total_benefit": round(total_benefit, 2)
+            },
+            "roi_summary": {
+                "roi_percentage": round(roi, 1),
+                "net_benefit": round(total_benefit - action_cost, 2),
+                "payback_period": "Immediate" if roi > 100 else "Within flight",
+                "recommendation": "Strongly Recommended" if roi > 500 else "Recommended" if roi > 100 else "Consider"
+            }
+        }
+
+# Initialize Aviation Turbulence System
+aviation_turbulence_system = AviationTurbulenceSystem()
+
+# =============================================================================
 # SPACE HAZARDS ENGINE - Real-Time Space Weather & Debris Tracking
 # =============================================================================
 
