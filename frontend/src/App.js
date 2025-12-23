@@ -11889,7 +11889,7 @@ const PaymentRequiredModal = ({ isOpen, onClose, onUpgrade }) => {
             Trial Expired
           </DialogTitle>
           <DialogDescription className="text-[#888]">
-            Your 5-minute free trial has ended. Subscribe to continue using Plutus Predict.
+            Your 60-minute free trial has ended. Subscribe to continue using Plutus Predict.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-4">
