@@ -7767,10 +7767,23 @@ const InvestmentBankerSuite = () => {
         </div>
       )}
 
-      {loading && !dashboardData && !maPredictions && !ipoTiming && !sectorRotation && (
+      {/* Loading State */}
+      {loading && (
         <div className="text-center py-8 text-[#888]">
           <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
           Loading investment analysis...
+        </div>
+      )}
+      
+      {/* Fallback when no data loaded */}
+      {!loading && activeView === "dashboard" && !dashboardData && (
+        <div className="text-center py-8">
+          <Activity className="w-12 h-12 mx-auto mb-4 text-[#888]" />
+          <p className="text-[#888] mb-4">Unable to load dashboard data. Please try again.</p>
+          <Button onClick={loadDashboard} className="bg-[#00FF94] text-black hover:bg-[#00FF94]/80">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Retry Loading
+          </Button>
         </div>
       )}
     </div>
