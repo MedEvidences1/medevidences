@@ -1112,15 +1112,15 @@ const AIForecast = ({ getHeaders, user, setShowAuth }) => {
         </div>
       </div>
       
-      {/* View Tabs - Terminal Style */}
-      <div className="flex gap-1 p-1 bg-[#050505] rounded border border-[#1F1F1F]">
+      {/* View Tabs - Professional Pill Style */}
+      <div className="flex gap-2 p-1.5 bg-[#050505] rounded-xl border border-[#1F1F1F]">
         {views.map((v) => (
           <Button
             key={v.id}
             size="sm"
             onClick={() => setActiveView(v.id)}
-            className={`flex-1 rounded-sm transition-all ${activeView === v.id 
-              ? "bg-[#00E5FF] text-black font-bold" 
+            className={`flex-1 rounded-lg py-3 transition-all duration-200 ${activeView === v.id 
+              ? "bg-gradient-to-r from-[#00E5FF] to-[#00E5FF]/80 text-black font-bold shadow-lg shadow-[#00E5FF]/20" 
               : "bg-transparent text-[#888] hover:text-white hover:bg-[#1F1F1F]"}`}
             data-testid={`tab-${v.id}`}
           >
