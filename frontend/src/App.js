@@ -11539,6 +11539,55 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [adminType, setAdminType] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
+  
+  // Forgot password state
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [resetCodeSent, setResetCodeSent] = useState(false);
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email");
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`${API}/auth/forgot-password`, { email });
+      setResetCodeSent(true);
+      toast.success("Reset code sent to your email");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to send reset code");
+    }
+    setLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetCode || resetCode.length !== 6) {
+      toast.error("Please enter the 6-digit code");
+      return;
+    }
+    if (!newPassword || newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    setLoading(true);
+    try {
+      await axios.post(`${API}/auth/reset-password`, { 
+        email, 
+        code: resetCode, 
+        new_password: newPassword 
+      });
+      toast.success("Password reset successful! You can now login.");
+      setForgotPasswordMode(false);
+      setResetCodeSent(false);
+      setResetCode("");
+      setNewPassword("");
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Failed to reset password");
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
