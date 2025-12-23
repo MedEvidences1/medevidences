@@ -11653,6 +11653,10 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
     setVerificationCode("");
     setAdminType("");
     setPendingEmail("");
+    setForgotPasswordMode(false);
+    setResetCodeSent(false);
+    setResetCode("");
+    setNewPassword("");
   };
 
   return (
@@ -11660,16 +11664,85 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
       <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] max-w-md" data-testid="auth-modal">
         <DialogHeader>
           <DialogTitle className="text-lg">
-            {requiresVerification ? `🔐 ${adminType} VERIFICATION` : (isLogin ? "LOGIN" : "REGISTER")}
+            {forgotPasswordMode 
+              ? "🔑 RESET PASSWORD" 
+              : requiresVerification 
+                ? `🔐 ${adminType} VERIFICATION` 
+                : (isLogin ? "LOGIN" : "REGISTER")}
           </DialogTitle>
           <DialogDescription className="text-[#888]">
-            {requiresVerification 
-              ? `Enter the verification code sent to ${pendingEmail}` 
-              : (isLogin ? "Access your Plutus Predict account" : "Create a new account")}
+            {forgotPasswordMode
+              ? (resetCodeSent ? "Enter the code sent to your email" : "Enter your email to receive a reset code")
+              : requiresVerification 
+                ? `Enter the verification code sent to ${pendingEmail}` 
+                : (isLogin ? "Access your Plutus Predict account" : "Create a new account")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 mt-4">
-          {requiresVerification ? (
+          {forgotPasswordMode ? (
+            // Forgot Password Flow
+            <>
+              {!resetCodeSent ? (
+                // Step 1: Enter email
+                <>
+                  <div className="p-3 bg-[#FFD700]/10 border border-[#FFD700] rounded">
+                    <p className="text-sm text-[#FFD700]">A 6-digit code will be sent to your email</p>
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="terminal-input"
+                    onKeyDown={(e) => e.key === "Enter" && handleForgotPassword()}
+                  />
+                  <Button onClick={handleForgotPassword} disabled={loading || !email} className="btn-primary w-full">
+                    {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Mail className="w-4 h-4 mr-2" />}
+                    SEND RESET CODE
+                  </Button>
+                </>
+              ) : (
+                // Step 2: Enter code and new password
+                <>
+                  <div className="p-3 bg-[#00FF94]/10 border border-[#00FF94] rounded text-center">
+                    <p className="text-sm text-[#00FF94]">Code sent to {email}</p>
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Enter 6-digit code"
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="terminal-input text-center text-2xl tracking-widest font-mono"
+                    maxLength={6}
+                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="New Password (min 8 chars)"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="terminal-input pr-10"
+                      onKeyDown={(e) => e.key === "Enter" && resetCode.length === 6 && handleResetPassword()}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#888] hover:text-[#00E5FF]"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <Button onClick={handleResetPassword} disabled={loading || resetCode.length !== 6 || newPassword.length < 8} className="btn-primary w-full">
+                    {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Key className="w-4 h-4 mr-2" />}
+                    RESET PASSWORD
+                  </Button>
+                </>
+              )}
+              <button onClick={resetForm} className="text-sm text-[#888] hover:text-[#00E5FF] w-full text-center">
+                ← Back to login
+              </button>
+            </>
+          ) : requiresVerification ? (
             // Verification code input
             <>
               <div className="p-3 bg-[#9D4EDD]/10 border border-[#9D4EDD] rounded text-center">
