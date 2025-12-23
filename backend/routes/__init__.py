@@ -1,5 +1,6 @@
-# Plutus Predict Route Modules
-from fastapi import APIRouter
+"""
+Route modules for Plutus Predict API
+"""
+from .auth import router as auth_router
 
-# Route modules will be imported as they are created
-__all__ = ['disasters_router', 'investment_router', 'forecast_router', 'visualization_router']
+__all__ = ['auth_router']
