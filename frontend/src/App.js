@@ -3680,7 +3680,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                   HUMAN SIGNALS INTELLIGENCE
                   <Badge className="bg-[#00FF94]/20 text-[#00FF94]">REAL-TIME</Badge>
                 </CardTitle>
-                <Button onClick={() => { setHumanSignals(null); loadHumanSignals(); }} size="sm" variant="outline" className="text-xs">
+                <Button onClick={() => { setHumanSignals(null); resetTabData("human_signals"); loadHumanSignals(); }} size="sm" variant="outline" className="text-xs">
                   <RefreshCw className={`w-3 h-3 mr-1 ${humanSignalsLoading ? "animate-spin" : ""}`} />REFRESH
                 </Button>
               </div>
@@ -3885,7 +3885,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                   SATELLITES & IoT NETWORK
                   <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">SENSOR NETWORK</Badge>
                 </CardTitle>
-                <Button onClick={() => { setSatelliteIotData(null); loadSatelliteIot(); }} size="sm" variant="outline" className="text-xs">
+                <Button onClick={() => { setSatelliteIotData(null); resetTabData("sensors"); loadSatelliteIot(); }} size="sm" variant="outline" className="text-xs">
                   <RefreshCw className={`w-3 h-3 mr-1 ${satelliteLoading ? "animate-spin" : ""}`} />REFRESH
                 </Button>
               </div>
@@ -4071,7 +4071,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                   AUTOMATED RESPONSE PLAYBOOKS
                   <Badge className="bg-[#FFD700]/20 text-[#FFD700]">DECISION AUTOMATION</Badge>
                 </CardTitle>
-                <Button onClick={() => { setPlaybooks(null); loadPlaybooks(); }} size="sm" variant="outline" className="text-xs">
+                <Button onClick={() => { setPlaybooks(null); resetTabData("playbooks"); loadPlaybooks(); }} size="sm" variant="outline" className="text-xs">
                   <RefreshCw className={`w-3 h-3 mr-1 ${playbooksLoading ? "animate-spin" : ""}`} />REFRESH
                 </Button>
               </div>
