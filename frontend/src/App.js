@@ -7101,7 +7101,10 @@ const InvestmentBankerSuite = () => {
     setLoading(true);
     try {
       console.log("Loading dashboard...", API);
-      const res = await axios.get(`${API}/investment/dashboard`, { headers: getHeaders() });
+      const res = await axios.get(`${API}/investment/dashboard`, { 
+        headers: getHeaders(),
+        timeout: 30000  // 30 second timeout for slow LLM calls
+      });
       console.log("Dashboard response:", res.data);
       setDashboardData(res.data);
     } catch (e) { 
