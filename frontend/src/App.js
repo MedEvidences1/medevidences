@@ -7100,9 +7100,13 @@ const InvestmentBankerSuite = () => {
   const loadDashboard = useCallback(async () => {
     setLoading(true);
     try {
+      console.log("Loading dashboard...", API);
       const res = await axios.get(`${API}/investment/dashboard`, { headers: getHeaders() });
+      console.log("Dashboard response:", res.data);
       setDashboardData(res.data);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Dashboard load error:", e); 
+    }
     setLoading(false);
   }, [token]);
 
