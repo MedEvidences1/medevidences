@@ -12001,9 +12001,11 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
         setPendingEmail(email);
         
         if (res.data.simulated && res.data.verification_code) {
-          // For demo/testing - show the code
-          toast.info(`Demo mode: Verification code is ${res.data.verification_code}`);
+          // For demo/testing - show the code in modal AND toast
+          setDemoCode(res.data.verification_code);
+          toast.info(`Demo mode: Your verification code is ${res.data.verification_code}`, { duration: 10000 });
         } else {
+          setDemoCode("");
           toast.success(`Verification code sent to ${email}`);
         }
       } else if (res.data.token) {
