@@ -443,19 +443,19 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, setShowChangeP
   return (
     <header className="border-b border-[#1F1F1F] bg-[#050505] sticky top-0 z-50">
       <div className="flex items-center justify-between px-6 py-3">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Zap className="w-6 h-6 text-[#00E5FF]" />
             <span className="font-bold text-lg tracking-wider" style={{ fontFamily: 'IBM Plex Sans' }}>
               PLUTUS_PREDICT
             </span>
           </div>
-          <Badge variant="outline" className="text-xs border-[#1F1F1F] text-[#888]">
+          <Badge variant="outline" className="text-xs border-[#1F1F1F] text-[#888] hidden sm:inline-flex">
             v1.0.0
           </Badge>
         </div>
 
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1 overflow-x-auto flex-1 mx-4 justify-center">
           {filteredTabs.map((tab) => (
             <button
               key={tab.id}
@@ -469,7 +469,7 @@ const Navigation = ({ activeTab, setActiveTab, user, setShowAuth, setShowChangeP
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {/* Language Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
