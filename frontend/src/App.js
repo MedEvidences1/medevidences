@@ -12006,7 +12006,13 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
           toast.info(`Demo mode: Your verification code is ${res.data.verification_code}`, { duration: 10000 });
         } else {
           setDemoCode("");
-          toast.success(`Verification code sent to ${email}`);
+          // Show message based on delivery method
+          const deliveryMethod = res.data.delivery_method;
+          if (deliveryMethod === "SMS") {
+            toast.success(`Verification code sent via SMS to your mobile number`, { duration: 8000 });
+          } else {
+            toast.success(`Verification code sent to ${email}`, { duration: 8000 });
+          }
         }
       } else if (res.data.token) {
         // Regular user - direct login
