@@ -2747,6 +2747,253 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </>
       )}
 
+      {/* AVIATION TURBULENCE VIEW */}
+      {activeView === "aviation" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#00E5FF]">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Plane className="w-4 h-4 text-[#00E5FF]" />
+                  AVIATION TURBULENCE INTELLIGENCE
+                  <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">REAL-TIME AI</Badge>
+                </CardTitle>
+                <Button onClick={() => loadAviationData()} size="sm" variant="outline" className="text-xs">
+                  <RefreshCw className={`w-3 h-3 mr-1 ${aviationLoading ? "animate-spin" : ""}`} />
+                  {selectedAircraft ? "REFRESH" : "CONNECT AIRCRAFT"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-[#888]">Real-time aircraft-specific atmospheric risk prediction • Short-horizon turbulence forecasting</p>
+            </CardContent>
+          </Card>
+
+          {aviationLoading ? (
+            <div className="text-center text-[#888] py-8">
+              <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-50 animate-spin" />
+              <p>Connecting to aircraft sensors...</p>
+            </div>
+          ) : turbulenceForecast ? (
+            <div className="space-y-4">
+              {/* Main Forecast Display */}
+              <Card className="terminal-card bg-gradient-to-r from-[#0A0A0A] to-[#0A1628]">
+                <CardContent className="p-6">
+                  <div className="text-center mb-4">
+                    <div className="text-xs text-[#888] mb-2">AIRCRAFT: {selectedAircraft}</div>
+                    <div className="text-4xl font-bold mb-2" style={{
+                      color: turbulenceForecast.probability_forecast?.overall_probability_percent > 30 ? "#FF4444" :
+                             turbulenceForecast.probability_forecast?.overall_probability_percent > 15 ? "#FFD700" : "#00FF94"
+                    }}>
+                      {turbulenceForecast.probability_forecast?.overall_probability_percent}%
+                    </div>
+                    <Badge className={
+                      turbulenceForecast.probability_forecast?.overall_probability_percent > 30 ? "bg-[#FF4444]/20 text-[#FF4444]" :
+                      turbulenceForecast.probability_forecast?.overall_probability_percent > 15 ? "bg-[#FFD700]/20 text-[#FFD700]" : "bg-[#00FF94]/20 text-[#00FF94]"
+                    }>
+                      {turbulenceForecast.probability_forecast?.risk_band}
+                    </Badge>
+                  </div>
+                  <div className="p-4 bg-[#050505] rounded border border-[#1F1F1F] text-center">
+                    <p className="text-sm italic">"{turbulenceForecast.natural_language_summary}"</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Current State & Forecast Grid */}
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Current State */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-[#00E5FF]" />
+                      CURRENT STATE
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-[#888]">Flight Level:</span>
+                        <span className="font-mono">{turbulenceForecast.current_state_summary?.flight_level}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#888]">Phase:</span>
+                        <span className="font-mono uppercase">{turbulenceForecast.current_state_summary?.flight_phase}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#888]">Current Turbulence:</span>
+                        <Badge className="bg-[#00FF94]/20 text-[#00FF94]">{turbulenceForecast.current_state_summary?.current_turbulence}</Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#888]">Ground Speed:</span>
+                        <span className="font-mono">{turbulenceForecast.current_state_summary?.groundspeed_kts} kts</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Next Risk */}
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-[#FFD700]" />
+                      NEXT RISK
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {nextRisk?.highest_priority_risk ? (
+                      <div className="space-y-2">
+                        <div className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge className="bg-[#FF4444]/20 text-[#FF4444]">{nextRisk.highest_priority_risk.risk_type}</Badge>
+                            <span className="text-lg font-bold" style={{color: nextRisk.highest_priority_risk.probability_percent > 30 ? "#FF4444" : "#FFD700"}}>
+                              {nextRisk.highest_priority_risk.probability_percent}%
+                            </span>
+                          </div>
+                          <div className="text-xs text-[#888]">
+                            Severity: {nextRisk.highest_priority_risk.severity}<br/>
+                            ETA: ~{nextRisk.highest_priority_risk.eta_minutes} minutes
+                          </div>
+                        </div>
+                        <div className="text-xs text-[#888] italic">{nextRisk.summary}</div>
+                      </div>
+                    ) : (
+                      <div className="text-center text-[#00FF94] py-4">
+                        <Shield className="w-8 h-8 mx-auto mb-2" />
+                        <p>No significant risks detected</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Time/Altitude/Trajectory Forecast */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-[#9D4EDD]" />
+                    TIME + ALTITUDE + TRAJECTORY FORECAST
+                    <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">SHORT-HORIZON</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-2">
+                    {turbulenceForecast.time_altitude_trajectory_forecast?.map((point, i) => (
+                      <div key={i} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F] text-center">
+                        <div className="text-xs text-[#888] mb-1">+{point.time_offset_minutes} min</div>
+                        <div className="text-lg font-bold" style={{
+                          color: point.turbulence_probability_percent > 30 ? "#FF4444" :
+                                 point.turbulence_probability_percent > 15 ? "#FFD700" : "#00FF94"
+                        }}>
+                          {point.turbulence_probability_percent?.toFixed(1)}%
+                        </div>
+                        <div className="text-xs text-[#888]">FL{Math.round(point.predicted_altitude_ft / 100)}</div>
+                        <div className="text-xs text-[#00E5FF]">Conf: {(point.confidence * 100).toFixed(0)}%</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Contributing Factors */}
+              <Card className="terminal-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#00E5FF]" />
+                    CONTRIBUTING FACTORS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {Object.entries(turbulenceForecast.contributing_factors || {}).map(([factor, value]) => (
+                      <div key={factor} className="flex items-center gap-2">
+                        <span className="text-xs text-[#888] w-40">{factor.replace(/_/g, ' ').toUpperCase()}</span>
+                        <div className="flex-1 h-2 bg-[#1F1F1F] rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-gradient-to-r from-[#00E5FF] to-[#9D4EDD] rounded-full"
+                            style={{width: `${Math.min(100, value * 500)}%`}}
+                          />
+                        </div>
+                        <span className="text-xs font-mono w-16 text-right">{(value * 100).toFixed(1)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recommended Actions */}
+              <Card className="terminal-card border-l-4 border-l-[#00FF94]">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-[#00FF94]" />
+                    RECOMMENDED ACTIONS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {turbulenceForecast.recommended_actions?.map((action, i) => (
+                      <div key={i} className={`p-3 rounded border flex items-center gap-3 ${
+                        action.priority === "HIGH" ? "bg-[#FF4444]/10 border-[#FF4444]" :
+                        action.priority === "MEDIUM" ? "bg-[#FFD700]/10 border-[#FFD700]" : "bg-[#00FF94]/10 border-[#00FF94]"
+                      }`}>
+                        <Badge className={
+                          action.priority === "HIGH" ? "bg-[#FF4444] text-white" :
+                          action.priority === "MEDIUM" ? "bg-[#FFD700] text-black" : "bg-[#00FF94] text-black"
+                        }>
+                          {action.priority}
+                        </Badge>
+                        <span className="text-sm">{action.action}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Dynamic Risk Model */}
+              {dynamicModel && (
+                <Card className="terminal-card">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-[#9D4EDD]" />
+                      DYNAMIC RISK MODEL v{dynamicModel.model_version}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      {Object.entries(dynamicModel.risk_layers || {}).map(([layer, data]) => (
+                        <div key={layer} className="p-3 bg-[#0A0A0A] rounded border border-[#1F1F1F]">
+                          <div className="text-xs text-[#888] mb-1">{layer.replace(/_/g, ' ').toUpperCase()}</div>
+                          <div className="text-sm text-[#00E5FF]">{data.horizon}</div>
+                          <Badge className="mt-1 bg-[#00E5FF]/20 text-[#00E5FF] text-xs">
+                            Conf: {data.confidence}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-4 p-3 bg-[#0A1628] rounded border border-[#00E5FF]/30 text-center">
+                      <div className="text-xs text-[#888]">INTEGRATED RISK SCORE</div>
+                      <div className="text-3xl font-bold text-[#00E5FF]">
+                        {dynamicModel.integrated_risk_score?.score?.toFixed(1)}/100
+                      </div>
+                      <div className="text-xs text-[#888]">Next update in {dynamicModel.next_update_in_seconds}s</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Plane className="w-16 h-16 mx-auto mb-4 text-[#333]" />
+              <p className="text-[#888] mb-4">Connect to an aircraft to view real-time turbulence intelligence</p>
+              <Button onClick={() => loadAviationData()} className="bg-[#00E5FF] text-black">
+                <Plane className="w-4 h-4 mr-2" />
+                CONNECT DEMO AIRCRAFT
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* INFRASTRUCTURE STATUS VIEW */}
       {activeView === "infrastructure" && (
         <div className="space-y-4">
