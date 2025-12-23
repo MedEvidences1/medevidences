@@ -178,8 +178,8 @@ class EnterpriseEmployeeUpdate(BaseModel):
 # Admin roles that require email verification
 ADMIN_ROLES_REQUIRING_VERIFICATION = ["owner", "super_admin", "enterprise_admin"]
 
-# Trial duration for enterprise customers (5 minutes)
-ENTERPRISE_TRIAL_DURATION_SECONDS = 300  # 5 minutes
+# Trial duration for enterprise customers (60 minutes)
+ENTERPRISE_TRIAL_DURATION_SECONDS = 3600  # 60 minutes
 
 # =============================================================================
 # MULTI-LANGUAGE SUPPORT
