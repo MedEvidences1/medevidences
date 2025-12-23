@@ -11739,6 +11739,114 @@ async def logout(authorization: str = Header(None)):
         await db.sessions.delete_one({"token": token})
     return {"status": "logged out"}
 
+# Password Reset for Enterprise Users
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
+@api_router.post("/auth/forgot-password", tags=["Authentication"])
+async def forgot_password(request: ForgotPasswordRequest):
+    """
+    Request password reset for enterprise users and customers.
+    Sends a 6-digit verification code to the user's email.
+    """
+    user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    if not user:
+        # Don't reveal if email exists - always return success
+        return {"message": "If the email exists, a reset code has been sent"}
+    
+    # Owner admin must use admin login flow
+    if user.get("role") == "owner":
+        return {"message": "Owner admin must use the admin verification login flow"}
+    
+    # Generate 6-digit reset code
+    reset_code = str(random.randint(100000, 999999))
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+    
+    # Store reset code
+    await db.password_resets.update_one(
+        {"email": request.email},
+        {"$set": {
+            "email": request.email,
+            "code": reset_code,
+            "expires_at": expires_at,
+            "used": False,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    # Send email with reset code
+    try:
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #00E5FF;">Plutus Predict - Password Reset</h2>
+            <p>Hello {user.get('name', 'User')},</p>
+            <p>You requested a password reset. Use this verification code:</p>
+            <div style="background: #1a1a1a; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                <span style="font-size: 32px; font-weight: bold; color: #00E5FF; letter-spacing: 4px;">{reset_code}</span>
+            </div>
+            <p>This code expires in <strong>15 minutes</strong>.</p>
+            <p>If you didn't request this reset, please ignore this email.</p>
+            <hr style="border: 1px solid #333; margin: 20px 0;">
+            <p style="color: #888; font-size: 12px;">Plutus Predict - AI Forecasting & Disaster Prediction Platform</p>
+        </div>
+        """
+        await email_service.send_alert(request.email, "Password Reset Code - Plutus Predict", html_content)
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {e}")
+        # Still return success - code is stored
+    
+    # For development: also show code in response (remove in production)
+    logger.info(f"Password reset code for {request.email}: {reset_code}")
+    
+    return {"message": "If the email exists, a reset code has been sent", "expires_in_minutes": 15}
+
+@api_router.post("/auth/reset-password", tags=["Authentication"])
+async def reset_password(request: ResetPasswordRequest):
+    """
+    Reset password using the verification code.
+    """
+    # Find valid reset code
+    reset_record = await db.password_resets.find_one({
+        "email": request.email,
+        "code": request.code,
+        "used": False
+    })
+    
+    if not reset_record:
+        raise HTTPException(400, "Invalid or expired reset code")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(reset_record["expires_at"].replace('Z', '+00:00'))
+    if datetime.now(timezone.utc) > expires_at:
+        raise HTTPException(400, "Reset code has expired")
+    
+    # Validate password strength
+    if len(request.new_password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+    
+    # Update password
+    await db.users.update_one(
+        {"email": request.email},
+        {"$set": {
+            "password_hash": hash_password(request.new_password),
+            "password_changed_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Mark code as used
+    await db.password_resets.update_one(
+        {"email": request.email, "code": request.code},
+        {"$set": {"used": True}}
+    )
+    
+    return {"message": "Password reset successful. You can now login with your new password."}
+
 @api_router.get("/auth/me", tags=["Authentication"])
 async def get_me(user: dict = Depends(get_current_user)):
     return {k: v for k, v in user.items() if k != "password_hash"}
