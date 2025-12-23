@@ -25,6 +25,9 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 # Email Alerts with Resend
 import resend
 
+# Twilio SMS
+from twilio.rest import Client as TwilioClient
+
 # YouTube Integrations (FREE - No API Key Required)
 from youtube_transcript_api import YouTubeTranscriptApi
 import yt_dlp
