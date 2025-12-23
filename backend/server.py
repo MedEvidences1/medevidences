@@ -7677,6 +7677,735 @@ class AviationTurbulenceSystem:
 # Initialize Aviation Turbulence System
 aviation_turbulence_system = AviationTurbulenceSystem()
 
+
+# =============================================================================
+# EXPANDED ATMOSPHERIC RISK ENGINE - DRONES, SPACE, MILITARY, HIGH-ALT LOGISTICS
+# =============================================================================
+
+class UnifiedAtmosphericRiskEngine:
+    """
+    Unified Atmospheric Risk Intelligence Engine
+    
+    Extends the Aviation Turbulence System to cover:
+    - Commercial/Recreational Drones (UAV/UAS)
+    - Space Launch Operations
+    - Military Aviation & UAVs
+    - High Altitude Logistics (Stratospheric platforms, cargo drones)
+    
+    Shared Core:
+    - AI assimilation of motion/sensor data
+    - Wind shear gradient analysis
+    - Jet stream microstructure
+    - PIREPs/SIGMETs as signals
+    - Short-horizon prediction (seconds to minutes)
+    - Continuous per-vehicle recalibration
+    - Dynamic risk modeling
+    """
+    
+    def __init__(self):
+        self.aviation_engine = aviation_turbulence_system
+        self.active_vehicles = {}
+        self.calibration_data = {}
+        self.risk_predictions = {}
+        
+    # =========================================================================
+    # DRONE RISK ENGINE (UAV/UAS)
+    # =========================================================================
+    
+    DRONE_CATEGORIES = {
+        "RECREATIONAL": {"max_altitude_ft": 400, "max_weight_kg": 0.25, "range_km": 1},
+        "COMMERCIAL_SMALL": {"max_altitude_ft": 400, "max_weight_kg": 25, "range_km": 10},
+        "COMMERCIAL_MEDIUM": {"max_altitude_ft": 1000, "max_weight_kg": 150, "range_km": 50},
+        "COMMERCIAL_LARGE": {"max_altitude_ft": 5000, "max_weight_kg": 600, "range_km": 200},
+        "CARGO_DRONE": {"max_altitude_ft": 10000, "max_weight_kg": 2000, "range_km": 500},
+        "HAPS": {"max_altitude_ft": 70000, "max_weight_kg": 500, "range_km": "unlimited"}  # High Altitude Pseudo-Satellite
+    }
+    
+    DRONE_RISK_FACTORS = {
+        "wind_speed": {"weight": 0.25, "threshold_kts": {"small": 15, "medium": 25, "large": 40}},
+        "wind_gusts": {"weight": 0.20, "threshold_kts": {"small": 20, "medium": 35, "large": 50}},
+        "precipitation": {"weight": 0.15, "types": ["rain", "snow", "hail", "freezing_rain"]},
+        "visibility": {"weight": 0.10, "min_statute_miles": 3},
+        "temperature": {"weight": 0.10, "range_c": {"min": -20, "max": 45}},
+        "icing": {"weight": 0.10, "altitude_band_ft": [2000, 15000]},
+        "airspace_conflicts": {"weight": 0.10, "types": ["manned_aircraft", "other_uas", "restricted_zone"]}
+    }
+    
+    DRONE_REMEDIATION_OPTIONS = [
+        {"id": "DR-001", "name": "Auto-Land Initiation", "type": "safety", "cost_usd": 50, "effectiveness": 95, "description": "Immediate automated landing sequence"},
+        {"id": "DR-002", "name": "Return-to-Home", "type": "avoidance", "cost_usd": 20, "effectiveness": 90, "description": "Automated return to launch point"},
+        {"id": "DR-003", "name": "Altitude Adjustment", "type": "avoidance", "cost_usd": 10, "effectiveness": 70, "description": "Descend below wind shear layer"},
+        {"id": "DR-004", "name": "Hover & Hold", "type": "mitigation", "cost_usd": 30, "effectiveness": 60, "description": "Station-keeping until conditions improve"},
+        {"id": "DR-005", "name": "Route Deviation", "type": "avoidance", "cost_usd": 100, "effectiveness": 85, "description": "Lateral deviation around hazard"},
+        {"id": "DR-006", "name": "Speed Reduction", "type": "mitigation", "cost_usd": 5, "effectiveness": 50, "description": "Reduce airspeed to improve control"},
+        {"id": "DR-007", "name": "Fleet Ground Stop", "type": "prevention", "cost_usd": 5000, "effectiveness": 100, "description": "Ground all drones in affected area"},
+        {"id": "DR-008", "name": "Geofence Activation", "type": "prevention", "cost_usd": 200, "effectiveness": 95, "description": "Dynamic geofence around hazard"}
+    ]
+    
+    async def drone_risk_forecast(self, drone_id: str, drone_type: str = "COMMERCIAL_SMALL", 
+                                   position: dict = None, horizon_minutes: int = 10) -> Dict:
+        """
+        Drone-specific atmospheric risk forecast.
+        Optimized for low-altitude operations with emphasis on:
+        - Surface wind conditions
+        - Micro-weather patterns
+        - Urban canyon effects
+        - Battery/range impacts from wind
+        """
+        if drone_id not in self.active_vehicles:
+            self.active_vehicles[drone_id] = {
+                "type": "drone",
+                "category": drone_type,
+                "connected_at": datetime.now(timezone.utc).isoformat()
+            }
+        
+        category = self.DRONE_CATEGORIES.get(drone_type, self.DRONE_CATEGORIES["COMMERCIAL_SMALL"])
+        pos = position or {"lat": 37.7749, "lon": -122.4194, "altitude_ft": 200}
+        
+        # Simulate sensor data assimilation
+        wind_speed = random.randint(5, 35)
+        wind_gusts = wind_speed + random.randint(5, 20)
+        temperature = random.randint(-10, 40)
+        visibility_sm = random.uniform(1, 10)
+        precipitation = random.choice([None, "light_rain", "moderate_rain", "snow", None, None])
+        
+        # Calculate risk factors
+        risk_score = 0.0
+        risk_factors = {}
+        
+        # Wind risk (drone-specific thresholds)
+        size_class = "small" if category["max_weight_kg"] < 25 else "medium" if category["max_weight_kg"] < 150 else "large"
+        wind_threshold = self.DRONE_RISK_FACTORS["wind_speed"]["threshold_kts"][size_class]
+        wind_risk = min(1.0, wind_speed / wind_threshold)
+        risk_score += wind_risk * self.DRONE_RISK_FACTORS["wind_speed"]["weight"]
+        risk_factors["wind"] = {"value": wind_speed, "threshold": wind_threshold, "risk": round(wind_risk, 2)}
+        
+        # Gust risk
+        gust_threshold = self.DRONE_RISK_FACTORS["wind_gusts"]["threshold_kts"][size_class]
+        gust_risk = min(1.0, wind_gusts / gust_threshold)
+        risk_score += gust_risk * self.DRONE_RISK_FACTORS["wind_gusts"]["weight"]
+        risk_factors["gusts"] = {"value": wind_gusts, "threshold": gust_threshold, "risk": round(gust_risk, 2)}
+        
+        # Visibility risk
+        vis_risk = max(0, 1 - (visibility_sm / self.DRONE_RISK_FACTORS["visibility"]["min_statute_miles"]))
+        risk_score += vis_risk * self.DRONE_RISK_FACTORS["visibility"]["weight"]
+        risk_factors["visibility"] = {"value": round(visibility_sm, 1), "risk": round(vis_risk, 2)}
+        
+        # Precipitation risk
+        precip_risk = 0.8 if precipitation else 0.0
+        risk_score += precip_risk * self.DRONE_RISK_FACTORS["precipitation"]["weight"]
+        risk_factors["precipitation"] = {"type": precipitation, "risk": round(precip_risk, 2)}
+        
+        # Battery/range impact from headwind
+        headwind_factor = random.uniform(0.3, 1.0)
+        range_reduction_percent = headwind_factor * (wind_speed / 30) * 40
+        
+        # Determine risk level
+        if risk_score > 0.7:
+            risk_level = "CRITICAL"
+            flight_recommendation = "DO_NOT_FLY"
+        elif risk_score > 0.5:
+            risk_level = "HIGH"
+            flight_recommendation = "LAND_IMMEDIATELY"
+        elif risk_score > 0.3:
+            risk_level = "ELEVATED"
+            flight_recommendation = "CAUTION_ADVISED"
+        else:
+            risk_level = "LOW"
+            flight_recommendation = "CLEAR_TO_OPERATE"
+        
+        # Short-horizon trajectory forecast
+        trajectory_forecast = []
+        for t in [1, 3, 5, 10]:
+            wind_change = random.uniform(-5, 5)
+            future_risk = min(1.0, max(0, risk_score + (t * 0.02) + (wind_change / 100)))
+            trajectory_forecast.append({
+                "time_offset_minutes": t,
+                "predicted_risk_score": round(future_risk, 3),
+                "wind_forecast_kts": wind_speed + wind_change,
+                "confidence": round(0.95 - (t * 0.05), 2)
+            })
+        
+        return {
+            "drone_id": drone_id,
+            "drone_type": drone_type,
+            "category_specs": category,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "position": pos,
+            "horizon_minutes": horizon_minutes,
+            "current_conditions": {
+                "wind_speed_kts": wind_speed,
+                "wind_gusts_kts": wind_gusts,
+                "temperature_c": temperature,
+                "visibility_sm": round(visibility_sm, 1),
+                "precipitation": precipitation
+            },
+            "risk_assessment": {
+                "overall_risk_score": round(risk_score, 3),
+                "risk_level": risk_level,
+                "flight_recommendation": flight_recommendation,
+                "risk_factors": risk_factors
+            },
+            "operational_impacts": {
+                "range_reduction_percent": round(range_reduction_percent, 1),
+                "battery_impact": "HIGH" if range_reduction_percent > 30 else "MODERATE" if range_reduction_percent > 15 else "LOW",
+                "recommended_max_range_km": round(category.get("range_km", 10) * (1 - range_reduction_percent/100), 1) if isinstance(category.get("range_km"), (int, float)) else "N/A"
+            },
+            "trajectory_forecast": trajectory_forecast,
+            "recommended_actions": self._get_drone_actions(risk_score, risk_level),
+            "natural_language_summary": f"Drone {drone_id} ({drone_type}) has {risk_level} risk ({round(risk_score*100)}%) for the next {horizon_minutes} minutes. {flight_recommendation.replace('_', ' ')}. Primary concerns: wind at {wind_speed}kts with gusts to {wind_gusts}kts."
+        }
+    
+    def _get_drone_actions(self, risk_score: float, risk_level: str) -> list:
+        """Get recommended actions for drone based on risk"""
+        actions = []
+        if risk_level == "CRITICAL":
+            actions.append({"priority": "CRITICAL", "action": "Initiate immediate auto-land", "option_id": "DR-001"})
+            actions.append({"priority": "CRITICAL", "action": "Alert operator - Loss of control imminent", "option_id": None})
+        elif risk_level == "HIGH":
+            actions.append({"priority": "HIGH", "action": "Return to home immediately", "option_id": "DR-002"})
+            actions.append({"priority": "HIGH", "action": "Reduce altitude below wind shear", "option_id": "DR-003"})
+        elif risk_level == "ELEVATED":
+            actions.append({"priority": "MEDIUM", "action": "Consider route deviation", "option_id": "DR-005"})
+            actions.append({"priority": "MEDIUM", "action": "Reduce speed for better control", "option_id": "DR-006"})
+        else:
+            actions.append({"priority": "LOW", "action": "Continue monitoring - conditions acceptable", "option_id": None})
+        return actions
+
+    # =========================================================================
+    # SPACE LAUNCH RISK ENGINE
+    # =========================================================================
+    
+    LAUNCH_VEHICLE_TYPES = {
+        "SMALL_LIFT": {"payload_kg": 500, "altitude_km": 500, "weather_sensitivity": "HIGH"},
+        "MEDIUM_LIFT": {"payload_kg": 5000, "altitude_km": 800, "weather_sensitivity": "MEDIUM"},
+        "HEAVY_LIFT": {"payload_kg": 25000, "altitude_km": 1000, "weather_sensitivity": "MEDIUM"},
+        "SUPER_HEAVY": {"payload_kg": 100000, "altitude_km": "variable", "weather_sensitivity": "LOW"},
+        "REUSABLE_FIRST_STAGE": {"payload_kg": 22000, "altitude_km": 800, "weather_sensitivity": "HIGH"},  # Landing sensitivity
+        "CREWED": {"payload_kg": 3000, "altitude_km": 400, "weather_sensitivity": "CRITICAL"}
+    }
+    
+    LAUNCH_WEATHER_CRITERIA = {
+        "surface_wind_kts": {"commit": 30, "red": 34, "description": "Surface winds at pad"},
+        "upper_level_wind_kts": {"commit": 140, "red": 160, "description": "Max Q region winds"},
+        "wind_shear_kts_per_1000ft": {"commit": 25, "red": 30, "description": "Vertical wind shear"},
+        "precipitation": {"commit": "none", "red": "any", "description": "No precip within flight path"},
+        "lightning_nm": {"commit": 10, "red": 5, "description": "Lightning standoff distance"},
+        "anvil_cloud_nm": {"commit": 10, "red": 3, "description": "Attached anvil cloud distance"},
+        "cumulus_cloud_nm": {"commit": 10, "red": 5, "description": "Cumulus cloud standoff"},
+        "triggered_lightning_field_kv_m": {"commit": 1, "red": 2, "description": "Electric field strength"},
+        "temperature_c": {"commit_range": [-10, 38], "red_range": [-15, 43], "description": "Ambient temperature"},
+        "visibility_sm": {"commit": 4, "red": 3, "description": "Flight visibility"}
+    }
+    
+    SPACE_LAUNCH_REMEDIATION = [
+        {"id": "SL-001", "name": "Launch Hold", "type": "prevention", "cost_usd": 500000, "effectiveness": 100, "description": "Delay launch until conditions improve"},
+        {"id": "SL-002", "name": "Trajectory Adjustment", "type": "avoidance", "cost_usd": 50000, "effectiveness": 70, "description": "Modify ascent profile"},
+        {"id": "SL-003", "name": "Backup Landing Site", "type": "contingency", "cost_usd": 200000, "effectiveness": 85, "description": "Select alternate RTLS/downrange site"},
+        {"id": "SL-004", "name": "Weather Balloon Deployment", "type": "monitoring", "cost_usd": 10000, "effectiveness": 60, "description": "Additional upper atmosphere data"},
+        {"id": "SL-005", "name": "Lightning Suppression Protocol", "type": "safety", "cost_usd": 100000, "effectiveness": 90, "description": "Enhanced pad protection"},
+        {"id": "SL-006", "name": "Scrub & Recycle", "type": "prevention", "cost_usd": 2000000, "effectiveness": 100, "description": "Full scrub with next attempt"}
+    ]
+    
+    async def space_launch_risk_assessment(self, launch_id: str, vehicle_type: str = "MEDIUM_LIFT",
+                                           launch_site: dict = None, t_minus_minutes: int = 60) -> Dict:
+        """
+        Space Launch Weather and Atmospheric Risk Assessment
+        
+        Based on Range Weather Operations (45th Weather Squadron criteria)
+        Evaluates all Lightning Launch Commit Criteria (LLCC) and 
+        User Launch Commit Criteria (ULCC)
+        """
+        vehicle = self.LAUNCH_VEHICLE_TYPES.get(vehicle_type, self.LAUNCH_VEHICLE_TYPES["MEDIUM_LIFT"])
+        site = launch_site or {"name": "KSC LC-39A", "lat": 28.6083, "lon": -80.6041}
+        
+        # Simulate weather data collection
+        surface_wind = random.randint(5, 35)
+        upper_wind = random.randint(50, 170)
+        wind_shear = random.uniform(10, 35)
+        lightning_distance = random.choice([None, random.randint(3, 25)])
+        cumulus_present = random.choice([True, False, False])
+        electric_field = random.uniform(0.2, 2.5)
+        temp = random.randint(-5, 40)
+        visibility = random.uniform(2, 10)
+        
+        # Evaluate each criterion
+        criteria_status = {}
+        violations = []
+        
+        # Surface wind
+        if surface_wind > self.LAUNCH_WEATHER_CRITERIA["surface_wind_kts"]["red"]:
+            criteria_status["surface_wind"] = {"status": "RED", "value": surface_wind, "limit": 34}
+            violations.append("Surface wind RED violation")
+        elif surface_wind > self.LAUNCH_WEATHER_CRITERIA["surface_wind_kts"]["commit"]:
+            criteria_status["surface_wind"] = {"status": "YELLOW", "value": surface_wind, "limit": 30}
+        else:
+            criteria_status["surface_wind"] = {"status": "GREEN", "value": surface_wind, "limit": 30}
+        
+        # Upper level wind
+        if upper_wind > self.LAUNCH_WEATHER_CRITERIA["upper_level_wind_kts"]["red"]:
+            criteria_status["upper_wind"] = {"status": "RED", "value": upper_wind, "limit": 160}
+            violations.append("Upper level wind RED violation")
+        elif upper_wind > self.LAUNCH_WEATHER_CRITERIA["upper_level_wind_kts"]["commit"]:
+            criteria_status["upper_wind"] = {"status": "YELLOW", "value": upper_wind, "limit": 140}
+        else:
+            criteria_status["upper_wind"] = {"status": "GREEN", "value": upper_wind, "limit": 140}
+        
+        # Wind shear
+        if wind_shear > self.LAUNCH_WEATHER_CRITERIA["wind_shear_kts_per_1000ft"]["red"]:
+            criteria_status["wind_shear"] = {"status": "RED", "value": round(wind_shear, 1), "limit": 30}
+            violations.append("Wind shear RED violation")
+        elif wind_shear > self.LAUNCH_WEATHER_CRITERIA["wind_shear_kts_per_1000ft"]["commit"]:
+            criteria_status["wind_shear"] = {"status": "YELLOW", "value": round(wind_shear, 1), "limit": 25}
+        else:
+            criteria_status["wind_shear"] = {"status": "GREEN", "value": round(wind_shear, 1), "limit": 25}
+        
+        # Lightning
+        if lightning_distance and lightning_distance < self.LAUNCH_WEATHER_CRITERIA["lightning_nm"]["red"]:
+            criteria_status["lightning"] = {"status": "RED", "distance_nm": lightning_distance, "limit": 5}
+            violations.append("Lightning within RED zone")
+        elif lightning_distance and lightning_distance < self.LAUNCH_WEATHER_CRITERIA["lightning_nm"]["commit"]:
+            criteria_status["lightning"] = {"status": "YELLOW", "distance_nm": lightning_distance, "limit": 10}
+        else:
+            criteria_status["lightning"] = {"status": "GREEN", "distance_nm": lightning_distance or "None detected", "limit": 10}
+        
+        # Electric field (triggered lightning risk)
+        if electric_field > self.LAUNCH_WEATHER_CRITERIA["triggered_lightning_field_kv_m"]["red"]:
+            criteria_status["electric_field"] = {"status": "RED", "value_kv_m": round(electric_field, 2), "limit": 2}
+            violations.append("Electric field - triggered lightning risk")
+        elif electric_field > self.LAUNCH_WEATHER_CRITERIA["triggered_lightning_field_kv_m"]["commit"]:
+            criteria_status["electric_field"] = {"status": "YELLOW", "value_kv_m": round(electric_field, 2), "limit": 1}
+        else:
+            criteria_status["electric_field"] = {"status": "GREEN", "value_kv_m": round(electric_field, 2), "limit": 1}
+        
+        # Cumulus clouds
+        if cumulus_present:
+            criteria_status["cumulus"] = {"status": "YELLOW", "present": True, "note": "Monitor for development"}
+        else:
+            criteria_status["cumulus"] = {"status": "GREEN", "present": False}
+        
+        # Overall GO/NO-GO determination
+        red_count = sum(1 for c in criteria_status.values() if c.get("status") == "RED")
+        yellow_count = sum(1 for c in criteria_status.values() if c.get("status") == "YELLOW")
+        
+        if red_count > 0:
+            launch_status = "NO-GO"
+            probability_of_launch = max(0, 30 - (red_count * 15))
+        elif yellow_count > 2:
+            launch_status = "HOLD"
+            probability_of_launch = 50 - (yellow_count * 10)
+        elif yellow_count > 0:
+            launch_status = "CAUTION"
+            probability_of_launch = 80 - (yellow_count * 10)
+        else:
+            launch_status = "GO"
+            probability_of_launch = 95
+        
+        # Crewed mission has stricter criteria
+        if vehicle_type == "CREWED" and yellow_count > 0:
+            launch_status = "HOLD" if launch_status == "CAUTION" else launch_status
+            probability_of_launch = min(probability_of_launch, 60)
+        
+        # Time-based forecast
+        weather_windows = []
+        current_time = datetime.now(timezone.utc)
+        for offset_hours in [0, 1, 2, 4, 6]:
+            improvement_factor = random.uniform(-0.2, 0.3)
+            future_prob = min(95, max(10, probability_of_launch + (improvement_factor * 30)))
+            weather_windows.append({
+                "time": (current_time + timedelta(hours=offset_hours)).isoformat(),
+                "offset_hours": offset_hours,
+                "probability_percent": round(future_prob, 1),
+                "trend": "IMPROVING" if improvement_factor > 0.1 else "DEGRADING" if improvement_factor < -0.1 else "STABLE"
+            })
+        
+        return {
+            "launch_id": launch_id,
+            "vehicle_type": vehicle_type,
+            "vehicle_specs": vehicle,
+            "launch_site": site,
+            "timestamp": current_time.isoformat(),
+            "t_minus_minutes": t_minus_minutes,
+            "current_conditions": {
+                "surface_wind_kts": surface_wind,
+                "upper_level_wind_kts": upper_wind,
+                "wind_shear_kts_per_1000ft": round(wind_shear, 1),
+                "lightning_distance_nm": lightning_distance,
+                "electric_field_kv_m": round(electric_field, 2),
+                "temperature_c": temp,
+                "visibility_sm": round(visibility, 1),
+                "cumulus_present": cumulus_present
+            },
+            "criteria_evaluation": criteria_status,
+            "violations": violations,
+            "launch_decision": {
+                "status": launch_status,
+                "probability_of_launch_percent": probability_of_launch,
+                "red_violations": red_count,
+                "yellow_cautions": yellow_count,
+                "recommendation": "PROCEED" if launch_status == "GO" else "HOLD FOR CONDITIONS" if launch_status in ["HOLD", "CAUTION"] else "SCRUB RECOMMENDED"
+            },
+            "weather_windows": weather_windows,
+            "recommended_actions": self._get_launch_actions(launch_status, violations),
+            "recovery_operations": {
+                "booster_landing_weather": "FAVORABLE" if surface_wind < 20 else "MARGINAL" if surface_wind < 30 else "UNFAVORABLE",
+                "dragon_splashdown_seas": random.choice(["SEA STATE 3", "SEA STATE 4", "SEA STATE 5"]),
+                "backup_sites_status": {
+                    "RTLS": "GREEN" if surface_wind < 25 else "YELLOW",
+                    "Droneship": "GREEN" if random.random() > 0.3 else "YELLOW",
+                    "Downrange": "GREEN"
+                }
+            },
+            "natural_language_summary": f"Launch {launch_id} ({vehicle_type}) is currently {launch_status}. {len(violations)} RED violations, {yellow_count} YELLOW cautions. Launch probability: {probability_of_launch}%. Key concerns: {', '.join(violations[:2]) if violations else 'None critical'}."
+        }
+    
+    def _get_launch_actions(self, status: str, violations: list) -> list:
+        """Get recommended actions for space launch"""
+        actions = []
+        if status == "NO-GO":
+            actions.append({"priority": "CRITICAL", "action": "Hold countdown - weather violation", "option_id": "SL-001"})
+            if any("lightning" in v.lower() for v in violations):
+                actions.append({"priority": "HIGH", "action": "Activate lightning suppression", "option_id": "SL-005"})
+            actions.append({"priority": "HIGH", "action": "Evaluate scrub decision", "option_id": "SL-006"})
+        elif status == "HOLD":
+            actions.append({"priority": "HIGH", "action": "Built-in hold - monitor conditions", "option_id": "SL-001"})
+            actions.append({"priority": "MEDIUM", "action": "Deploy additional weather balloons", "option_id": "SL-004"})
+        elif status == "CAUTION":
+            actions.append({"priority": "MEDIUM", "action": "Continue monitoring - conditions marginal", "option_id": None})
+            actions.append({"priority": "LOW", "action": "Prepare backup landing sites", "option_id": "SL-003"})
+        else:
+            actions.append({"priority": "LOW", "action": "Conditions favorable - proceed with countdown", "option_id": None})
+        return actions
+
+    # =========================================================================
+    # MILITARY AVIATION RISK ENGINE
+    # =========================================================================
+    
+    MILITARY_AIRCRAFT_TYPES = {
+        "FIGHTER": {"category": "fast_jet", "ceiling_ft": 65000, "weather_min": "low"},
+        "BOMBER": {"category": "heavy", "ceiling_ft": 50000, "weather_min": "medium"},
+        "TRANSPORT": {"category": "cargo", "ceiling_ft": 45000, "weather_min": "medium"},
+        "TANKER": {"category": "support", "ceiling_ft": 40000, "weather_min": "high"},
+        "HELICOPTER": {"category": "rotary", "ceiling_ft": 20000, "weather_min": "high"},
+        "UAV_TACTICAL": {"category": "uas", "ceiling_ft": 25000, "weather_min": "medium"},
+        "UAV_HALE": {"category": "uas_high", "ceiling_ft": 70000, "weather_min": "low"},  # Global Hawk class
+        "TILTROTOR": {"category": "vtol", "ceiling_ft": 25000, "weather_min": "high"}
+    }
+    
+    MILITARY_MISSION_TYPES = {
+        "TRAINING": {"risk_tolerance": "LOW", "abort_threshold": 0.4},
+        "EXERCISE": {"risk_tolerance": "MEDIUM", "abort_threshold": 0.5},
+        "OPERATIONAL": {"risk_tolerance": "HIGH", "abort_threshold": 0.7},
+        "COMBAT": {"risk_tolerance": "VERY_HIGH", "abort_threshold": 0.85},
+        "SAR": {"risk_tolerance": "ELEVATED", "abort_threshold": 0.6},  # Search & Rescue
+        "MEDEVAC": {"risk_tolerance": "ELEVATED", "abort_threshold": 0.65}
+    }
+    
+    MILITARY_REMEDIATION = [
+        {"id": "MIL-001", "name": "Mission Abort", "type": "safety", "cost_usd": 50000, "effectiveness": 100},
+        {"id": "MIL-002", "name": "Alternate Route", "type": "avoidance", "cost_usd": 20000, "effectiveness": 80},
+        {"id": "MIL-003", "name": "Altitude Change", "type": "avoidance", "cost_usd": 5000, "effectiveness": 75},
+        {"id": "MIL-004", "name": "Divert to Alternate", "type": "contingency", "cost_usd": 30000, "effectiveness": 90},
+        {"id": "MIL-005", "name": "Formation Spread", "type": "mitigation", "cost_usd": 1000, "effectiveness": 60},
+        {"id": "MIL-006", "name": "Speed Adjustment", "type": "mitigation", "cost_usd": 500, "effectiveness": 50},
+        {"id": "MIL-007", "name": "Weather Penetration", "type": "accept_risk", "cost_usd": 0, "effectiveness": 30}
+    ]
+    
+    async def military_mission_risk_assessment(self, mission_id: str, aircraft_type: str = "FIGHTER",
+                                                mission_type: str = "TRAINING", route: list = None) -> Dict:
+        """
+        Military Aviation Atmospheric Risk Assessment
+        
+        Considers:
+        - Aircraft-specific weather minimums
+        - Mission criticality and risk tolerance
+        - Formation flying risks
+        - Tactical considerations (radar visibility in precip)
+        - Night/NVG operations
+        """
+        aircraft = self.MILITARY_AIRCRAFT_TYPES.get(aircraft_type, self.MILITARY_AIRCRAFT_TYPES["FIGHTER"])
+        mission = self.MILITARY_MISSION_TYPES.get(mission_type, self.MILITARY_MISSION_TYPES["TRAINING"])
+        
+        # Simulate weather along route
+        route_points = route or [
+            {"name": "Departure", "lat": 35.0, "lon": -117.0},
+            {"name": "Waypoint Alpha", "lat": 36.0, "lon": -118.0},
+            {"name": "Target Area", "lat": 37.0, "lon": -119.0},
+            {"name": "Recovery", "lat": 35.5, "lon": -117.5}
+        ]
+        
+        route_weather = []
+        max_risk = 0.0
+        for point in route_points:
+            weather = {
+                "point": point["name"],
+                "wind_speed_kts": random.randint(10, 60),
+                "wind_direction": random.randint(0, 359),
+                "ceiling_ft": random.choice([500, 1000, 2000, 5000, 10000, 25000, None]),
+                "visibility_sm": random.uniform(0.5, 10),
+                "precipitation": random.choice([None, "rain", "snow", "thunderstorm", None, None]),
+                "turbulence": random.choice(["NONE", "LIGHT", "MODERATE", "SEVERE"]),
+                "icing": random.choice([None, "LIGHT", "MODERATE", "SEVERE"])
+            }
+            
+            # Calculate point risk
+            point_risk = 0.0
+            if weather["ceiling_ft"] and weather["ceiling_ft"] < 2000:
+                point_risk += 0.3
+            if weather["visibility_sm"] < 3:
+                point_risk += 0.25
+            if weather["precipitation"] == "thunderstorm":
+                point_risk += 0.4
+            if weather["turbulence"] in ["MODERATE", "SEVERE"]:
+                point_risk += 0.2 if weather["turbulence"] == "MODERATE" else 0.35
+            if weather["icing"] in ["MODERATE", "SEVERE"]:
+                point_risk += 0.15 if weather["icing"] == "MODERATE" else 0.3
+            
+            weather["risk_score"] = round(min(1.0, point_risk), 2)
+            max_risk = max(max_risk, point_risk)
+            route_weather.append(weather)
+        
+        # Apply mission risk tolerance
+        abort_threshold = mission["abort_threshold"]
+        adjusted_risk = max_risk * (1.0 if mission_type == "TRAINING" else 0.8 if mission_type == "OPERATIONAL" else 0.6)
+        
+        # Determine mission status
+        if adjusted_risk > abort_threshold:
+            mission_status = "ABORT_RECOMMENDED"
+        elif adjusted_risk > abort_threshold * 0.7:
+            mission_status = "CAUTION"
+        else:
+            mission_status = "GO"
+        
+        # Special considerations
+        special_considerations = []
+        if aircraft["category"] == "rotary" and any(w["wind_speed_kts"] > 40 for w in route_weather):
+            special_considerations.append("High winds exceed rotary wing limits")
+        if aircraft["category"] == "uas" and any(w["precipitation"] for w in route_weather):
+            special_considerations.append("Precipitation impacts UAV sensor performance")
+        if any(w["precipitation"] == "thunderstorm" for w in route_weather):
+            special_considerations.append("Thunderstorm activity - radar returns masked")
+        
+        return {
+            "mission_id": mission_id,
+            "aircraft_type": aircraft_type,
+            "aircraft_specs": aircraft,
+            "mission_type": mission_type,
+            "mission_parameters": mission,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "route_weather_analysis": route_weather,
+            "risk_assessment": {
+                "max_route_risk": round(max_risk, 2),
+                "adjusted_risk": round(adjusted_risk, 2),
+                "abort_threshold": abort_threshold,
+                "mission_status": mission_status,
+                "go_probability_percent": round((1 - adjusted_risk) * 100, 1)
+            },
+            "special_considerations": special_considerations,
+            "alternate_bases": [
+                {"name": "Edwards AFB", "status": "GREEN", "distance_nm": 85},
+                {"name": "Nellis AFB", "status": "YELLOW", "distance_nm": 120},
+                {"name": "Luke AFB", "status": "GREEN", "distance_nm": 250}
+            ],
+            "recommended_actions": self._get_military_actions(mission_status, mission_type),
+            "formation_advisory": {
+                "recommended_spread_nm": 1.0 if max_risk > 0.5 else 0.5,
+                "rejoin_advisory": "DELAY" if any(w["turbulence"] == "SEVERE" for w in route_weather) else "STANDARD"
+            },
+            "natural_language_summary": f"Mission {mission_id} ({aircraft_type}, {mission_type}) status: {mission_status}. Max route risk: {round(max_risk*100)}%. {len(special_considerations)} special considerations noted."
+        }
+    
+    def _get_military_actions(self, status: str, mission_type: str) -> list:
+        """Get recommended actions for military mission"""
+        actions = []
+        if status == "ABORT_RECOMMENDED":
+            if mission_type in ["COMBAT", "SAR", "MEDEVAC"]:
+                actions.append({"priority": "HIGH", "action": "Commander decision required - mission critical", "option_id": None})
+                actions.append({"priority": "MEDIUM", "action": "Consider weather penetration if tactically necessary", "option_id": "MIL-007"})
+            else:
+                actions.append({"priority": "HIGH", "action": "Recommend mission abort", "option_id": "MIL-001"})
+            actions.append({"priority": "HIGH", "action": "Identify divert bases", "option_id": "MIL-004"})
+        elif status == "CAUTION":
+            actions.append({"priority": "MEDIUM", "action": "File alternate route", "option_id": "MIL-002"})
+            actions.append({"priority": "MEDIUM", "action": "Increase formation spread", "option_id": "MIL-005"})
+        else:
+            actions.append({"priority": "LOW", "action": "Standard procedures - conditions acceptable", "option_id": None})
+        return actions
+
+    # =========================================================================
+    # HIGH ALTITUDE LOGISTICS RISK ENGINE
+    # =========================================================================
+    
+    HIGH_ALT_VEHICLE_TYPES = {
+        "CARGO_DRONE_REGIONAL": {"ceiling_ft": 15000, "payload_kg": 500, "range_km": 200, "cruise_speed_kts": 120},
+        "CARGO_DRONE_INTERCITY": {"ceiling_ft": 25000, "payload_kg": 2000, "range_km": 800, "cruise_speed_kts": 200},
+        "STRATOSPHERIC_CARGO": {"ceiling_ft": 65000, "payload_kg": 5000, "range_km": 3000, "cruise_speed_kts": 300},
+        "AIRSHIP_HEAVY": {"ceiling_ft": 20000, "payload_kg": 50000, "range_km": 5000, "cruise_speed_kts": 80},
+        "HAPS_PLATFORM": {"ceiling_ft": 70000, "payload_kg": 100, "range_km": "station_keeping", "cruise_speed_kts": 50},
+        "HYBRID_VTOL_CARGO": {"ceiling_ft": 15000, "payload_kg": 300, "range_km": 150, "cruise_speed_kts": 100}
+    }
+    
+    HIGH_ALT_LOGISTICS_FACTORS = {
+        "jet_stream_impact": {"weight": 0.2, "description": "High altitude wind patterns"},
+        "clear_air_turbulence": {"weight": 0.2, "description": "CAT risk at cruise altitude"},
+        "icing_conditions": {"weight": 0.15, "description": "Structural ice accumulation"},
+        "thunderstorm_tops": {"weight": 0.15, "description": "Convective activity penetration"},
+        "tropopause_crossing": {"weight": 0.1, "description": "Turbulence at tropopause"},
+        "volcanic_ash": {"weight": 0.1, "description": "Volcanic ash cloud avoidance"},
+        "solar_radiation": {"weight": 0.1, "description": "High altitude radiation exposure"}
+    }
+    
+    HIGH_ALT_REMEDIATION = [
+        {"id": "HAL-001", "name": "Altitude Optimization", "type": "efficiency", "cost_usd": 1000, "effectiveness": 80},
+        {"id": "HAL-002", "name": "Route Deviation", "type": "avoidance", "cost_usd": 5000, "effectiveness": 85},
+        {"id": "HAL-003", "name": "Speed Adjustment", "type": "efficiency", "cost_usd": 500, "effectiveness": 60},
+        {"id": "HAL-004", "name": "Payload Reduction", "type": "safety", "cost_usd": 20000, "effectiveness": 90},
+        {"id": "HAL-005", "name": "Mission Abort", "type": "safety", "cost_usd": 50000, "effectiveness": 100},
+        {"id": "HAL-006", "name": "Alternate Landing", "type": "contingency", "cost_usd": 10000, "effectiveness": 95},
+        {"id": "HAL-007", "name": "Jet Stream Surfing", "type": "efficiency", "cost_usd": 0, "effectiveness": 70, "description": "Optimize route to use favorable winds"}
+    ]
+    
+    async def high_altitude_logistics_risk(self, flight_id: str, vehicle_type: str = "CARGO_DRONE_INTERCITY",
+                                            origin: dict = None, destination: dict = None) -> Dict:
+        """
+        High Altitude Logistics Risk Assessment
+        
+        For stratospheric and high-altitude cargo operations:
+        - Jet stream analysis for route optimization
+        - CAT prediction along flight corridor
+        - Delivery time impact assessment
+        - Fuel/energy efficiency optimization
+        """
+        vehicle = self.HIGH_ALT_VEHICLE_TYPES.get(vehicle_type, self.HIGH_ALT_VEHICLE_TYPES["CARGO_DRONE_INTERCITY"])
+        orig = origin or {"name": "Los Angeles Hub", "lat": 34.0522, "lon": -118.2437}
+        dest = destination or {"name": "San Francisco Hub", "lat": 37.7749, "lon": -122.4194}
+        
+        # Calculate route distance (simplified)
+        distance_nm = 300 + random.randint(-50, 50)
+        
+        # Simulate atmospheric conditions along route
+        cruise_alt = vehicle["ceiling_ft"] * 0.85
+        
+        jet_stream = {
+            "core_altitude_ft": random.randint(30000, 40000),
+            "core_speed_kts": random.randint(80, 180),
+            "direction": random.randint(240, 300),
+            "width_nm": random.randint(100, 300),
+            "on_route": random.random() > 0.4
+        }
+        
+        cat_risk = {
+            "probability_percent": random.randint(5, 45),
+            "expected_intensity": random.choice(["LIGHT", "LIGHT-MODERATE", "MODERATE", "MODERATE-SEVERE"]),
+            "altitude_band_ft": [cruise_alt - 3000, cruise_alt + 3000]
+        }
+        
+        icing_risk = {
+            "probability_percent": random.randint(0, 30),
+            "type": random.choice(["RIME", "CLEAR", "MIXED"]),
+            "altitude_band_ft": [15000, 25000]
+        }
+        
+        # Calculate overall risk
+        risk_score = 0.0
+        risk_score += (cat_risk["probability_percent"] / 100) * self.HIGH_ALT_LOGISTICS_FACTORS["clear_air_turbulence"]["weight"]
+        risk_score += (icing_risk["probability_percent"] / 100) * self.HIGH_ALT_LOGISTICS_FACTORS["icing_conditions"]["weight"]
+        
+        jet_stream_impact = 0.0
+        if jet_stream["on_route"]:
+            # Headwind/tailwind calculation (simplified)
+            if 240 <= jet_stream["direction"] <= 300:  # Westerly, flying east
+                jet_stream_impact = jet_stream["core_speed_kts"] / 200  # Beneficial (tailwind)
+                risk_score -= 0.05  # Reduce risk score for favorable winds
+            else:
+                jet_stream_impact = -jet_stream["core_speed_kts"] / 400  # Detrimental (headwind)
+                risk_score += 0.1
+        
+        # Delivery time impact
+        base_flight_time_hr = distance_nm / vehicle["cruise_speed_kts"]
+        wind_adjustment = jet_stream_impact * 0.3  # 30% impact from jet stream
+        adjusted_flight_time_hr = base_flight_time_hr * (1 - wind_adjustment)
+        
+        # Energy efficiency
+        energy_efficiency = 100 - (risk_score * 30) + (jet_stream_impact * 20)
+        
+        # Risk level determination
+        if risk_score > 0.5:
+            risk_level = "HIGH"
+            operation_status = "CAUTION"
+        elif risk_score > 0.3:
+            risk_level = "MODERATE"
+            operation_status = "PROCEED_WITH_MONITORING"
+        else:
+            risk_level = "LOW"
+            operation_status = "OPTIMAL"
+        
+        return {
+            "flight_id": flight_id,
+            "vehicle_type": vehicle_type,
+            "vehicle_specs": vehicle,
+            "route": {
+                "origin": orig,
+                "destination": dest,
+                "distance_nm": distance_nm,
+                "cruise_altitude_ft": int(cruise_alt)
+            },
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "atmospheric_analysis": {
+                "jet_stream": jet_stream,
+                "clear_air_turbulence": cat_risk,
+                "icing_conditions": icing_risk,
+                "tropopause_height_ft": random.randint(35000, 45000),
+                "volcanic_ash_advisory": None
+            },
+            "risk_assessment": {
+                "overall_risk_score": round(risk_score, 3),
+                "risk_level": risk_level,
+                "operation_status": operation_status,
+                "cat_risk_percent": cat_risk["probability_percent"],
+                "icing_risk_percent": icing_risk["probability_percent"]
+            },
+            "operational_impacts": {
+                "base_flight_time_hr": round(base_flight_time_hr, 2),
+                "adjusted_flight_time_hr": round(adjusted_flight_time_hr, 2),
+                "time_impact_percent": round((adjusted_flight_time_hr - base_flight_time_hr) / base_flight_time_hr * 100, 1),
+                "energy_efficiency_percent": round(energy_efficiency, 1),
+                "jet_stream_benefit": "FAVORABLE" if jet_stream_impact > 0 else "UNFAVORABLE" if jet_stream_impact < 0 else "NEUTRAL",
+                "fuel_savings_percent": round(max(0, jet_stream_impact * 15), 1)
+            },
+            "route_optimization": {
+                "current_route_score": round(70 + (jet_stream_impact * 20), 1),
+                "alternate_altitude_recommended": cruise_alt + 2000 if cat_risk["probability_percent"] > 25 else None,
+                "jet_stream_surfing_available": jet_stream["on_route"] and jet_stream_impact > 0,
+                "optimal_departure_window": "Next 2 hours" if risk_score < 0.3 else "Wait 4+ hours"
+            },
+            "recommended_actions": self._get_high_alt_actions(risk_level, cat_risk, jet_stream),
+            "delivery_forecast": {
+                "eta_hours": round(adjusted_flight_time_hr, 2),
+                "confidence_percent": 95 - int(risk_score * 30),
+                "on_time_probability": 90 - int(risk_score * 40)
+            },
+            "natural_language_summary": f"Flight {flight_id} ({vehicle_type}) route {orig['name']} to {dest['name']}: {risk_level} risk. ETA: {round(adjusted_flight_time_hr, 1)}hrs. {'Jet stream tailwind advantage available.' if jet_stream_impact > 0 else 'Headwind conditions expected.'} CAT risk: {cat_risk['probability_percent']}%."
+        }
+    
+    def _get_high_alt_actions(self, risk_level: str, cat_risk: dict, jet_stream: dict) -> list:
+        """Get recommended actions for high altitude logistics"""
+        actions = []
+        if risk_level == "HIGH":
+            actions.append({"priority": "HIGH", "action": "Consider mission delay", "option_id": "HAL-005"})
+            actions.append({"priority": "HIGH", "action": "Route deviation recommended", "option_id": "HAL-002"})
+        if cat_risk["probability_percent"] > 25:
+            actions.append({"priority": "MEDIUM", "action": "Altitude optimization to avoid CAT", "option_id": "HAL-001"})
+        if jet_stream.get("on_route") and jet_stream.get("core_speed_kts", 0) > 100:
+            actions.append({"priority": "MEDIUM", "action": "Consider jet stream surfing for efficiency", "option_id": "HAL-007"})
+        if risk_level == "LOW":
+            actions.append({"priority": "LOW", "action": "Optimal conditions - proceed as planned", "option_id": None})
+        return actions
+
+
+# Initialize Unified Atmospheric Risk Engine
+unified_risk_engine = UnifiedAtmosphericRiskEngine()
+
 # =============================================================================
 # SPACE HAZARDS ENGINE - Real-Time Space Weather & Debris Tracking
 # =============================================================================
