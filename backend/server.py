@@ -5827,6 +5827,43 @@ class RemediationIntelligenceSystem:
             {"id": "PA-003", "name": "Hospital Surge", "type": "medical", "cost_usd": 200000000, "speed_hours": 72, "effectiveness": 90, "lives_saved_potential": 25000, "description": "Activate hospital surge capacity and field hospitals"},
             {"id": "PA-004", "name": "Travel Restrictions", "type": "containment", "cost_usd": 10000000, "speed_hours": 12, "effectiveness": 70, "lives_saved_potential": 200000, "description": "Implement travel restrictions and border controls"},
             {"id": "PA-005", "name": "Vaccine Distribution", "type": "prevention", "cost_usd": 500000000, "speed_hours": 168, "effectiveness": 95, "lives_saved_potential": 500000, "description": "Mass vaccine distribution campaign"},
+        ],
+        "desert_storm": [
+            {"id": "DS-001", "name": "Shelter-in-Place Alert", "type": "shelter", "cost_usd": 200000, "speed_hours": 0.5, "effectiveness": 90, "lives_saved_potential": 5000, "description": "Issue shelter-in-place warnings for all affected areas"},
+            {"id": "DS-002", "name": "Transport Suspension", "type": "prevention", "cost_usd": 500000, "speed_hours": 1, "effectiveness": 85, "lives_saved_potential": 1000, "description": "Suspend all road, air, and rail transport in storm path"},
+            {"id": "DS-003", "name": "Visibility Monitoring Network", "type": "monitoring", "cost_usd": 1000000, "speed_hours": 2, "effectiveness": 80, "lives_saved_potential": 500, "description": "Deploy enhanced visibility monitoring stations"},
+            {"id": "DS-004", "name": "Respiratory Protection Distribution", "type": "medical", "cost_usd": 2000000, "speed_hours": 4, "effectiveness": 75, "lives_saved_potential": 3000, "description": "Distribute N95 masks and respiratory protection equipment"},
+            {"id": "DS-005", "name": "Air Quality Alert System", "type": "warning", "cost_usd": 300000, "speed_hours": 0.25, "effectiveness": 95, "lives_saved_potential": 8000, "description": "Activate air quality alert system for vulnerable populations"},
+            {"id": "DS-006", "name": "Solar Panel Protection", "type": "infrastructure", "cost_usd": 1500000, "speed_hours": 6, "effectiveness": 70, "lives_saved_potential": 0, "description": "Cover and protect solar installations from sand damage"},
+            {"id": "DS-007", "name": "Water Reserve Activation", "type": "logistics", "cost_usd": 800000, "speed_hours": 3, "effectiveness": 90, "lives_saved_potential": 2000, "description": "Activate emergency water reserves and distribution points"},
+        ],
+        "sandstorm": [
+            {"id": "SS-001", "name": "Haboob Warning System", "type": "warning", "cost_usd": 250000, "speed_hours": 0.25, "effectiveness": 95, "lives_saved_potential": 5000, "description": "Activate haboob/sandstorm early warning system"},
+            {"id": "SS-002", "name": "Highway Closure Protocol", "type": "prevention", "cost_usd": 400000, "speed_hours": 0.5, "effectiveness": 90, "lives_saved_potential": 2000, "description": "Close highways and major roads in storm path"},
+            {"id": "SS-003", "name": "Airport Operations Halt", "type": "prevention", "cost_usd": 5000000, "speed_hours": 1, "effectiveness": 95, "lives_saved_potential": 500, "description": "Halt all airport operations and ground aircraft"},
+            {"id": "SS-004", "name": "Medical Preparedness", "type": "medical", "cost_usd": 1500000, "speed_hours": 2, "effectiveness": 85, "lives_saved_potential": 1500, "description": "Pre-position respiratory treatment supplies at hospitals"},
+            {"id": "SS-005", "name": "Livestock Protection", "type": "agriculture", "cost_usd": 600000, "speed_hours": 3, "effectiveness": 70, "lives_saved_potential": 0, "description": "Move livestock to sheltered areas"},
+        ],
+        "tornado": [
+            {"id": "TO-001", "name": "Tornado Warning Broadcast", "type": "warning", "cost_usd": 100000, "speed_hours": 0.1, "effectiveness": 95, "lives_saved_potential": 10000, "description": "Broadcast tornado warnings through all channels"},
+            {"id": "TO-002", "name": "Storm Shelter Activation", "type": "shelter", "cost_usd": 500000, "speed_hours": 0.25, "effectiveness": 90, "lives_saved_potential": 8000, "description": "Open public storm shelters"},
+            {"id": "TO-003", "name": "Mobile Home Evacuation", "type": "evacuation", "cost_usd": 1000000, "speed_hours": 1, "effectiveness": 95, "lives_saved_potential": 5000, "description": "Evacuate mobile home communities"},
+            {"id": "TO-004", "name": "Search & Rescue Standby", "type": "rescue", "cost_usd": 2000000, "speed_hours": 0.5, "effectiveness": 80, "lives_saved_potential": 1000, "description": "Pre-position search and rescue teams"},
+            {"id": "TO-005", "name": "Medical Triage Setup", "type": "medical", "cost_usd": 3000000, "speed_hours": 2, "effectiveness": 85, "lives_saved_potential": 2000, "description": "Set up triage centers near impact zone"},
+        ],
+        "tsunami": [
+            {"id": "TS-001", "name": "Vertical Evacuation", "type": "evacuation", "cost_usd": 2000000, "speed_hours": 0.5, "effectiveness": 95, "lives_saved_potential": 50000, "description": "Evacuate to designated vertical evacuation structures"},
+            {"id": "TS-002", "name": "Coastal Sirens Activation", "type": "warning", "cost_usd": 50000, "speed_hours": 0.05, "effectiveness": 98, "lives_saved_potential": 100000, "description": "Activate all coastal tsunami warning sirens"},
+            {"id": "TS-003", "name": "Boat Recall", "type": "prevention", "cost_usd": 500000, "speed_hours": 1, "effectiveness": 80, "lives_saved_potential": 2000, "description": "Recall all vessels to deep water or safe harbors"},
+            {"id": "TS-004", "name": "Bridge Closure", "type": "prevention", "cost_usd": 200000, "speed_hours": 0.25, "effectiveness": 90, "lives_saved_potential": 500, "description": "Close all coastal bridges and tunnels"},
+            {"id": "TS-005", "name": "Hospital Relocation", "type": "medical", "cost_usd": 10000000, "speed_hours": 4, "effectiveness": 85, "lives_saved_potential": 1000, "description": "Relocate patients from coastal hospitals"},
+        ],
+        "volcano": [
+            {"id": "VO-001", "name": "Exclusion Zone", "type": "evacuation", "cost_usd": 5000000, "speed_hours": 6, "effectiveness": 95, "lives_saved_potential": 25000, "description": "Establish and enforce volcanic exclusion zone"},
+            {"id": "VO-002", "name": "Ash Mask Distribution", "type": "medical", "cost_usd": 2000000, "speed_hours": 4, "effectiveness": 80, "lives_saved_potential": 10000, "description": "Distribute volcanic ash protection masks"},
+            {"id": "VO-003", "name": "Lahar Warning System", "type": "warning", "cost_usd": 1000000, "speed_hours": 2, "effectiveness": 90, "lives_saved_potential": 15000, "description": "Activate lahar (mudflow) detection and warning"},
+            {"id": "VO-004", "name": "Aviation NOTAM", "type": "prevention", "cost_usd": 100000, "speed_hours": 0.25, "effectiveness": 95, "lives_saved_potential": 1000, "description": "Issue aviation NOTAMs and reroute flights"},
+            {"id": "VO-005", "name": "Water Supply Protection", "type": "infrastructure", "cost_usd": 3000000, "speed_hours": 6, "effectiveness": 75, "lives_saved_potential": 5000, "description": "Cover and protect water reservoirs from ash"},
         ]
     }
     
