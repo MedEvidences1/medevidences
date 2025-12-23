@@ -117,6 +117,11 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 
+// Disaster Map and Alert Components (Phase 3)
+import DisasterMap from './components/DisasterMap';
+import AlertConfiguration from './components/AlertConfiguration';
+import 'leaflet/dist/leaflet.css';
+
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
