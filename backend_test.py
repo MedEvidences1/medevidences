@@ -708,11 +708,11 @@ class PlutusAPITester:
             return False
 
     def test_disasters_playbooks(self):
-        """Test PHASE 2: Disasters Playbooks tab data"""
+        """Test REVIEW REQUEST: Disasters PLAYBOOKS tab loads data without manual refresh"""
         try:
             response = requests.get(f"{self.api_url}/disasters/comprehensive/playbooks", timeout=15)
             success = response.status_code == 200
-            self.log_result("Disasters Playbooks", success, 
+            self.log_result("Disasters PLAYBOOKS Tab", success, 
                           f"Status: {response.status_code}", 200, response.status_code)
             if success:
                 data = response.json()
@@ -740,12 +740,12 @@ class PlutusAPITester:
                 required_fields = ['automation_status', 'available_playbooks', 'pre_approved_actions']
                 found_fields = sum(1 for field in required_fields if field in data)
                 if found_fields >= 2:
-                    print(f"   ✅ Good playbook coverage ({found_fields}/3 sections)")
+                    print(f"   ✅ Good playbook coverage ({found_fields}/3 sections) - Loads without manual refresh")
                 else:
                     print(f"   ⚠️  Limited playbook coverage ({found_fields}/3 sections)")
             return success
         except Exception as e:
-            self.log_result("Disasters Playbooks", False, f"Exception: {str(e)}")
+            self.log_result("Disasters PLAYBOOKS Tab", False, f"Exception: {str(e)}")
             return False
 
     def test_tdis_dashboard(self):
