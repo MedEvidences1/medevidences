@@ -1822,6 +1822,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const views = [
     { id: "overview", label: "OVERVIEW", icon: Home },
     { id: "live", label: "LIVE NOW", icon: Radio },
+    { id: "aviation", label: "AVIATION TURBULENCE", icon: Plane },
     { id: "infrastructure", label: "INFRASTRUCTURE", icon: Zap },
     { id: "supply_chain", label: "SUPPLY CHAIN", icon: Truck },
     { id: "cyber", label: "CYBER", icon: Shield },
@@ -1837,6 +1838,49 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
     { id: "agencies", label: "AGENCIES", icon: Globe },
     { id: "economic", label: "ECONOMIC", icon: DollarSign },
   ];
+
+  // Aviation Turbulence State
+  const [aviationData, setAviationData] = useState(null);
+  const [aviationLoading, setAviationLoading] = useState(false);
+  const [selectedAircraft, setSelectedAircraft] = useState(null);
+  const [turbulenceForecast, setTurbulenceForecast] = useState(null);
+  const [nextRisk, setNextRisk] = useState(null);
+  const [dynamicModel, setDynamicModel] = useState(null);
+
+  // Load Aviation Turbulence Data
+  const loadAviationData = useCallback(async (aircraftId = null) => {
+    setAviationLoading(true);
+    try {
+      // If no aircraft selected, create a demo aircraft
+      const id = aircraftId || `AC-${Date.now().toString(36).toUpperCase()}`;
+      
+      // Connect to aircraft sensors
+      await axios.post(`${API}/aviation/turbulence/connect/${id}`);
+      
+      // Get all data in parallel
+      const [forecastRes, nextRiskRes, modelRes, categoriesRes] = await Promise.all([
+        axios.get(`${API}/aviation/turbulence/forecast/${id}?horizon_minutes=7`),
+        axios.get(`${API}/aviation/turbulence/next-risk/${id}`),
+        axios.get(`${API}/aviation/turbulence/dynamic-model/${id}`),
+        axios.get(`${API}/aviation/turbulence/categories`)
+      ]);
+      
+      setSelectedAircraft(id);
+      setTurbulenceForecast(forecastRes.data);
+      setNextRisk(nextRiskRes.data);
+      setDynamicModel(modelRes.data);
+      setAviationData({
+        categories: categoriesRes.data,
+        connected: true
+      });
+      
+    } catch (e) {
+      console.error("Aviation data error:", e);
+      toast.error("Failed to load aviation turbulence data");
+    }
+    setAviationLoading(false);
+  }, []);
+
 
   // Remediation Intelligence state
   const [remediationOptions, setRemediationOptions] = useState(null);
