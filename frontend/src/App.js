@@ -1848,7 +1848,9 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
 
   const views = [
     { id: "overview", label: "OVERVIEW", icon: Home },
+    { id: "map", label: "LIVE MAP", icon: MapPin },
     { id: "live", label: "LIVE NOW", icon: Radio },
+    { id: "alerts", label: "ALERTS", icon: BellRing },
     { id: "aviation", label: "AVIATION TURBULENCE", icon: Plane },
     { id: "infrastructure", label: "INFRASTRUCTURE", icon: Zap },
     { id: "supply_chain", label: "SUPPLY CHAIN", icon: Truck },
