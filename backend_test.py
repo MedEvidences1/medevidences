@@ -971,7 +971,8 @@ class PlutusAPITester:
         except Exception as e:
             self.log_result("Disasters AVIATION TURBULENCE Tab", False, f"Exception: {str(e)}")
             return False
-        """Test IB Suite Executive Summary - should show Market Outlook panel"""
+    def test_ib_suite_executive_summary(self):
+        """Test REVIEW REQUEST: IB Suite Executive Summary loads and displays data (Risk Score, Market Outlook)"""
         try:
             response = requests.get(f"{self.api_url}/investment/executive-summary", timeout=15)
             success = response.status_code == 200
@@ -983,7 +984,7 @@ class PlutusAPITester:
                 print(f"   Risk assessment: {'✅' if 'risk_assessment' in data else '❌'}")
                 print(f"   Investment recommendations: {'✅' if 'investment_recommendations' in data else '❌'}")
                 
-                # Check Market Outlook panel specifically
+                # Check Market Outlook panel specifically (REVIEW REQUEST)
                 if 'market_outlook' in data:
                     outlook = data['market_outlook']
                     print(f"   Market sentiment: {outlook.get('sentiment', 'N/A')}")
@@ -993,11 +994,20 @@ class PlutusAPITester:
                 else:
                     print(f"   ❌ Market Outlook panel missing")
                 
+                # Check Risk Score specifically (REVIEW REQUEST)
+                if 'risk_assessment' in data:
+                    risk = data['risk_assessment']
+                    print(f"   Overall risk score: {risk.get('overall_risk_score', 'N/A')}")
+                    print(f"   Risk factors: {len(risk.get('risk_factors', []))}")
+                    print(f"   ✅ Risk Score present")
+                else:
+                    print(f"   ❌ Risk Score missing")
+                
                 # Check other sections
                 required_sections = ['market_outlook', 'risk_assessment', 'investment_recommendations']
                 found_sections = sum(1 for section in required_sections if section in data)
                 if found_sections >= 2:
-                    print(f"   ✅ Good executive summary coverage ({found_sections}/3)")
+                    print(f"   ✅ IB Suite Executive Summary working ({found_sections}/3) - Risk Score & Market Outlook")
                 else:
                     print(f"   ⚠️  Limited executive summary coverage ({found_sections}/3)")
             return success
