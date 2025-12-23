@@ -11912,6 +11912,7 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [adminType, setAdminType] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
+  const [demoCode, setDemoCode] = useState("");  // For demo mode - shows code in modal
   
   // Forgot password state
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
