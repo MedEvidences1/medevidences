@@ -3974,13 +3974,31 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                     onChange={(e) => setIntelligenceForm({...intelligenceForm, disaster_type: e.target.value})}
                     className="w-full bg-[#0A0A0A] border border-[#1F1F1F] text-white p-2 rounded text-sm"
                   >
-                    <option value="earthquake">Earthquake</option>
-                    <option value="flood">Flood</option>
-                    <option value="hurricane">Hurricane</option>
-                    <option value="wildfire">Wildfire</option>
-                    <option value="cyber_attack">Cyber Attack</option>
-                    <option value="power_outage">Power Outage</option>
-                    <option value="pandemic">Pandemic</option>
+                    <optgroup label="Natural Disasters">
+                      <option value="earthquake">Earthquake</option>
+                      <option value="flood">Flood</option>
+                      <option value="hurricane">Hurricane</option>
+                      <option value="cyclone">Cyclone</option>
+                      <option value="wildfire">Wildfire</option>
+                      <option value="tornado">Tornado</option>
+                      <option value="tsunami">Tsunami</option>
+                      <option value="volcano">Volcano</option>
+                      <option value="drought">Drought</option>
+                      <option value="landslide">Landslide</option>
+                    </optgroup>
+                    <optgroup label="Weather Events">
+                      <option value="desert_storm">Desert Storm</option>
+                      <option value="sandstorm">Sandstorm</option>
+                      <option value="blizzard">Blizzard</option>
+                      <option value="snow_storm">Snow Storm</option>
+                      <option value="ice_storm">Ice Storm</option>
+                      <option value="heatwave">Heatwave</option>
+                    </optgroup>
+                    <optgroup label="Other">
+                      <option value="cyber_attack">Cyber Attack</option>
+                      <option value="power_outage">Power Outage</option>
+                      <option value="pandemic">Pandemic</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div>
