@@ -7308,18 +7308,35 @@ class AviationTurbulenceSystem:
             risk_band = "LOW (0-1)"
         
         # Generate time/altitude/trajectory forecast
+        # KEY: Forecast is in TIME + ALTITUDE + TRAJECTORY space, NOT geographical
         current_alt = state["position"]["altitude_ft"]
         current_time = datetime.now(timezone.utc)
+        vertical_rate = state["motion"]["vertical_rate_fpm"]
+        flight_phase = state.get("flight_phase", "cruise")
+        
+        # Calculate trajectory path description
+        if vertical_rate > 500:
+            trajectory_desc = f"climb profile (+{vertical_rate} fpm)"
+            phase_modifier = "climbing through"
+        elif vertical_rate < -500:
+            trajectory_desc = f"descent profile ({vertical_rate} fpm)"
+            phase_modifier = "descending through"
+        else:
+            trajectory_desc = f"level flight at FL{state['position']['flight_level'][2:]}"
+            phase_modifier = "at"
         
         forecast = {
             "aircraft_id": aircraft_id,
             "forecast_generated": current_time.isoformat(),
             "horizon_minutes": horizon_minutes,
+            "forecast_paradigm": "TIME_ALTITUDE_TRAJECTORY",  # NOT geographical
             "current_state_summary": {
                 "flight_level": state["position"]["flight_level"],
-                "flight_phase": state.get("flight_phase"),
+                "flight_phase": flight_phase,
                 "current_turbulence": motion_analysis["motion_analysis"]["current_turbulence"],
-                "groundspeed_kts": state["motion"]["groundspeed_kts"]
+                "groundspeed_kts": state["motion"]["groundspeed_kts"],
+                "vertical_rate_fpm": vertical_rate,
+                "trajectory_description": trajectory_desc
             },
             "probability_forecast": {
                 "overall_probability_percent": round(probability * 100, 1),
@@ -7329,34 +7346,60 @@ class AviationTurbulenceSystem:
             },
             "natural_language_summary": (
                 f"This aircraft has {round(probability * 100)}% probability of {predicted_severity.lower()} "
-                f"turbulence in the next {horizon_minutes} minutes at its current {state.get('flight_phase', 'flight')} profile."
+                f"turbulence in the next {horizon_minutes} minutes at its current {trajectory_desc}."
             ),
+            # Time + Altitude + Trajectory Space Forecast (NOT altitude bands)
             "time_altitude_trajectory_forecast": [
                 {
                     "time_offset_minutes": 1,
-                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 1),
+                    "eta_time": (current_time + timedelta(minutes=1)).strftime("%H:%M:%S"),
+                    "predicted_altitude_ft": int(current_alt + (vertical_rate * 1)),
+                    "predicted_flight_level": f"FL{int((current_alt + (vertical_rate * 1)) / 100):03d}",
+                    "trajectory_phase": flight_phase,
                     "turbulence_probability_percent": round(probability * 100 * 0.95, 1),
-                    "confidence": 0.9
+                    "severity_at_point": predicted_severity.split(" to ")[0] if probability > 0.15 else "NONE",
+                    "confidence": 0.92,
+                    "summary": f"+1 min: {round(probability * 100 * 0.95, 1)}% risk {phase_modifier} FL{int((current_alt + (vertical_rate * 1)) / 100):03d}"
                 },
                 {
                     "time_offset_minutes": 3,
-                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 3),
+                    "eta_time": (current_time + timedelta(minutes=3)).strftime("%H:%M:%S"),
+                    "predicted_altitude_ft": int(current_alt + (vertical_rate * 3)),
+                    "predicted_flight_level": f"FL{int((current_alt + (vertical_rate * 3)) / 100):03d}",
+                    "trajectory_phase": flight_phase,
                     "turbulence_probability_percent": round(probability * 100 * 1.0, 1),
-                    "confidence": 0.85
+                    "severity_at_point": predicted_severity,
+                    "confidence": 0.85,
+                    "summary": f"+3 min: {round(probability * 100 * 1.0, 1)}% risk {phase_modifier} FL{int((current_alt + (vertical_rate * 3)) / 100):03d}"
                 },
                 {
                     "time_offset_minutes": 5,
-                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 5),
+                    "eta_time": (current_time + timedelta(minutes=5)).strftime("%H:%M:%S"),
+                    "predicted_altitude_ft": int(current_alt + (vertical_rate * 5)),
+                    "predicted_flight_level": f"FL{int((current_alt + (vertical_rate * 5)) / 100):03d}",
+                    "trajectory_phase": flight_phase if vertical_rate == 0 else "transitioning",
                     "turbulence_probability_percent": round(probability * 100 * 1.05, 1),
-                    "confidence": 0.75
+                    "severity_at_point": predicted_severity,
+                    "confidence": 0.75,
+                    "summary": f"+5 min: {round(probability * 100 * 1.05, 1)}% risk {phase_modifier} FL{int((current_alt + (vertical_rate * 5)) / 100):03d}"
                 },
                 {
-                    "time_offset_minutes": 7,
-                    "predicted_altitude_ft": current_alt + (state["motion"]["vertical_rate_fpm"] * 7),
+                    "time_offset_minutes": horizon_minutes,
+                    "eta_time": (current_time + timedelta(minutes=horizon_minutes)).strftime("%H:%M:%S"),
+                    "predicted_altitude_ft": int(current_alt + (vertical_rate * horizon_minutes)),
+                    "predicted_flight_level": f"FL{int((current_alt + (vertical_rate * horizon_minutes)) / 100):03d}",
+                    "trajectory_phase": flight_phase if vertical_rate == 0 else "transitioning",
                     "turbulence_probability_percent": round(probability * 100 * 1.1, 1),
-                    "confidence": 0.65
+                    "severity_at_point": predicted_severity,
+                    "confidence": 0.65,
+                    "summary": f"+{horizon_minutes} min: {round(probability * 100 * 1.1, 1)}% risk {phase_modifier} FL{int((current_alt + (vertical_rate * horizon_minutes)) / 100):03d}"
                 }
             ],
+            "trajectory_risk_narrative": (
+                f"Following your current {trajectory_desc}, risk evolves from "
+                f"{round(probability * 100 * 0.95, 1)}% at +1 min to {round(probability * 100 * 1.1, 1)}% at +{horizon_minutes} min. "
+                f"{'Consider altitude change to exit risk zone.' if probability > 0.25 else 'Maintain current profile.'}"
+            ),
             "contributing_factors": {
                 "current_conditions_factor": round(current_risk_band * 0.03, 3),
                 "wind_shear_factor": round((shear_factor / 25) * 0.15, 3),
