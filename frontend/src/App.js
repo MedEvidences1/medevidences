@@ -7098,18 +7098,23 @@ const InvestmentBankerSuite = () => {
   const getHeaders = () => token ? { Authorization: `Bearer ${token}` } : {};
 
   const loadDashboard = useCallback(async () => {
+    console.log("loadDashboard called, setting loading=true");
     setLoading(true);
     try {
-      console.log("Loading dashboard...", API);
+      console.log("Making request to", `${API}/investment/dashboard`);
       const res = await axios.get(`${API}/investment/dashboard`, { 
         headers: getHeaders(),
-        timeout: 30000  // 30 second timeout for slow LLM calls
+        timeout: 30000
       });
-      console.log("Dashboard response:", res.data);
-      setDashboardData(res.data);
+      console.log("Got dashboard response:", res.status, res.data ? "has data" : "no data");
+      if (res.data) {
+        setDashboardData(res.data);
+        console.log("Dashboard data set!");
+      }
     } catch (e) { 
-      console.error("Dashboard load error:", e); 
+      console.error("Dashboard load error:", e.message || e); 
     }
+    console.log("Setting loading=false");
     setLoading(false);
   }, [token]);
 
