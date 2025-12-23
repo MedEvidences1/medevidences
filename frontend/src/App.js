@@ -7638,7 +7638,7 @@ const Pricing = ({ user, setShowAuth, getHeaders }) => {
         <CardContent className="grid md:grid-cols-2 gap-4">
           {[
             { q: "Can I upgrade my plan?", a: "Yes, you can upgrade anytime. You'll be prorated for the remaining period." },
-            { q: "Is there a free trial?", a: "All new users get a 5-minute free trial to explore all features. After the trial, a subscription is required to continue." },
+            { q: "Is there a free trial?", a: "All new users get a 60-minute free trial to explore all features. After the trial, a subscription is required to continue." },
             { q: "What payment methods?", a: "We accept all major credit cards via Stripe secure checkout." },
             { q: "Can I cancel anytime?", a: "Yes, cancel anytime. Access continues until the end of your billing period." },
           ].map((faq, i) => (
