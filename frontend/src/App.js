@@ -11813,6 +11813,13 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
                 {isLogin ? "LOGIN" : "REGISTER"}
               </Button>
+              {isLogin && (
+                <div className="text-center">
+                  <button onClick={() => setForgotPasswordMode(true)} className="text-sm text-[#FFD700] hover:underline">
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
               <div className="text-center">
                 <button onClick={() => setIsLogin(!isLogin)} className="text-sm text-[#00E5FF] hover:underline">
                   {isLogin ? "Need an account? Register" : "Already have an account? Login"}
