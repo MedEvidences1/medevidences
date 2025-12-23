@@ -7147,11 +7147,8 @@ const InvestmentBankerSuite = () => {
   };
 
   useEffect(() => {
+    // Only load dashboard first, other data loads on tab change
     loadDashboard();
-    loadPortfolioRisk();
-    loadMAPredictions();
-    loadIPOTiming();
-    loadSectorRotation();
   }, [loadDashboard]);
 
   const getRiskColor = (level) => {
