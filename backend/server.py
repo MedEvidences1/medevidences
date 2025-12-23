@@ -14014,8 +14014,42 @@ async def get_weather_alerts(state: str = None):
 
 @api_router.get("/disasters/global", tags=["Disasters"])
 async def get_global_disasters():
-    disasters = await osint_aggregator.fetch_gdacs()
-    return {"disasters": disasters, "source": "GDACS", "count": len(disasters)}
+    """
+    Get disasters from ALL countries worldwide, not just USA.
+    Aggregates: GDACS, USGS, MeteoAlarm, and regional sources.
+    """
+    global_data = await osint_aggregator.fetch_global_disasters_all_countries()
+    return global_data
+
+@api_router.get("/disasters/global/by-region/{region}", tags=["Disasters"])
+async def get_disasters_by_region(region: str):
+    """
+    Get disasters for a specific region.
+    Regions: asia_pacific, europe, middle_east, africa, americas, caribbean
+    """
+    global_data = await osint_aggregator.fetch_global_disasters_all_countries()
+    region_disasters = global_data.get("by_region", {}).get(region.lower(), [])
+    return {
+        "region": region,
+        "disasters": region_disasters,
+        "count": len(region_disasters),
+        "timestamp": global_data.get("timestamp")
+    }
+
+@api_router.get("/disasters/global/by-type/{disaster_type}", tags=["Disasters"])
+async def get_disasters_by_type(disaster_type: str):
+    """
+    Get all global disasters of a specific type.
+    Types: earthquake, flood, hurricane, wildfire, volcano, tsunami, desert_storm, tornado, drought
+    """
+    global_data = await osint_aggregator.fetch_global_disasters_all_countries()
+    type_disasters = [d for d in global_data.get("disasters", []) if d.get("type") == disaster_type.lower()]
+    return {
+        "disaster_type": disaster_type,
+        "disasters": type_disasters,
+        "count": len(type_disasters),
+        "timestamp": global_data.get("timestamp")
+    }
 
 # =============================================================================
 # COMPREHENSIVE DISASTER MANAGEMENT API ENDPOINTS
