@@ -98,6 +98,7 @@ import {
   Heart,
   Briefcase,
   Map,
+  Plane,
 } from "lucide-react";
 
 // Recharts
