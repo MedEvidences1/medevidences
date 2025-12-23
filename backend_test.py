@@ -670,11 +670,11 @@ class PlutusAPITester:
             return False
 
     def test_disasters_satellite_iot(self):
-        """Test PHASE 2: Disasters Satellites/IoT tab data"""
+        """Test REVIEW REQUEST: Disasters SATELLITES/IOT tab loads data without manual refresh"""
         try:
             response = requests.get(f"{self.api_url}/disasters/comprehensive/satellite-iot", timeout=15)
             success = response.status_code == 200
-            self.log_result("Disasters Satellite IoT", success, 
+            self.log_result("Disasters SATELLITES/IOT Tab", success, 
                           f"Status: {response.status_code}", 200, response.status_code)
             if success:
                 data = response.json()
@@ -699,12 +699,12 @@ class PlutusAPITester:
                 required_fields = ['weather_satellites', 'seismic_network', 'flood_gauges', 'air_quality']
                 found_fields = sum(1 for field in required_fields if field in data)
                 if found_fields >= 3:
-                    print(f"   ✅ Good sensor coverage ({found_fields}/4 types)")
+                    print(f"   ✅ Good sensor coverage ({found_fields}/4 types) - Loads without manual refresh")
                 else:
                     print(f"   ⚠️  Limited sensor coverage ({found_fields}/4 types)")
             return success
         except Exception as e:
-            self.log_result("Disasters Satellite IoT", False, f"Exception: {str(e)}")
+            self.log_result("Disasters SATELLITES/IOT Tab", False, f"Exception: {str(e)}")
             return False
 
     def test_disasters_playbooks(self):
