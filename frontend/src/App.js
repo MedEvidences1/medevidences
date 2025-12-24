@@ -12142,7 +12142,7 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
             {forgotPasswordMode
               ? (resetCodeSent ? "Enter the code sent to your email" : "Enter your email to receive a reset code")
               : requiresVerification 
-                ? `Enter the verification code sent to ${pendingEmail}` 
+                ? `Enter the 6-digit verification code sent via SMS to your mobile number` 
                 : (isLogin ? "Access your Plutus Predict account" : "Create a new account")}
           </DialogDescription>
         </DialogHeader>
