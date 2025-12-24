@@ -100,6 +100,7 @@ import {
   Map,
   Plane,
   BellRing,
+  Rocket,
 } from "lucide-react";
 
 // Recharts
