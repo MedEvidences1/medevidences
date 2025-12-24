@@ -3204,40 +3204,82 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                 <Cpu className="w-4 h-4 text-[#00E5FF]" />
                 DRONE RISK INTELLIGENCE
                 <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">UNIFIED RISK ENGINE</Badge>
+                {droneFleetData && <Badge className="bg-green-500/20 text-green-400">LIVE</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">DRONE CATEGORIES</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span>Commercial Small</span><span className="text-[#00FF94]">LOW RISK</span></div>
-                    <div className="flex justify-between"><span>Commercial Large</span><span className="text-[#FFD700]">MODERATE</span></div>
-                    <div className="flex justify-between"><span>Industrial Heavy</span><span className="text-[#FF9800]">ELEVATED</span></div>
-                    <div className="flex justify-between"><span>Autonomous Cargo</span><span className="text-[#FF3333]">HIGH</span></div>
+              {!droneFleetData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-[#00E5FF] border-t-transparent rounded-full mr-2"></div>
+                  Loading drone fleet data...
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#00E5FF]">{droneFleetData.active_drones || 0}</div>
+                      <div className="text-xs text-[#888]">ACTIVE DRONES</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#00FF94]">{droneFleetData.fleet_status?.filter(d => d.risk_level === "LOW").length || 0}</div>
+                      <div className="text-xs text-[#888]">LOW RISK</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FFD700]">{droneFleetData.fleet_status?.filter(d => d.risk_level === "ELEVATED" || d.risk_level === "MODERATE").length || 0}</div>
+                      <div className="text-xs text-[#888]">ELEVATED</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FF3333]">{droneFleetData.fleet_status?.filter(d => d.risk_level === "HIGH" || d.risk_level === "CRITICAL").length || 0}</div>
+                      <div className="text-xs text-[#888]">HIGH RISK</div>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">RISK FACTORS</div>
-                  <div className="space-y-1 text-sm text-[#888]">
-                    <div>• Wind speed thresholds</div>
-                    <div>• GPS signal quality</div>
-                    <div>• Battery/power status</div>
-                    <div>• Airspace restrictions</div>
-                    <div>• Collision avoidance</div>
+                  
+                  <div className="bg-[#0A0A0A] rounded-lg border border-[#1F1F1F] overflow-hidden">
+                    <div className="p-2 border-b border-[#1F1F1F] bg-[#111]">
+                      <span className="text-xs text-[#888] font-semibold">LIVE DRONE FLEET STATUS</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-[#111] sticky top-0">
+                          <tr className="text-[#888] text-xs">
+                            <th className="p-2 text-left">DRONE ID</th>
+                            <th className="p-2 text-left">TYPE</th>
+                            <th className="p-2 text-left">POSITION</th>
+                            <th className="p-2 text-left">ALTITUDE</th>
+                            <th className="p-2 text-left">RISK</th>
+                            <th className="p-2 text-left">RECOMMENDATION</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {droneFleetData.fleet_status?.map((drone, idx) => (
+                            <tr key={idx} className="border-t border-[#1F1F1F] hover:bg-[#111]">
+                              <td className="p-2 font-mono text-[#00E5FF]">{drone.drone_id}</td>
+                              <td className="p-2">{drone.type}</td>
+                              <td className="p-2 text-xs text-[#888]">
+                                {drone.position?.lat?.toFixed(2)}°, {drone.position?.lon?.toFixed(2)}°
+                              </td>
+                              <td className="p-2">{drone.position?.altitude_ft?.toLocaleString()} ft</td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  drone.risk_level === "LOW" ? "bg-green-500/20 text-green-400" :
+                                  drone.risk_level === "ELEVATED" || drone.risk_level === "MODERATE" ? "bg-yellow-500/20 text-yellow-400" :
+                                  "bg-red-500/20 text-red-400"
+                                }`}>{drone.risk_level}</span>
+                              </td>
+                              <td className="p-2 text-xs">{drone.recommendation?.replace(/_/g, " ")}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
-                  <div className="text-sm text-[#00E5FF]">TIME + ALTITUDE + TRAJECTORY</div>
-                  <div className="text-xs text-[#666] mt-2">Short-horizon predictions (seconds to minutes) with continuous recalibration</div>
-                </div>
-              </div>
-              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
-                <code className="text-xs text-[#00FF94]">GET /api/risk/drone/forecast/{'{drone_id}'}</code>
-                <div className="text-xs text-[#666] mt-2">Returns probability-based risk bands, not certainty. Example: "Drone DRN-001 has 18% probability of elevated risk in next 5 minutes at current trajectory."</div>
-              </div>
+                  
+                  <div className="mt-4 text-xs text-[#666] flex justify-between">
+                    <span>Region: {droneFleetData.region}</span>
+                    <span>Last Update: {new Date(droneFleetData.timestamp).toLocaleString()}</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
