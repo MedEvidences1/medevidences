@@ -16803,7 +16803,7 @@ async def create_alert_configuration(config: AlertConfiguration, authorization: 
         if session:
             user_id = session.get("user_id", "default")
     
-    alert_id = str(uuid4())
+    alert_id = str(uuid.uuid4())
     alert_data = {
         "id": alert_id,
         **config.dict(),
