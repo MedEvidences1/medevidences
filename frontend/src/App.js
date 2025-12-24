@@ -3294,40 +3294,81 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                 <Rocket className="w-4 h-4 text-[#9D4EDD]" />
                 SPACE LAUNCH RISK INTELLIGENCE
                 <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">UNIFIED RISK ENGINE</Badge>
+                {spaceLaunchData && <Badge className="bg-green-500/20 text-green-400">LIVE</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">VEHICLE TYPES</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span>Small Lift (&lt;2t LEO)</span><span className="text-[#00FF94]">Standard</span></div>
-                    <div className="flex justify-between"><span>Medium Lift (2-20t)</span><span className="text-[#FFD700]">Enhanced</span></div>
-                    <div className="flex justify-between"><span>Heavy Lift (20-50t)</span><span className="text-[#FF9800]">Critical</span></div>
-                    <div className="flex justify-between"><span>Super Heavy (&gt;50t)</span><span className="text-[#FF3333]">Maximum</span></div>
+              {!spaceLaunchData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-[#9D4EDD] border-t-transparent rounded-full mr-2"></div>
+                  Loading space launch data...
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#9D4EDD]">{spaceLaunchData.upcoming_launches?.length || 0}</div>
+                      <div className="text-xs text-[#888]">UPCOMING LAUNCHES</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#00FF94]">{spaceLaunchData.upcoming_launches?.filter(l => l.status === "GO").length || 0}</div>
+                      <div className="text-xs text-[#888]">GO STATUS</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FFD700]">{spaceLaunchData.upcoming_launches?.filter(l => l.status === "HOLD" || l.status === "CAUTION").length || 0}</div>
+                      <div className="text-xs text-[#888]">HOLD/CAUTION</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FF3333]">{spaceLaunchData.upcoming_launches?.filter(l => l.status === "NO-GO" || l.status === "SCRUB").length || 0}</div>
+                      <div className="text-xs text-[#888]">NO-GO/SCRUB</div>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">LAUNCH CRITERIA</div>
-                  <div className="space-y-1 text-sm text-[#888]">
-                    <div>• Weather (wind, lightning, clouds)</div>
-                    <div>• Range safety clearance</div>
-                    <div>• Orbital debris tracking</div>
-                    <div>• Spacecraft readiness</div>
-                    <div>• Ground systems status</div>
+                  
+                  <div className="bg-[#0A0A0A] rounded-lg border border-[#1F1F1F] overflow-hidden">
+                    <div className="p-2 border-b border-[#1F1F1F] bg-[#111]">
+                      <span className="text-xs text-[#888] font-semibold">UPCOMING SPACE LAUNCHES</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-[#111] sticky top-0">
+                          <tr className="text-[#888] text-xs">
+                            <th className="p-2 text-left">LAUNCH ID</th>
+                            <th className="p-2 text-left">VEHICLE</th>
+                            <th className="p-2 text-left">SITE</th>
+                            <th className="p-2 text-left">T-MINUS</th>
+                            <th className="p-2 text-left">STATUS</th>
+                            <th className="p-2 text-left">GO PROB</th>
+                            <th className="p-2 text-left">CONCERNS</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {spaceLaunchData.upcoming_launches?.map((launch, idx) => (
+                            <tr key={idx} className="border-t border-[#1F1F1F] hover:bg-[#111]">
+                              <td className="p-2 font-mono text-[#9D4EDD]">{launch.launch_id}</td>
+                              <td className="p-2">{launch.vehicle?.replace(/_/g, " ")}</td>
+                              <td className="p-2 text-xs">{launch.site}</td>
+                              <td className="p-2 font-mono">T-{launch.t_minus_hours}h</td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  launch.status === "GO" ? "bg-green-500/20 text-green-400" :
+                                  launch.status === "HOLD" || launch.status === "CAUTION" ? "bg-yellow-500/20 text-yellow-400" :
+                                  "bg-red-500/20 text-red-400"
+                                }`}>{launch.status}</span>
+                              </td>
+                              <td className="p-2 font-semibold">{launch.probability}%</td>
+                              <td className="p-2 text-xs text-[#888]">{launch.key_concerns?.join(", ") || "None"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
-                  <div className="text-sm text-[#9D4EDD]">TIME + ALTITUDE + TRAJECTORY</div>
-                  <div className="text-xs text-[#666] mt-2">Launch window probability assessment with multi-phase risk tracking</div>
-                </div>
-              </div>
-              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
-                <code className="text-xs text-[#00FF94]">GET /api/risk/space-launch/assessment/{'{launch_id}'}</code>
-                <div className="text-xs text-[#666] mt-2">Returns GO/NO-GO probability with risk bands. Example: "Launch FALCON-9-2025 has 85% GO probability with moderate weather risk during ascent phase."</div>
-              </div>
+                  
+                  <div className="mt-4 text-xs text-[#666] flex justify-end">
+                    <span>Last Update: {new Date(spaceLaunchData.timestamp).toLocaleString()}</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
