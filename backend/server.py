@@ -13829,10 +13829,8 @@ async def login(user: UserLogin):
     if not db_user or db_user["password_hash"] != hash_password(user.password):
         raise HTTPException(401, "Invalid credentials")
     
-    # Admin users must use the admin login flow with verification
+    # Allow all users to login directly (no verification required)
     user_role = db_user.get("role", "user")
-    if user_role in ADMIN_ROLES_REQUIRING_VERIFICATION:
-        raise HTTPException(403, f"{user_role.capitalize()} accounts require two-factor verification. Please use the admin login flow.")
     
     token = create_session(db_user["id"])
     await db.sessions.insert_one({"token": token, "user_id": db_user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
