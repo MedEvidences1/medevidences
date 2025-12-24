@@ -3106,6 +3106,199 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         </div>
       )}
 
+      {/* DRONES RISK VIEW */}
+      {activeView === "drones" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#00E5FF]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-[#00E5FF]" />
+                DRONE RISK INTELLIGENCE
+                <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">UNIFIED RISK ENGINE</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">DRONE CATEGORIES</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Commercial Small</span><span className="text-[#00FF94]">LOW RISK</span></div>
+                    <div className="flex justify-between"><span>Commercial Large</span><span className="text-[#FFD700]">MODERATE</span></div>
+                    <div className="flex justify-between"><span>Industrial Heavy</span><span className="text-[#FF9800]">ELEVATED</span></div>
+                    <div className="flex justify-between"><span>Autonomous Cargo</span><span className="text-[#FF3333]">HIGH</span></div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">RISK FACTORS</div>
+                  <div className="space-y-1 text-sm text-[#888]">
+                    <div>• Wind speed thresholds</div>
+                    <div>• GPS signal quality</div>
+                    <div>• Battery/power status</div>
+                    <div>• Airspace restrictions</div>
+                    <div>• Collision avoidance</div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
+                  <div className="text-sm text-[#00E5FF]">TIME + ALTITUDE + TRAJECTORY</div>
+                  <div className="text-xs text-[#666] mt-2">Short-horizon predictions (seconds to minutes) with continuous recalibration</div>
+                </div>
+              </div>
+              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
+                <code className="text-xs text-[#00FF94]">GET /api/risk/drone/forecast/{'{drone_id}'}</code>
+                <div className="text-xs text-[#666] mt-2">Returns probability-based risk bands, not certainty. Example: "Drone DRN-001 has 18% probability of elevated risk in next 5 minutes at current trajectory."</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* SPACE LAUNCH RISK VIEW */}
+      {activeView === "space_launch" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#9D4EDD]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Rocket className="w-4 h-4 text-[#9D4EDD]" />
+                SPACE LAUNCH RISK INTELLIGENCE
+                <Badge className="bg-[#9D4EDD]/20 text-[#9D4EDD]">UNIFIED RISK ENGINE</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">VEHICLE TYPES</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Small Lift (&lt;2t LEO)</span><span className="text-[#00FF94]">Standard</span></div>
+                    <div className="flex justify-between"><span>Medium Lift (2-20t)</span><span className="text-[#FFD700]">Enhanced</span></div>
+                    <div className="flex justify-between"><span>Heavy Lift (20-50t)</span><span className="text-[#FF9800]">Critical</span></div>
+                    <div className="flex justify-between"><span>Super Heavy (&gt;50t)</span><span className="text-[#FF3333]">Maximum</span></div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">LAUNCH CRITERIA</div>
+                  <div className="space-y-1 text-sm text-[#888]">
+                    <div>• Weather (wind, lightning, clouds)</div>
+                    <div>• Range safety clearance</div>
+                    <div>• Orbital debris tracking</div>
+                    <div>• Spacecraft readiness</div>
+                    <div>• Ground systems status</div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
+                  <div className="text-sm text-[#9D4EDD]">TIME + ALTITUDE + TRAJECTORY</div>
+                  <div className="text-xs text-[#666] mt-2">Launch window probability assessment with multi-phase risk tracking</div>
+                </div>
+              </div>
+              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
+                <code className="text-xs text-[#00FF94]">GET /api/risk/space-launch/assessment/{'{launch_id}'}</code>
+                <div className="text-xs text-[#666] mt-2">Returns GO/NO-GO probability with risk bands. Example: "Launch FALCON-9-2025 has 85% GO probability with moderate weather risk during ascent phase."</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* MILITARY AVIATION RISK VIEW */}
+      {activeView === "military" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#FF3333]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#FF3333]" />
+                MILITARY AVIATION RISK INTELLIGENCE
+                <Badge className="bg-[#FF3333]/20 text-[#FF3333]">UNIFIED RISK ENGINE</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">AIRCRAFT TYPES</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Fighter/Attack</span><span className="text-[#FF3333]">Combat</span></div>
+                    <div className="flex justify-between"><span>Bomber</span><span className="text-[#FF3333]">Strategic</span></div>
+                    <div className="flex justify-between"><span>Transport</span><span className="text-[#FFD700]">Logistics</span></div>
+                    <div className="flex justify-between"><span>ISR/Recon</span><span className="text-[#00E5FF]">Intel</span></div>
+                    <div className="flex justify-between"><span>Tanker</span><span className="text-[#00FF94]">Support</span></div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">MISSION RISK FACTORS</div>
+                  <div className="space-y-1 text-sm text-[#888]">
+                    <div>• Threat environment</div>
+                    <div>• Weather conditions</div>
+                    <div>• Airspace deconfliction</div>
+                    <div>• Fuel/ordnance status</div>
+                    <div>• Electronic warfare</div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
+                  <div className="text-sm text-[#FF3333]">TIME + ALTITUDE + TRAJECTORY</div>
+                  <div className="text-xs text-[#666] mt-2">Mission-phase risk assessment with real-time threat integration</div>
+                </div>
+              </div>
+              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
+                <code className="text-xs text-[#00FF94]">GET /api/risk/military/mission/{'{mission_id}'}</code>
+                <div className="text-xs text-[#666] mt-2">Returns mission-specific risk bands. Example: "Mission EAGLE-7 has GREEN status with 15% weather risk during ingress phase."</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* HIGH-ALTITUDE LOGISTICS RISK VIEW */}
+      {activeView === "high_altitude" && (
+        <div className="space-y-4">
+          <Card className="terminal-card border-l-4 border-l-[#FFD700]">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Cloud className="w-4 h-4 text-[#FFD700]" />
+                HIGH-ALTITUDE LOGISTICS RISK INTELLIGENCE
+                <Badge className="bg-[#FFD700]/20 text-[#FFD700]">UNIFIED RISK ENGINE</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">PLATFORM TYPES</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Stratospheric Balloon</span><span className="text-[#00FF94]">60-120k ft</span></div>
+                    <div className="flex justify-between"><span>Solar HAPS</span><span className="text-[#00E5FF]">65-80k ft</span></div>
+                    <div className="flex justify-between"><span>Cargo Airship</span><span className="text-[#FFD700]">20-40k ft</span></div>
+                    <div className="flex justify-between"><span>High-Alt Drone</span><span className="text-[#FF9800]">40-60k ft</span></div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">RISK FACTORS</div>
+                  <div className="space-y-1 text-sm text-[#888]">
+                    <div>• Stratospheric winds</div>
+                    <div>• Solar radiation</div>
+                    <div>• Temperature extremes</div>
+                    <div>• Ozone exposure</div>
+                    <div>• Station-keeping fuel</div>
+                  </div>
+                </div>
+                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
+                  <div className="text-sm text-[#FFD700]">TIME + ALTITUDE + TRAJECTORY</div>
+                  <div className="text-xs text-[#666] mt-2">Extended-duration risk assessment for persistent platforms</div>
+                </div>
+              </div>
+              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
+                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
+                <code className="text-xs text-[#00FF94]">GET /api/risk/high-altitude/logistics/{'{flight_id}'}</code>
+                <div className="text-xs text-[#666] mt-2">Returns stratospheric risk bands. Example: "Platform HAPS-01 has 12% probability of station-keeping difficulty in next 6 hours at FL650."</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* INFRASTRUCTURE STATUS VIEW */}
       {activeView === "infrastructure" && (
         <div className="space-y-4">
