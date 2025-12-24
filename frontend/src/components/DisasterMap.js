@@ -273,7 +273,7 @@ const DisasterMap = ({
                     </div>
                   )}
                   <div className="text-xs text-gray-400 mt-1">
-                    Depth: {eq.geometry?.coordinates?.[2] || eq.depth || 'N/A'} km
+                    Depth: {eq.geometry?.coordinates?.[2] || eq.depth || eq.depth_km || 'N/A'} km
                   </div>
                 </div>
               </Popup>
