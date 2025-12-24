@@ -2188,6 +2188,79 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
         ))}
       </div>
 
+      {/* INTERACTIVE MAP VIEW - Phase 3 */}
+      {activeView === "map" && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Globe className="w-4 h-4 text-[#00E5FF]" />
+                GLOBAL DISASTER MAP
+                <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">LIVE</Badge>
+                <Badge className="bg-[#FF3333]/20 text-[#FF3333]">{earthquakes.length + globalDisasters.length} Events</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <DisasterMap
+                earthquakes={earthquakes}
+                weatherAlerts={weatherAlerts}
+                globalDisasters={globalDisasters}
+                height="600px"
+                onMarkerClick={(event) => {
+                  toast.info(`${event.type.toUpperCase()}: ${event.data?.location || event.data?.title || 'Event clicked'}`);
+                }}
+              />
+            </CardContent>
+          </Card>
+          
+          {/* Quick Stats Below Map */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Card className="terminal-card border-l-2 border-l-[#FF5722]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#FF5722]">{earthquakes.length}</div>
+                <div className="text-xs text-[#888]">EARTHQUAKES (24H)</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-l-2 border-l-[#9C27B0]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#9C27B0]">{weatherAlerts.length}</div>
+                <div className="text-xs text-[#888]">WEATHER ALERTS</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-l-2 border-l-[#f44336]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#f44336]">{globalDisasters.length}</div>
+                <div className="text-xs text-[#888]">GLOBAL DISASTERS</div>
+              </CardContent>
+            </Card>
+            <Card className="terminal-card border-l-2 border-l-[#00E5FF]">
+              <CardContent className="p-3 text-center">
+                <div className="font-mono text-2xl font-bold text-[#00E5FF]">{disasterSummary?.global_risk_score || 0}%</div>
+                <div className="text-xs text-[#888]">GLOBAL RISK</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ALERTS VIEW - Phase 3 */}
+      {activeView === "alerts" && (
+        <div className="space-y-4">
+          <Card className="terminal-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <BellRing className="w-4 h-4 text-[#00E5FF]" />
+                ALERT CONFIGURATION
+                <Badge className="bg-[#00E5FF]/20 text-[#00E5FF]">PHASE 3</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AlertConfiguration getHeaders={getHeaders} userRole={user?.role || 'user'} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* LIVE NOW VIEW - Real disasters happening right now */}
       {activeView === "live" && (
         <div className="space-y-4">
