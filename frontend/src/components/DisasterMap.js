@@ -243,8 +243,8 @@ const DisasterMap = ({
 
         {/* Earthquakes */}
         {filteredEarthquakes.map((eq, idx) => {
-          const lat = eq.geometry?.coordinates?.[1] || eq.lat;
-          const lng = eq.geometry?.coordinates?.[0] || eq.lng;
+          const lat = eq.geometry?.coordinates?.[1] || eq.lat || eq.latitude;
+          const lng = eq.geometry?.coordinates?.[0] || eq.lng || eq.longitude;
           const mag = eq.properties?.mag || eq.magnitude || 4;
           const place = eq.properties?.place || eq.location || 'Unknown';
           const time = eq.properties?.time || eq.time;
