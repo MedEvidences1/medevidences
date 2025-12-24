@@ -3383,41 +3383,85 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                 <Shield className="w-4 h-4 text-[#FF3333]" />
                 MILITARY AVIATION RISK INTELLIGENCE
                 <Badge className="bg-[#FF3333]/20 text-[#FF3333]">UNIFIED RISK ENGINE</Badge>
+                {militaryMissions && <Badge className="bg-green-500/20 text-green-400">LIVE</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">AIRCRAFT TYPES</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span>Fighter/Attack</span><span className="text-[#FF3333]">Combat</span></div>
-                    <div className="flex justify-between"><span>Bomber</span><span className="text-[#FF3333]">Strategic</span></div>
-                    <div className="flex justify-between"><span>Transport</span><span className="text-[#FFD700]">Logistics</span></div>
-                    <div className="flex justify-between"><span>ISR/Recon</span><span className="text-[#00E5FF]">Intel</span></div>
-                    <div className="flex justify-between"><span>Tanker</span><span className="text-[#00FF94]">Support</span></div>
+              {!militaryMissions ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-[#FF3333] border-t-transparent rounded-full mr-2"></div>
+                  Loading military mission data...
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FF3333]">{militaryMissions.active_missions?.length || 0}</div>
+                      <div className="text-xs text-[#888]">ACTIVE MISSIONS</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#00FF94]">{militaryMissions.active_missions?.filter(m => m.status === "GREEN").length || 0}</div>
+                      <div className="text-xs text-[#888]">GREEN STATUS</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FFD700]">{militaryMissions.active_missions?.filter(m => m.status === "YELLOW").length || 0}</div>
+                      <div className="text-xs text-[#888]">YELLOW STATUS</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FF3333]">{militaryMissions.active_missions?.filter(m => m.status === "RED").length || 0}</div>
+                      <div className="text-xs text-[#888]">RED STATUS</div>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">MISSION RISK FACTORS</div>
-                  <div className="space-y-1 text-sm text-[#888]">
-                    <div>• Threat environment</div>
-                    <div>• Weather conditions</div>
-                    <div>• Airspace deconfliction</div>
-                    <div>• Fuel/ordnance status</div>
-                    <div>• Electronic warfare</div>
+                  
+                  <div className="bg-[#0A0A0A] rounded-lg border border-[#1F1F1F] overflow-hidden">
+                    <div className="p-2 border-b border-[#1F1F1F] bg-[#111]">
+                      <span className="text-xs text-[#888] font-semibold">ACTIVE MILITARY MISSIONS</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-[#111] sticky top-0">
+                          <tr className="text-[#888] text-xs">
+                            <th className="p-2 text-left">MISSION ID</th>
+                            <th className="p-2 text-left">TYPE</th>
+                            <th className="p-2 text-left">AIRCRAFT</th>
+                            <th className="p-2 text-left">LOCATION</th>
+                            <th className="p-2 text-left">STATUS</th>
+                            <th className="p-2 text-left">RISK</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {militaryMissions.active_missions?.map((mission, idx) => (
+                            <tr key={idx} className="border-t border-[#1F1F1F] hover:bg-[#111]">
+                              <td className="p-2 font-mono text-[#FF3333]">{mission.mission_id}</td>
+                              <td className="p-2">{mission.type}</td>
+                              <td className="p-2 font-mono">{mission.aircraft}</td>
+                              <td className="p-2 text-xs">{mission.location}</td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  mission.status === "GREEN" ? "bg-green-500/20 text-green-400" :
+                                  mission.status === "YELLOW" ? "bg-yellow-500/20 text-yellow-400" :
+                                  "bg-red-500/20 text-red-400"
+                                }`}>{mission.status}</span>
+                              </td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  mission.risk === "LOW" ? "text-green-400" :
+                                  mission.risk === "MODERATE" ? "text-yellow-400" :
+                                  "text-red-400"
+                                }`}>{mission.risk}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
-                  <div className="text-sm text-[#FF3333]">TIME + ALTITUDE + TRAJECTORY</div>
-                  <div className="text-xs text-[#666] mt-2">Mission-phase risk assessment with real-time threat integration</div>
-                </div>
-              </div>
-              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
-                <code className="text-xs text-[#00FF94]">GET /api/risk/military/mission/{'{mission_id}'}</code>
-                <div className="text-xs text-[#666] mt-2">Returns mission-specific risk bands. Example: "Mission EAGLE-7 has GREEN status with 15% weather risk during ingress phase."</div>
-              </div>
+                  
+                  <div className="mt-4 text-xs text-[#666] flex justify-end">
+                    <span>Last Update: {new Date(militaryMissions.timestamp).toLocaleString()}</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
