@@ -12500,7 +12500,7 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
               </div>
               <div className="text-center text-xs text-[#666] border-t border-[#1F1F1F] pt-3 mt-3">
                 <p className="text-[#888] mb-1">Owner Admin requires email verification</p>
-                <p>Owner: parimal@plutuspredict.com</p>
+                <p>Owner: parimal@medevidences.com</p>
               </div>
             </>
           )}
