@@ -1679,6 +1679,13 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
   const [satelliteLoading, setSatelliteLoading] = useState(false);
   const [playbooksLoading, setPlaybooksLoading] = useState(false);
   
+  // Phase 3 - Unified Risk Engine Data
+  const [droneFleetData, setDroneFleetData] = useState(null);
+  const [spaceLaunchData, setSpaceLaunchData] = useState(null);
+  const [militaryMissions, setMilitaryMissions] = useState(null);
+  const [highAltitudeData, setHighAltitudeData] = useState(null);
+  const [activeAircraft, setActiveAircraft] = useState(null);
+  
   // Prediction form state
   const [predictionForm, setPredictionForm] = useState({
     disaster_type: "flood",
