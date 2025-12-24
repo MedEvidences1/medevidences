@@ -13980,13 +13980,13 @@ async def get_me(user: dict = Depends(get_current_user)):
     return {k: v for k, v in user.items() if k != "password_hash"}
 
 # =============================================================================
-# API ENDPOINTS - ADMIN AUTHENTICATION (Email Verification)
+# API ENDPOINTS - ADMIN AUTHENTICATION (Direct Login - No Verification)
 # =============================================================================
 
 @api_router.post("/auth/admin/login-request", tags=["Admin Authentication"])
 async def admin_login_request(request: AdminLoginRequest):
     """
-    Step 1: Admin login request - validates credentials and sends verification code via SMS
+    Admin login - direct login without verification
     For Owner Admin and Enterprise Admin roles
     """
     db_user = await db.users.find_one({"email": request.email}, {"_id": 0})
@@ -13996,53 +13996,18 @@ async def admin_login_request(request: AdminLoginRequest):
     if db_user["password_hash"] != hash_password(request.password):
         raise HTTPException(401, "Invalid credentials")
     
-    # Check if user requires verification
+    # Direct login for all users including admin - no verification required
     user_role = db_user.get("role", "user")
-    if user_role not in ADMIN_ROLES_REQUIRING_VERIFICATION:
-        # Regular users - proceed with normal login
-        token = create_session(db_user["id"])
-        await db.sessions.insert_one({"token": token, "user_id": db_user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
-        return {
-            "requires_verification": False,
-            "user_id": db_user["id"], 
-            "token": token, 
-            "name": db_user["name"], 
-            "role": user_role, 
-            "plan": db_user.get("plan", "free")
-        }
-    
-    # Admin users - send verification code
-    admin_type = "Owner Admin" if user_role == "owner" else "Enterprise Admin"
-    code = admin_verification_service.generate_verification_code(request.email)
-    
-    # Determine mobile number for SMS
-    mobile_number = db_user.get("mobile_number") or (OWNER_MOBILE_NUMBER if user_role == "owner" else None)
-    
-    sms_result = {"success": False, "simulated": True}
-    email_result = {"success": False, "simulated": True}
-    
-    # Try SMS first (preferred for Owner Admin)
-    if mobile_number and twilio_client:
-        sms_result = await send_sms_verification(mobile_number, code)
-        logger.info(f"SMS verification sent to {mobile_number[-4:]}: {sms_result}")
-    
-    # Fallback to email if SMS fails or not configured
-    if not sms_result.get("success") or sms_result.get("simulated"):
-        email_result = await admin_verification_service.send_verification_email(request.email, code, admin_type)
-    
-    # Determine if code should be shown (demo mode)
-    is_simulated = sms_result.get("simulated", True) and email_result.get("simulated", True)
+    token = create_session(db_user["id"])
+    await db.sessions.insert_one({"token": token, "user_id": db_user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
     
     return {
-        "requires_verification": True,
-        "message": f"Verification code sent via {'SMS to ' + mobile_number[-4:] if sms_result.get('success') and not sms_result.get('simulated') else 'email to ' + request.email}",
-        "sms_sent": sms_result.get("success", False) and not sms_result.get("simulated", True),
-        "email_sent": email_result.get("success", False) and not email_result.get("simulated", True),
-        "simulated": is_simulated,
-        "admin_type": admin_type,
-        "delivery_method": "SMS" if (sms_result.get("success") and not sms_result.get("simulated")) else "EMAIL" if (email_result.get("success") and not email_result.get("simulated")) else "DEMO",
-        # For testing/demo - include code if simulated
-        "verification_code": code if is_simulated else None
+        "requires_verification": False,
+        "user_id": db_user["id"], 
+        "token": token, 
+        "name": db_user["name"], 
+        "role": user_role, 
+        "plan": db_user.get("plan", "free")
     }
 
 @api_router.post("/auth/admin/verify", tags=["Admin Authentication"])
