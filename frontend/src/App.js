@@ -3476,40 +3476,85 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
                 <Cloud className="w-4 h-4 text-[#FFD700]" />
                 HIGH-ALTITUDE LOGISTICS RISK INTELLIGENCE
                 <Badge className="bg-[#FFD700]/20 text-[#FFD700]">UNIFIED RISK ENGINE</Badge>
+                {highAltitudeData && <Badge className="bg-green-500/20 text-green-400">LIVE</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">PLATFORM TYPES</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between"><span>Stratospheric Balloon</span><span className="text-[#00FF94]">60-120k ft</span></div>
-                    <div className="flex justify-between"><span>Solar HAPS</span><span className="text-[#00E5FF]">65-80k ft</span></div>
-                    <div className="flex justify-between"><span>Cargo Airship</span><span className="text-[#FFD700]">20-40k ft</span></div>
-                    <div className="flex justify-between"><span>High-Alt Drone</span><span className="text-[#FF9800]">40-60k ft</span></div>
+              {!highAltitudeData ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-[#FFD700] border-t-transparent rounded-full mr-2"></div>
+                  Loading high-altitude platform data...
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FFD700]">{highAltitudeData.platforms?.length || 0}</div>
+                      <div className="text-xs text-[#888]">ACTIVE PLATFORMS</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#00FF94]">{highAltitudeData.platforms?.filter(p => p.status === "OPERATIONAL" || p.status === "NOMINAL").length || 0}</div>
+                      <div className="text-xs text-[#888]">OPERATIONAL</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#00E5FF]">{highAltitudeData.platforms?.filter(p => p.status === "IN-TRANSIT").length || 0}</div>
+                      <div className="text-xs text-[#888]">IN-TRANSIT</div>
+                    </div>
+                    <div className="bg-[#0A0A0A] p-3 rounded-lg border border-[#1F1F1F] text-center">
+                      <div className="text-2xl font-bold text-[#FF9800]">{highAltitudeData.platforms?.filter(p => p.risk === "MODERATE" || p.risk === "HIGH").length || 0}</div>
+                      <div className="text-xs text-[#888]">ELEVATED RISK</div>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">RISK FACTORS</div>
-                  <div className="space-y-1 text-sm text-[#888]">
-                    <div>• Stratospheric winds</div>
-                    <div>• Solar radiation</div>
-                    <div>• Temperature extremes</div>
-                    <div>• Ozone exposure</div>
-                    <div>• Station-keeping fuel</div>
+                  
+                  <div className="bg-[#0A0A0A] rounded-lg border border-[#1F1F1F] overflow-hidden">
+                    <div className="p-2 border-b border-[#1F1F1F] bg-[#111]">
+                      <span className="text-xs text-[#888] font-semibold">HIGH-ALTITUDE PLATFORMS STATUS</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-[#111] sticky top-0">
+                          <tr className="text-[#888] text-xs">
+                            <th className="p-2 text-left">PLATFORM ID</th>
+                            <th className="p-2 text-left">TYPE</th>
+                            <th className="p-2 text-left">ALTITUDE</th>
+                            <th className="p-2 text-left">LOCATION</th>
+                            <th className="p-2 text-left">STATUS</th>
+                            <th className="p-2 text-left">RISK</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {highAltitudeData.platforms?.map((platform, idx) => (
+                            <tr key={idx} className="border-t border-[#1F1F1F] hover:bg-[#111]">
+                              <td className="p-2 font-mono text-[#FFD700]">{platform.platform_id}</td>
+                              <td className="p-2">{platform.type}</td>
+                              <td className="p-2 font-mono">{platform.altitude_ft?.toLocaleString()} ft</td>
+                              <td className="p-2 text-xs">{platform.location}</td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                  platform.status === "OPERATIONAL" || platform.status === "NOMINAL" ? "bg-green-500/20 text-green-400" :
+                                  platform.status === "IN-TRANSIT" ? "bg-blue-500/20 text-blue-400" :
+                                  "bg-yellow-500/20 text-yellow-400"
+                                }`}>{platform.status}</span>
+                              </td>
+                              <td className="p-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  platform.risk === "LOW" ? "text-green-400" :
+                                  platform.risk === "MODERATE" ? "text-yellow-400" :
+                                  "text-red-400"
+                                }`}>{platform.risk}</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-                <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                  <div className="text-[#888] text-xs mb-1">FORECAST PARADIGM</div>
-                  <div className="text-sm text-[#FFD700]">TIME + ALTITUDE + TRAJECTORY</div>
-                  <div className="text-xs text-[#666] mt-2">Extended-duration risk assessment for persistent platforms</div>
-                </div>
-              </div>
-              <div className="bg-[#0A0A0A] p-4 rounded-lg border border-[#1F1F1F]">
-                <div className="text-[#888] text-xs mb-2">API ENDPOINT</div>
-                <code className="text-xs text-[#00FF94]">GET /api/risk/high-altitude/logistics/{'{flight_id}'}</code>
-                <div className="text-xs text-[#666] mt-2">Returns stratospheric risk bands. Example: "Platform HAPS-01 has 12% probability of station-keeping difficulty in next 6 hours at FL650."</div>
-              </div>
+                  
+                  <div className="mt-4 text-xs text-[#666] flex justify-end">
+                    <span>Last Update: {new Date(highAltitudeData.timestamp).toLocaleString()}</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
