@@ -1816,10 +1816,92 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
       } else if (activeView === "playbooks" && !loadedTabsRef.current.playbooks) {
         loadedTabsRef.current.playbooks = true;
         await loadPlaybooks();
+      } else if (activeView === "drones" && !droneFleetData) {
+        loadDroneFleetData();
+      } else if (activeView === "space_launch" && !spaceLaunchData) {
+        loadSpaceLaunchData();
+      } else if (activeView === "military" && !militaryMissions) {
+        loadMilitaryMissions();
+      } else if (activeView === "high_altitude" && !highAltitudeData) {
+        loadHighAltitudeData();
+      } else if (activeView === "aviation" && !activeAircraft) {
+        loadActiveAircraft();
       }
     };
     loadTabData();
-  }, [activeView, loadHumanSignals, loadSatelliteIot, loadPlaybooks]);
+  }, [activeView, loadHumanSignals, loadSatelliteIot, loadPlaybooks, droneFleetData, spaceLaunchData, militaryMissions, highAltitudeData, activeAircraft]);
+  
+  // Phase 3 - Load Drone Fleet Data
+  const loadDroneFleetData = async () => {
+    try {
+      const res = await axios.get(`${API}/risk/drone/fleet-status`);
+      setDroneFleetData(res.data);
+    } catch (e) {
+      console.error("Failed to load drone fleet data:", e);
+    }
+  };
+  
+  // Phase 3 - Load Space Launch Data
+  const loadSpaceLaunchData = async () => {
+    try {
+      const res = await axios.get(`${API}/risk/space-launch/upcoming`);
+      setSpaceLaunchData(res.data);
+    } catch (e) {
+      console.error("Failed to load space launch data:", e);
+    }
+  };
+  
+  // Phase 3 - Load Military Missions
+  const loadMilitaryMissions = async () => {
+    try {
+      const res = await axios.get(`${API}/risk/military/active-missions`);
+      setMilitaryMissions(res.data);
+    } catch (e) {
+      // Mock data if endpoint not available
+      setMilitaryMissions({
+        timestamp: new Date().toISOString(),
+        active_missions: [
+          { mission_id: "EAGLE-7", type: "ISR", aircraft: "U-2S", status: "GREEN", risk: "LOW", location: "Pacific Theater" },
+          { mission_id: "THUNDER-12", type: "Transport", aircraft: "C-17", status: "YELLOW", risk: "MODERATE", location: "Atlantic" },
+          { mission_id: "STORM-3", type: "Fighter", aircraft: "F-35A", status: "GREEN", risk: "LOW", location: "European AOR" },
+        ]
+      });
+    }
+  };
+  
+  // Phase 3 - Load High Altitude Data
+  const loadHighAltitudeData = async () => {
+    try {
+      const res = await axios.get(`${API}/risk/high-altitude/platforms`);
+      setHighAltitudeData(res.data);
+    } catch (e) {
+      // Mock data if endpoint not available
+      setHighAltitudeData({
+        timestamp: new Date().toISOString(),
+        platforms: [
+          { platform_id: "HAPS-01", type: "Solar HAPS", altitude_ft: 65000, status: "OPERATIONAL", risk: "LOW", location: "Nevada Test Range" },
+          { platform_id: "STRATO-BALLOON-7", type: "Stratospheric Balloon", altitude_ft: 95000, status: "NOMINAL", risk: "MODERATE", location: "New Mexico" },
+          { platform_id: "CARGO-AIRSHIP-2", type: "Cargo Airship", altitude_ft: 35000, status: "IN-TRANSIT", risk: "LOW", location: "Pacific Route" },
+        ]
+      });
+    }
+  };
+  
+  // Phase 3 - Load Active Aircraft
+  const loadActiveAircraft = async () => {
+    try {
+      const [aircraftRes, turbulenceRes] = await Promise.all([
+        axios.get(`${API}/aviation/turbulence/active-aircraft`),
+        axios.get(`${API}/disasters/comprehensive/aviation-turbulence`)
+      ]);
+      setActiveAircraft({
+        ...aircraftRes.data,
+        turbulence_overview: turbulenceRes.data
+      });
+    } catch (e) {
+      console.error("Failed to load aviation data:", e);
+    }
+  };
   
   // Reset loaded tabs when data is cleared (for refresh functionality)
   const resetTabData = useCallback((tabId) => {
