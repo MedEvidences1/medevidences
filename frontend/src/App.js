@@ -2255,7 +2255,7 @@ const Disasters = ({ getHeaders, pendingRemediation, clearPendingRemediation }) 
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <AlertConfiguration getHeaders={getHeaders} userRole={user?.role || 'user'} />
+              <AlertConfiguration getHeaders={getHeaders} userRole={'user'} />
             </CardContent>
           </Card>
         </div>
