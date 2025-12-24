@@ -13835,7 +13835,22 @@ async def login(user: UserLogin):
     token = create_session(db_user["id"])
     await db.sessions.insert_one({"token": token, "user_id": db_user["id"], "created_at": datetime.now(timezone.utc).isoformat()})
     
-    # Check trial status for non-paid users
+    # Admin users (owner, super_admin) have unlimited access - no trial
+    if user_role in ["owner", "super_admin", "admin"]:
+        return {
+            "user_id": db_user["id"], 
+            "token": token, 
+            "name": db_user["name"], 
+            "role": user_role, 
+            "plan": "enterprise",
+            "subscription_status": "active",
+            "has_unlimited_access": True,
+            "requires_payment": False,
+            "trial_expired": False,
+            "is_admin": True
+        }
+    
+    # Check trial status for non-admin users
     trial_info = {}
     if db_user.get("subscription_status") == "trial" and db_user.get("trial_expires_at"):
         trial_expires = datetime.fromisoformat(db_user["trial_expires_at"].replace('Z', '+00:00'))
