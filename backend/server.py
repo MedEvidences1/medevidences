@@ -13990,7 +13990,18 @@ async def reset_password(request: ResetPasswordRequest):
 
 @api_router.get("/auth/me", tags=["Authentication"])
 async def get_me(user: dict = Depends(get_current_user)):
-    return {k: v for k, v in user.items() if k != "password_hash"}
+    user_data = {k: v for k, v in user.items() if k != "password_hash"}
+    
+    # Add explicit admin/unlimited access flags for admin users
+    user_role = user.get("role", "user")
+    if user_role in ["owner", "super_admin", "admin"]:
+        user_data["has_unlimited_access"] = True
+        user_data["requires_payment"] = False
+        user_data["subscription_status"] = "active"
+        user_data["is_admin"] = True
+        user_data["trial_expired"] = False
+    
+    return user_data
 
 # =============================================================================
 # API ENDPOINTS - ADMIN AUTHENTICATION (Direct Login - No Verification)
