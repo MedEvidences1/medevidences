@@ -12303,7 +12303,7 @@ const AuthModal = ({ isOpen, onClose, login, register }) => {
       }
     } catch (e) {
       // Check if this is an admin email - don't fallback for admins
-      if (email === "parimal@plutuspredict.com" || e.response?.status === 401) {
+      if (email === "parimal@medevidences.com" || e.response?.status === 401) {
         toast.error(e.response?.data?.detail || "Admin login failed - please try again");
       } else {
         // Fallback to regular login endpoint for non-admin users
